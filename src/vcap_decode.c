@@ -26,19 +26,21 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <stdio.h>
+
 #define VCAP_CLIP(color) (uint8_t)(((color)>0xFF)?0xff:(((color)<0)?0:(color)))
 
-static void vcap_bgr24_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height);
-static void vcap_rgb24_to_bgr24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height);
-static void vcap_rgb565_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height);
-static void vcap_yuyv_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height);
-static void vcap_yvyu_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height);
-static void vcap_uyvy_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height);
-static void vcap_yuv420_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height);
-static void vcap_spca501_to_yuv420(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height);
-static void vcap_spca505_to_yuv420(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height);
-static void vcap_spca508_to_yuv420(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height);
-static void vcap_yvu420_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height);
+static void vcap_bgr24_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height);
+static void vcap_rgb24_to_bgr24(uint8_t *src, uint8_t *dst, int width, int height);
+static void vcap_rgb565_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height);
+static void vcap_yuyv_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height);
+static void vcap_yvyu_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height);
+static void vcap_uyvy_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height);
+static void vcap_yuv420_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height);
+static void vcap_spca501_to_yuv420(uint8_t *src, uint8_t *dst, int width, int height);
+static void vcap_spca505_to_yuv420(uint8_t *src, uint8_t *dst, int width, int height);
+static void vcap_spca508_to_yuv420(uint8_t *src, uint8_t *dst, int width, int height);
+static void vcap_yvu420_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height);
 
 int vcap_decode(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height, uint32_t format_code, uint8_t bgr) {
 	uint8_t *tmp_dst, *tmp_rgb, *tmp_yuv;
@@ -62,6 +64,8 @@ int vcap_decode(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height, uin
 	if (bgr) {
 		tmp_rgb = (uint8_t*)malloc(3 * width * height);
 		tmp_dst = tmp_rgb;
+	} else {
+		tmp_dst = dst;
 	}
 	
 	int converted = 0;
@@ -143,7 +147,7 @@ int vcap_decode(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height, uin
 	return -1;
 }
 
-static void vcap_bgr24_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height) {
+static void vcap_bgr24_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height) {
 	uint32_t pixels = width * height;
 	
 	while (pixels--) {
@@ -154,7 +158,7 @@ static void vcap_bgr24_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint
 	}
 }
 
-static void vcap_rgb24_to_bgr24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height) {
+static void vcap_rgb24_to_bgr24(uint8_t *src, uint8_t *dst, int width, int height) {
 	uint32_t pixels = width * height;
 	
 	while (pixels--) {
@@ -165,7 +169,7 @@ static void vcap_rgb24_to_bgr24(uint8_t *src, uint8_t *dst, uint32_t width, uint
 	}	
 }
 
-static void vcap_rgb565_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height) {
+static void vcap_rgb565_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height) {
 	while (height >= 0) {
 		for (int j = 0; j < width; j++) {
 			unsigned short tmp = *(unsigned short *)src;
@@ -180,7 +184,7 @@ static void vcap_rgb565_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uin
 	}
 }
 
-static void vcap_yuyv_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height) {
+static void vcap_yuyv_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height) {
 	while (--height >= 0) {
 		for (int j = 0; j < width; j += 2) {
 			int u = src[1];
@@ -202,7 +206,7 @@ static void vcap_yuyv_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint3
 	}
 }
 
-static void vcap_yvyu_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height) {
+static void vcap_yvyu_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height) {
 	while (--height >= 0) {
 		for (int j = 0; j < width; j += 2) {
 			int u = src[3];
@@ -224,7 +228,7 @@ static void vcap_yvyu_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint3
 	}
 }
 
-static void vcap_uyvy_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height) {
+static void vcap_uyvy_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height) {
 	while (--height >= 0) {
 		for (int j = 0; j < width; j += 2) {
 			int u = src[0];
@@ -246,7 +250,7 @@ static void vcap_uyvy_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint3
 	}
 }
 
-static void vcap_yuv420_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height) {
+static void vcap_yuv420_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height) {
 	const unsigned char *ysrc = src;
 	const unsigned char *usrc, *vsrc;
 	
@@ -282,7 +286,7 @@ static void vcap_yuv420_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uin
 	}
 }
 
-static void vcap_yvu420_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height) {
+static void vcap_yvu420_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height) {
 	const unsigned char *ysrc = src;
 	const unsigned char *usrc, *vsrc;
 	
@@ -318,7 +322,7 @@ static void vcap_yvu420_to_rgb24(uint8_t *src, uint8_t *dst, uint32_t width, uin
 	}
 }
 
-static void vcap_spca501_to_yuv420(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height) {
+static void vcap_spca501_to_yuv420(uint8_t *src, uint8_t *dst, int width, int height) {
 	unsigned long *lsrc = (unsigned long *)src;
 	
 	for (int i = 0; i < height; i += 2) {
@@ -356,7 +360,7 @@ static void vcap_spca501_to_yuv420(uint8_t *src, uint8_t *dst, uint32_t width, u
 	}
 }
 
-static void vcap_spca505_to_yuv420(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height) {
+static void vcap_spca505_to_yuv420(uint8_t *src, uint8_t *dst, int width, int height) {
 	unsigned long *lsrc = (unsigned long *)src;
 	
 	for (int i = 0; i < height; i += 2) {
@@ -386,7 +390,7 @@ static void vcap_spca505_to_yuv420(uint8_t *src, uint8_t *dst, uint32_t width, u
 	}
 }
 
-static void vcap_spca508_to_yuv420(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height) {
+static void vcap_spca508_to_yuv420(uint8_t *src, uint8_t *dst, int width, int height) {
 	unsigned long *lsrc = (unsigned long *)src;
 	
 	for (int i = 0; i < height; i += 2) {

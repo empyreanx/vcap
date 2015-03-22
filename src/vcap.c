@@ -19,7 +19,7 @@
 /*
  * Contains the most recent error message.
  */
-static char vcap_error_msg[1024];
+static char vcap_error_msg[1024] = "\0";
 
 /*
  * Sets the most recent error message.
@@ -124,6 +124,13 @@ static vcap_control_id_t vcap_convert_control_id(uint32_t id);
 static vcap_control_type_t vcap_convert_control_type(uint32_t type);
 
 /*
+ * Returns the most recent VCap error message.
+ */
+char* vcap_error() {
+	return vcap_error_msg;
+}
+
+/*
  * Allocates and initializes a camera handle.
  */
 vcap_camera_t* vcap_create_camera(const char* device) {
@@ -166,11 +173,20 @@ int vcap_destroy_camera(vcap_camera_t* camera) {
 /*
  * Destroys an array of cameras handles, releasing all resources in the process.
  */
-int vcap_destroy_cameras(vcap_camera_t** cameras, uint16_t num_cameras) {
+int vcap_destroy_cameras(vcap_camera_t* cameras, uint16_t num_cameras) {
 	for (int i = 0; i < num_cameras; i++) {
-		if (-1 == vcap_destroy_camera(cameras[i]))
-			return -1;
+		if (cameras[i].streaming) {
+			if (-1 == vcap_stop_capture(&cameras[i]))
+				return -1;
+		}
+	
+		if (cameras[i].opened) {
+			if (-1 == vcap_close_camera(&cameras[i]))
+				return -1;
+		}
 	}
+	
+	free(cameras);
 	
 	return 0;
 }
@@ -453,7 +469,7 @@ int vcap_set_format(vcap_camera_t* camera, uint32_t format_code, vcap_size_t siz
 /*
  * Retrieves all frame rates supported by the camera for a given format and frame size.
  */
-int vcap_get_frame_rates(vcap_camera_t* camera, int format_code, vcap_size_t size, uint16_t** frame_rates) {
+int vcap_get_frame_rates(vcap_camera_t* camera, uint32_t format_code, vcap_size_t size, uint16_t** frame_rates) {
 	struct v4l2_frmivalenum frenum;
 	
 	int index, num = 0;
@@ -636,6 +652,21 @@ int vcap_start_capture(vcap_camera_t *camera) {
 		return -1;
 	}
 	
+	//queue buffers
+	for (int i = 0; i < camera->num_buffers; i++) {
+		struct v4l2_buffer buf;
+		
+		VCAP_CLEAR(buf);
+		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		buf.memory = V4L2_MEMORY_MMAP;
+		buf.index = i;
+		
+		if (-1 == vcap_ioctl(camera->fd, VIDIOC_QBUF, &buf)) {
+			vcap_set_error("Unable to queue buffers on device %s (%s)", camera->device, strerror(errno));
+			return -1;
+		}
+	}
+	
 	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	
 	//turn on stream
@@ -643,6 +674,8 @@ int vcap_start_capture(vcap_camera_t *camera) {
 		vcap_set_error("Unable to turn on stream on device %s (%s)", camera->device, strerror(errno));
 		return -1;
 	}	
+	
+	camera->streaming = 1;
 	
 	return 0;
 }
@@ -681,7 +714,6 @@ int vcap_grab_frame(vcap_camera_t *camera, uint8_t **buffer) {
 	
 	//dequeue buffer
 	VCAP_CLEAR(buf);
-
 	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	buf.memory = V4L2_MEMORY_MMAP;
 	

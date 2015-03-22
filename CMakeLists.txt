@@ -29,5 +29,17 @@ add_library(vcap SHARED "src/vcap.c" "src/vcap_decode.c")
 
 link_directories(lib)
 
+# Info example
 add_executable(info "examples/info.c")
 target_link_libraries (info vcap)
+
+# SDL example
+find_package(SDL)
+
+if(SDL_FOUND)
+	include_directories(${SDL_INCLUDE_DIR})
+	add_executable(sdl "examples/sdl.c")
+	target_link_libraries(sdl vcap ${SDL_LIBRARY})
+else(SDL_FOUND)
+	message(WARNING "You need SDL1.2 install in order to build examples/sdl.cpp")
+endif(SDL_FOUND)

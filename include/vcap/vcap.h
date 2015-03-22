@@ -63,7 +63,7 @@ int vcap_cameras(vcap_camera_t** cameras);
 
 vcap_camera_t* vcap_create_camera(const char* device);
 int vcap_destroy_camera(vcap_camera_t* camera);
-int vcap_destroy_cameras(vcap_camera_t** cameras, uint16_t num_cameras);
+int vcap_destroy_cameras(vcap_camera_t* cameras, uint16_t num_cameras);
 
 int vcap_open_camera(vcap_camera_t* camera);
 int vcap_close_camera(vcap_camera_t* camera);
@@ -74,7 +74,7 @@ int vcap_get_formats(vcap_camera_t* camera, vcap_format_t** formats);
 int vcap_get_format(vcap_camera_t* camera, uint32_t *format_code, vcap_size_t* size);
 int vcap_set_format(vcap_camera_t* camera, uint32_t format_code, vcap_size_t size);
 
-int vcap_get_frame_rates(vcap_camera_t* camera, int format_code, vcap_size_t size, uint16_t** frame_rates);
+int vcap_get_frame_rates(vcap_camera_t* camera, uint32_t format_code, vcap_size_t size, uint16_t** frame_rates);
 int vcap_get_frame_rate(vcap_camera_t *camera, uint16_t* frame_rate);
 int vcap_set_frame_rate(vcap_camera_t *camera, uint16_t frame_rate);
 

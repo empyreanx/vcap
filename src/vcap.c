@@ -42,12 +42,17 @@ static int vcap_video_device_filter(const struct dirent *a);
 static void vcap_fourcc_str(uint32_t code, char* str);
 
 /*
- * Retreives frame sizes for a given format code.
+ * Retrieves the auto set priority associated with a particular format.
+ */
+static int vcap_format_priority(uint32_t code);
+
+/*
+ * Retrieves frame sizes for a given format code.
  */
 static int vcap_get_sizes(vcap_camera_t* camera, uint32_t format_code, vcap_size_t** sizes);
 
 /*
- * Retreives a given control's menu.
+ * Retrieves a given control's menu.
  */
 static int vcap_get_control_menu(vcap_camera_t* camera, vcap_control_id_t control_id, vcap_menu_item_t** menu);\
 
@@ -91,6 +96,24 @@ static uint32_t control_map[] = {
 };
 
 /*
+ * The index of this array represents the associated format's auto set priorty.
+ */
+static uint32_t format_priority_map[] = {
+	VCAP_FMT_RGB24,
+	VCAP_FMT_BGR24,
+	VCAP_FMT_RGB565,
+	VCAP_FMT_YUYV,
+	VCAP_FMT_YVYU,
+	VCAP_FMT_UYVY,
+	VCAP_FMT_YUV420,
+	VCAP_FMT_YVU420,
+	VCAP_FMT_SPCA501,
+	VCAP_FMT_SPCA505,
+	VCAP_FMT_SPCA508,
+	0
+};
+
+/*
  * Returns the VCap control ID corresponding to the V4L2 control ID.
  */
 static vcap_control_id_t vcap_convert_control_id(uint32_t id);
@@ -119,18 +142,37 @@ vcap_camera_t* vcap_create_camera(const char* device) {
 /*
  * Destroys a camera handle, releasing all resources in the process.
  */
-void vcap_destroy_camera(vcap_camera_t* camera) {
-	//should stop streaming, and close device
+int vcap_destroy_camera(vcap_camera_t* camera) {
+	if (NULL == camera) {
+		vcap_set_error("Cannot destroy null camera handle");
+		return -1;
+	}
+	
+	if (camera->streaming) {
+		if (-1 == vcap_stop_capture(camera))
+			return -1;
+	}
+	
+	if (camera->opened) {
+		if (-1 == vcap_close_camera(camera))
+			return -1;
+	}
+	
 	free(camera);
+	
+	return 0;
 }
 
 /*
  * Destroys an array of cameras handles, releasing all resources in the process.
  */
-void vcap_destroy_cameras(vcap_camera_t** cameras, uint16_t num_cameras) {
+int vcap_destroy_cameras(vcap_camera_t** cameras, uint16_t num_cameras) {
 	for (int i = 0; i < num_cameras; i++) {
-		vcap_destroy_camera(cameras[i]);
+		if (-1 == vcap_destroy_camera(cameras[i]))
+			return -1;
 	}
+	
+	return 0;
 }
 
 /*
@@ -243,7 +285,13 @@ int vcap_open_camera(vcap_camera_t* camera) {
 	}
 	
 	if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
-		vcap_set_error("Camera %s does not support streaming", camera->device);
+		vcap_set_error("Device %s does not support streaming", camera->device);
+		close(camera->fd);
+		return -1;
+	}
+	
+	//some cameras do not set a default format which results in a crash upon mapping buffers
+	if (-1 == vcap_auto_set_format(camera)) {
 		close(camera->fd);
 		return -1;
 	}
@@ -265,6 +313,11 @@ int vcap_close_camera(vcap_camera_t* camera) {
 		return -1;
 	}
 	
+	if (camera->streaming) {
+		if (-1 == vcap_stop_capture(camera))
+			return -1;
+	}
+	
 	if (-1 == close(camera->fd)) {
 		vcap_set_error("Unable to close device %s", camera->device);
 		return -1;
@@ -275,7 +328,41 @@ int vcap_close_camera(vcap_camera_t* camera) {
 }
 
 /*
- * Retreives all formats supported by the camera.
+ * Automatically sets the format on a camera based on the format's priority.
+ */
+int vcap_auto_set_format(vcap_camera_t* camera) {
+	vcap_format_t* formats;
+	
+	int num_formats = vcap_get_formats(camera, &formats);
+	
+	if (num_formats <= 0)
+		return -1;
+	
+	int min_priority = (sizeof(format_priority_map) / sizeof(uint32_t)) - 1;
+	int min_index;
+	
+	for (int i = 0; i < num_formats; i++) {
+		int priority = vcap_format_priority(formats[i].code);
+		
+		if (priority >= 0 && priority < min_priority) {
+			min_priority = priority;
+			min_index = i;
+		}
+	}
+	
+	if (format_priority_map[min_priority]) {
+		if (-1 == vcap_set_format(camera, formats[min_index].code, formats[min_index].sizes[0]))
+			return -1;
+	} else {
+		if (-1 == vcap_set_format(camera, formats[0].code, formats[0].sizes[0])) 
+			return -1;
+	}
+	
+	return 0;
+}
+
+/*
+ * Retrieves all formats supported by the camera.
  */
 int vcap_get_formats(vcap_camera_t* camera, vcap_format_t** formats) {
 	struct v4l2_fmtdesc fmtd;
@@ -323,7 +410,7 @@ int vcap_get_formats(vcap_camera_t* camera, vcap_format_t** formats) {
 }
 
 /*
- * Retreives the camera's format.
+ * Retrieves the camera's format.
  */
 int vcap_get_format(vcap_camera_t* camera, uint32_t *format_code, vcap_size_t* size) {
 	struct v4l2_format fmt;
@@ -397,7 +484,7 @@ int vcap_get_frame_rates(vcap_camera_t* camera, int format_code, vcap_size_t siz
 }
 
 /*
- * Retreives the camera's current frame rate.
+ * Retrieves the camera's current frame rate.
  */
 int vcap_get_frame_rate(vcap_camera_t *camera, uint16_t* frame_rate) {
 	struct v4l2_streamparm parm;
@@ -432,6 +519,9 @@ int vcap_set_frame_rate(vcap_camera_t *camera, uint16_t frame_rate) {
 	return 0;
 }
 
+/*
+ * Retrieves all supported camera controls.
+ */
 int vcap_get_controls(vcap_camera_t* camera, vcap_control_t** controls) {
 	if (!camera->opened)
 		return -1;
@@ -583,6 +673,9 @@ int vcap_stop_capture(vcap_camera_t *camera) {
 	return 0;
 }
 
+/*
+ * Allocates a buffer, grabs an images from the camera, and stores it in the buffer.
+ */
 int vcap_grab_frame(vcap_camera_t *camera, uint8_t **buffer) {
 	struct v4l2_buffer buf;
 	
@@ -651,6 +744,15 @@ static void vcap_fourcc_str(uint32_t code, char* str) {
 	str[2] = (code >> 16) & 0xFF;
 	str[3] = (code >> 24) & 0xFF;
 	str[4] = '\0';
+}
+
+static int vcap_format_priority(uint32_t code) {
+	for (int i = 0; format_priority_map[i]; i++) {
+		if (format_priority_map[i] == code)
+			return i;
+	}
+	
+	return -1;
 }
 
 static vcap_control_id_t vcap_convert_control_id(uint32_t id) {

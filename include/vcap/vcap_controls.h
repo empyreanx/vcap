@@ -1,6 +1,14 @@
 #ifndef _VCAP_CONTROLS_H
 #define _VCAP_CONTROLS_H
 
+/**
+ * \file
+ * \brief Camera control IDs and types.
+ */
+
+/**
+ * \brief Camera control IDs.
+ */
 typedef enum {
 	VCAP_CTRL_BRIGHTNESS,
 	VCAP_CTRL_CONTRAST,
@@ -27,6 +35,9 @@ typedef enum {
 	VCAP_CTRL_INVALID
 } vcap_control_id_t;
 
+/**
+ * \brief Camera control types.
+ */
 typedef enum {
 	VCAP_CTRL_TYPE_RANGE,
 	VCAP_CTRL_TYPE_BOOLEAN,

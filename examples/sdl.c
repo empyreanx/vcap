@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 	}
 	
 	//open the first camera found
-	vcap_camera_t* camera = &cameras[1];
+	vcap_camera_t* camera = &cameras[0];
 	vcap_open_camera(camera);
 	
 	//obtain the currently selected format

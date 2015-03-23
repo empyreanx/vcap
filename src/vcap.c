@@ -354,6 +354,7 @@ int vcap_auto_set_format(vcap_camera_t* camera) {
 	if (num_formats <= 0)
 		return -1;
 	
+	//determine highest (lower index is higher priority) priority format
 	int min_priority = (sizeof(format_priority_map) / sizeof(uint32_t)) - 1;
 	int min_index;
 	
@@ -366,13 +367,31 @@ int vcap_auto_set_format(vcap_camera_t* camera) {
 		}
 	}
 	
+	//set format accordingly
+	uint32_t format_code;
+	vcap_size_t size;
+	
 	if (format_priority_map[min_priority]) {
-		if (-1 == vcap_set_format(camera, formats[min_index].code, formats[min_index].sizes[0]))
-			return -1;
+		format_code = formats[min_index].code;
+		size = formats[min_index].sizes[0];
 	} else {
-		if (-1 == vcap_set_format(camera, formats[0].code, formats[0].sizes[0])) 
-			return -1;
+		format_code = formats[0].code;
+		size = formats[0].sizes[0];
 	}
+	
+	if (-1 == vcap_set_format(camera, format_code, size))
+		return -1;
+	
+	//set frame rate, not sure if this is needed
+	/*uint16_t* frame_rates;
+		
+	int num_frame_rates = vcap_get_frame_rates(camera, format_code, size, &frame_rates);
+	
+	if (-1 == num_frame_rates)
+		return -1;
+		
+	if (-1 == vcap_set_frame_rate(camera, frame_rates[0]))
+		return -1;*/
 	
 	return 0;
 }
@@ -426,7 +445,7 @@ int vcap_get_formats(vcap_camera_t* camera, vcap_format_t** formats) {
 }
 
 /*
- * Retrieves the camera's format.
+ * Retrieves the camera's current format.
  */
 int vcap_get_format(vcap_camera_t* camera, uint32_t *format_code, vcap_size_t* size) {
 	struct v4l2_format fmt;
@@ -602,7 +621,7 @@ int vcap_get_controls(vcap_camera_t* camera, vcap_control_t** controls) {
 }
 
 /*
- * Retrieves a control's value.
+ * Retrieves a control's current value.
  */
 int vcap_get_control_value(vcap_camera_t* camera, vcap_control_id_t control_id, int32_t* value) {
 	struct v4l2_control ctrl;
@@ -707,7 +726,7 @@ int vcap_stop_capture(vcap_camera_t *camera) {
 }
 
 /*
- * Allocates a buffer, grabs an images from the camera, and stores it in the buffer.
+ * Allocates a buffer, grabs an image from the camera and stores it in the buffer.
  */
 int vcap_grab_frame(vcap_camera_t *camera, uint8_t **buffer) {
 	struct v4l2_buffer buf;

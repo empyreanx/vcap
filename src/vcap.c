@@ -751,6 +751,14 @@ int vcap_set_control_value(vcap_camera_t* camera, vcap_control_id_t control_id, 
 }
 
 /*
+ * Copies a menu item.
+ */
+void vcap_copy_menu_item(vcap_menu_item_t* src, vcap_menu_item_t* dst) {
+	strncpy(dst->name, src->name, sizeof(src->name));
+	dst->value = src->value;
+}
+
+/*
  * Start stream.
  */
 int vcap_start_capture(vcap_camera_t *camera) {

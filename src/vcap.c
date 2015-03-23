@@ -49,7 +49,7 @@ static int vcap_format_priority(uint32_t code);
 /*
  * Retrieves frame sizes for a given format code.
  */
-static int vcap_get_sizes(vcap_camera_t* camera, uint32_t format_code, vcap_size_t** sizes);
+static int vcap_get_sizes(vcap_camera_t* camera, uint32_t format_code, uint32_t** widths, uint32_t** heights);
 
 /*
  * Retrieves a given control's menu.
@@ -368,18 +368,19 @@ int vcap_auto_set_format(vcap_camera_t* camera) {
 	}
 	
 	//set format accordingly
-	uint32_t format_code;
-	vcap_size_t size;
+	uint32_t format_code, width, height;
 	
 	if (format_priority_map[min_priority]) {
 		format_code = formats[min_index].code;
-		size = formats[min_index].sizes[0];
+		width = formats[min_index].widths[0];
+		height = formats[min_index].heights[0];
 	} else {
 		format_code = formats[0].code;
-		size = formats[0].sizes[0];
+		width = formats[0].widths[0];
+		height = formats[0].heights[0];
 	}
 	
-	if (-1 == vcap_set_format(camera, format_code, size))
+	if (-1 == vcap_set_format(camera, format_code, width, height))
 		return -1;
 	
 	//set frame rate, not sure if this is needed
@@ -424,15 +425,15 @@ int vcap_get_formats(vcap_camera_t* camera, vcap_format_t** formats) {
 		//copy description
 		strncpy(format->desc, (char*)fmtd.description, 32 * sizeof(char));
 		
-		uint8_t num_sizes = vcap_get_sizes(camera, format->code, &format->sizes);
+		uint8_t sizes = vcap_get_sizes(camera, format->code, &format->widths, &format->heights);
 		
-		if (-1 == num_sizes) {
+		if (-1 == sizes) {
 			vcap_set_error("Could not get frame sizes for format %d on device %s", format->code, camera->device);
 			free(*formats);
 			return -1;
 		}
-		
-		format->num_sizes = num_sizes;
+
+		format->sizes = sizes;
 		
 		num++;
 		
@@ -447,7 +448,7 @@ int vcap_get_formats(vcap_camera_t* camera, vcap_format_t** formats) {
 /*
  * Retrieves the camera's current format.
  */
-int vcap_get_format(vcap_camera_t* camera, uint32_t *format_code, vcap_size_t* size) {
+int vcap_get_format(vcap_camera_t* camera, uint32_t* format_code, uint32_t* width, uint32_t* height) {
 	struct v4l2_format fmt;
 	
 	VCAP_CLEAR(fmt);
@@ -459,8 +460,8 @@ int vcap_get_format(vcap_camera_t* camera, uint32_t *format_code, vcap_size_t* s
 	}
 	
 	*format_code = fmt.fmt.pix.pixelformat;
-	size->width = fmt.fmt.pix.width;
-	size->height = fmt.fmt.pix.height;
+	*width = fmt.fmt.pix.width;
+	*height = fmt.fmt.pix.height;
 	
 	return 0;
 }
@@ -468,12 +469,12 @@ int vcap_get_format(vcap_camera_t* camera, uint32_t *format_code, vcap_size_t* s
 /*
  * Sets the camera's format.
  */
-int vcap_set_format(vcap_camera_t* camera, uint32_t format_code, vcap_size_t size) {
+int vcap_set_format(vcap_camera_t* camera, uint32_t format_code, uint32_t width, uint32_t height) {
 	struct v4l2_format fmt;
 	
 	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	fmt.fmt.pix.width = size.width;
-	fmt.fmt.pix.height = size.height;
+	fmt.fmt.pix.width = width;
+	fmt.fmt.pix.height = height;
 	fmt.fmt.pix.pixelformat = format_code;
 	fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
 	
@@ -488,7 +489,7 @@ int vcap_set_format(vcap_camera_t* camera, uint32_t format_code, vcap_size_t siz
 /*
  * Retrieves all frame rates supported by the camera for a given format and frame size.
  */
-int vcap_get_frame_rates(vcap_camera_t* camera, uint32_t format_code, vcap_size_t size, uint16_t** frame_rates) {
+int vcap_get_frame_rates(vcap_camera_t* camera, uint32_t format_code, uint32_t width, uint32_t height, uint16_t** frame_rates) {
 	struct v4l2_frmivalenum frenum;
 	
 	int index, num = 0;
@@ -498,8 +499,8 @@ int vcap_get_frame_rates(vcap_camera_t* camera, uint32_t format_code, vcap_size_
 	VCAP_CLEAR(frenum);
 	frenum.index = index = 0;
 	frenum.pixel_format = format_code;
-	frenum.width = size.width;
-	frenum.height = size.height;
+	frenum.width = width;
+	frenum.height = height;
 	
 	while (-1 != vcap_ioctl(camera->fd, VIDIOC_ENUM_FRAMEINTERVALS, &frenum)) {
 		if (V4L2_FRMIVAL_TYPE_DISCRETE == frenum.type) {
@@ -511,8 +512,8 @@ int vcap_get_frame_rates(vcap_camera_t* camera, uint32_t format_code, vcap_size_
 		VCAP_CLEAR(frenum);
 		frenum.index = ++index;
 		frenum.pixel_format = format_code;
-		frenum.width = size.width;
-		frenum.height = size.height;
+		frenum.width = width;
+		frenum.height = height;
 	}
 	
 	return num;
@@ -834,12 +835,13 @@ static vcap_control_type_t vcap_convert_control_type(uint32_t type) {
 	}
 }
 
-static int vcap_get_sizes(vcap_camera_t* camera, uint32_t format_code, vcap_size_t** sizes) {
+static int vcap_get_sizes(vcap_camera_t* camera, uint32_t format_code, uint32_t** widths, uint32_t** heights) {
 	struct v4l2_frmsizeenum fenum;
 	
 	int index, num = 0;
 	
-	*sizes = NULL;
+	*widths = NULL;
+	*heights = NULL;
 
 	VCAP_CLEAR(fenum);
 	fenum.index = index = 0;
@@ -847,10 +849,11 @@ static int vcap_get_sizes(vcap_camera_t* camera, uint32_t format_code, vcap_size
 	
 	while (-1 != vcap_ioctl(camera->fd, VIDIOC_ENUM_FRAMESIZES, &fenum)) {
 		if (fenum.type == V4L2_FRMSIZE_TYPE_DISCRETE) {
-			*sizes = (vcap_size_t*)realloc(*sizes, (num + 1) * sizeof(vcap_size_t));
+			*widths = (uint32_t*)realloc(*widths, (num + 1) * sizeof(uint32_t));
+			*heights = (uint32_t*)realloc(*heights, (num + 1) * sizeof(uint32_t));
 			
-			(*sizes)[num].width = fenum.discrete.width;
-			(*sizes)[num].height = fenum.discrete.height;
+			(*widths)[num] = fenum.discrete.width;
+			(*heights)[num] = fenum.discrete.height;
 			
 			num++;
 		}

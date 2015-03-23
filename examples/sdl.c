@@ -62,16 +62,15 @@ int main(int argc, char* argv[]) {
 	}
 	
 	//obtain the currently selected format
-	uint32_t format_code;
-	vcap_size_t size;
+	uint32_t format_code, width, height;
 	
-	if (-1 == vcap_get_format(camera, &format_code, &size)) {
+	if (-1 == vcap_get_format(camera, &format_code, &width, &height)) {
 		printf("Error: %s\n", vcap_error());
 		return -1;
 	}
 	
 	//allocated a buffer to store the decoded RGB image
-	uint8_t* rgb_buffer = (uint8_t*)malloc(3 * size.width * size.height);
+	uint8_t* rgb_buffer = (uint8_t*)malloc(3 * width * height);
 	
 	//start capturing
 	if (-1 == vcap_start_capture(camera)) {
@@ -84,7 +83,7 @@ int main(int argc, char* argv[]) {
 	
 	sdl_context_t sdl_ctx;
 	
-	sdl_init(&sdl_ctx, size.width, size.height);
+	sdl_init(&sdl_ctx, width, height);
 	
 	SDL_Event event;
 	
@@ -101,7 +100,7 @@ int main(int argc, char* argv[]) {
 			return -1;
 		}
 		
-		if (-1 == vcap_decode(raw_buffer, rgb_buffer, size.width, size.height, format_code, 0)) {
+		if (-1 == vcap_decode(raw_buffer, rgb_buffer, width, height, format_code, 0)) {
 			printf("Error: Unable to decode frame; format not supported\n");
 			return -1;
 		}

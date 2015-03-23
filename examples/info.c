@@ -30,7 +30,6 @@ int main(int argc, char** argv) {
 		vcap_format_t* formats;
 		
 		int num_formats = vcap_get_formats(camera, &formats);
-		
 		/*
 		 * Iterate through formats.
 		 */
@@ -40,12 +39,12 @@ int main(int argc, char** argv) {
 			/*
 			 * Iterate through frame sizes.
 			 */
-			for (int k = 0; k < formats[j].num_sizes; k++) {
-				printf("\t%dx%d", formats[j].sizes[k].width, formats[j].sizes[k].height);
+			for (int k = 0; k < formats[j].sizes; k++) {
+				printf("\t%dx%d", formats[j].widths[k], formats[j].heights[k]);
 				
 				uint16_t* frame_rates;
 				
-				int num_frame_rates = vcap_get_frame_rates(camera, formats[j].code, formats[j].sizes[k], &frame_rates);
+				int num_frame_rates = vcap_get_frame_rates(camera, formats[j].code, formats[j].widths[k], formats[j].heights[k], &frame_rates);
 				
 				if (num_frame_rates > 0) {
 					printf(" (FPS: ");

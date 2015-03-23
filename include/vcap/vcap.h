@@ -15,22 +15,15 @@
  */
 
 /**
- * \brief Camera frame size.
- */
-typedef struct {
-	uint32_t width;				//!< Frame width
-	uint32_t height;			//!< Frame height
-} vcap_size_t;
-
-/**
  * \brief Camera format descriptor.
  */
 typedef struct {
 	uint32_t code;				//!< FOURCC pixel format code
 	char code_str[5];			//!< FOURCC pixel format string
 	char desc[32];				//!< Format description
-	uint8_t num_sizes;			//!< Number of frame sizes for this format
-	vcap_size_t *sizes;			//!< Frame sizes associated with this format
+	uint8_t sizes;				//!< Number of frame sizes for this format
+	uint32_t* widths;			//!< Frame widths
+	uint32_t* heights;			//!< Frame heights
 } vcap_format_t;
 
 /**
@@ -107,6 +100,11 @@ int vcap_destroy_camera(vcap_camera_t* camera);
 int vcap_destroy_cameras(vcap_camera_t* cameras, uint16_t num_cameras);
 
 /**
+ * \brief Copies a camera handle.
+ */
+int vcap_copy_camera(vcap_camera_t* src, vcap_camera_t* dst);
+
+/**
  * \brief Opens the underlying device.
  */
 int vcap_open_camera(vcap_camera_t* camera);
@@ -129,17 +127,32 @@ int vcap_get_formats(vcap_camera_t* camera, vcap_format_t** formats);
 /**
  * \brief Retrieves the camera's current format.
  */
-int vcap_get_format(vcap_camera_t* camera, uint32_t *format_code, vcap_size_t* size);
+int vcap_get_format(vcap_camera_t* camera, uint32_t *format_code, uint32_t *width, uint32_t* height);
 
 /**
  * \brief Sets the camera's format.
  */
-int vcap_set_format(vcap_camera_t* camera, uint32_t format_code, vcap_size_t size);
+int vcap_set_format(vcap_camera_t* camera, uint32_t format_code, uint32_t width, uint32_t height);
+
+/**
+ * \brief Destroys a format descriptor.
+ */
+int vcap_destroy_format(vcap_format_t* format);
+
+/**
+ * \brief Destroys an array of format descriptors.
+ */
+int vcap_destroy_formats(vcap_format_t* formats, uint16_t num_formats);
+
+/**
+ * \brief Copies a format descriptor.
+ */
+int vcap_copy_format(vcap_format_t* src, vcap_format_t* dst);
 
 /**
  * \brief Retrieves all frame rates supported by the camera for a given format and frame size.
  */
-int vcap_get_frame_rates(vcap_camera_t* camera, uint32_t format_code, vcap_size_t size, uint16_t** frame_rates);
+int vcap_get_frame_rates(vcap_camera_t* camera, uint32_t format_code, uint32_t width, uint32_t height, uint16_t** frame_rates);
 
 /**
  * \brief Retrieves the camera's current frame rate.
@@ -155,6 +168,21 @@ int vcap_set_frame_rate(vcap_camera_t *camera, uint16_t frame_rate);
  * \brief Retrieves all supported camera controls.
  */
 int vcap_get_controls(vcap_camera_t* camera, vcap_control_t** controls);
+
+/**
+ * \brief Destroys a format descriptor.
+ */
+int vcap_destroy_control(vcap_control_t* control);
+
+/**
+ * \brief Destroys an array of control descriptors.
+ */
+int vcap_destroy_controls(vcap_control_t* controls, uint16_t num_controls);
+
+/**
+ * \brief Copies a control descriptor.
+ */
+int vcap_copy_control(vcap_control_t* src, vcap_control_t* dst);
 
 /**
  * \brief Retrieves a control's current value.

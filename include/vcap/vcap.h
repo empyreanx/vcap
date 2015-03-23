@@ -82,7 +82,7 @@ typedef struct {
 } vcap_camera_t;
 
 /**
- * \brief Returns the last VCap error message. This function is not thread-safe.
+ * \brief Returns the last Vcap error message. This function is not thread-safe.
  */
 char* vcap_error();
 

@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
 	
 	if (num_cameras <= 0) {
 		printf("No cameras found!\n");
-		return 0;
+		return -1;
 	}
 	
 	printf("------------------------------------------------------\n");
@@ -25,11 +25,20 @@ int main(int argc, char** argv) {
 		printf("Driver: %s\n", camera->driver);
 		printf("Info: %s\n", camera->info);
 		
-		vcap_open_camera(camera);
+		if (-1 == vcap_open_camera(camera)) {
+			printf("Error: %s\n", vcap_error());
+			return -1;
+		}
 		
 		vcap_format_t* formats;
 		
 		int num_formats = vcap_get_formats(camera, &formats);
+		
+		if (-1 == num_formats) {
+			printf("Error: %s\n", vcap_error());
+			return -1;
+		}
+		
 		/*
 		 * Iterate through formats.
 		 */
@@ -45,6 +54,11 @@ int main(int argc, char** argv) {
 				uint16_t* frame_rates;
 				
 				int num_frame_rates = vcap_get_frame_rates(camera, formats[j].code, formats[j].widths[k], formats[j].heights[k], &frame_rates);
+				
+				if (-1 == num_frame_rates) {
+					printf("Error: %s\n", vcap_error());
+					return -1;
+				}
 				
 				if (num_frame_rates > 0) {
 					printf(" (FPS: ");
@@ -64,11 +78,18 @@ int main(int argc, char** argv) {
 				
 				printf("\n");
 			}
+			
+			vcap_destroy_formats(formats, num_formats);
 		}
 		
 		vcap_control_t* controls;
 		
 		int num_controls = vcap_get_controls(camera, &controls);
+		
+		if (-1 == num_controls) {
+			printf("Error: %s\n", vcap_error());
+			return -1;
+		}
 		
 		if (num_controls > 0) {
 			printf("Controls:\n");
@@ -97,11 +118,21 @@ int main(int argc, char** argv) {
 				
 				printf("\n");
 			}
+			
+			vcap_destroy_controls(controls, num_controls);
 		}
 		
-		vcap_close_camera(camera);
+		if (-1 == vcap_close_camera(camera)) {
+			printf("Error: %s\n", vcap_error());
+			return -1;
+		}
 		
 		printf("------------------------------------------------------\n");
+	}
+	
+	if (-1 == vcap_destroy_cameras(cameras, num_cameras)) {
+		printf("Error: %s\n", vcap_error());
+		return -1;
 	}
 	
 	return 0;

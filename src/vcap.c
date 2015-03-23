@@ -380,6 +380,8 @@ int vcap_auto_set_format(vcap_camera_t* camera) {
 		height = formats[0].heights[0];
 	}
 	
+	vcap_destroy_formats(formats, num_formats);
+	
 	if (-1 == vcap_set_format(camera, format_code, width, height))
 		return -1;
 	
@@ -486,6 +488,51 @@ int vcap_set_format(vcap_camera_t* camera, uint32_t format_code, uint32_t width,
 	return 0;
 }
 
+/**
+ * Destroys a format descriptor.
+ */
+void vcap_destroy_format(vcap_format_t* format) {
+	if (format->sizes > 0) {
+		free(format->widths);
+		free(format->heights);
+	}
+	
+	free(format);
+}
+
+/**
+ * Destroys an array of format descriptors.
+ */
+void vcap_destroy_formats(vcap_format_t* formats, uint16_t num_formats) {
+	for (int i = 0; i < num_formats; i++) {
+		if (formats[i].sizes > 0) {
+			free(formats[i].widths);
+			free(formats[i].heights);
+		}
+	}
+	
+	free(formats);
+}
+
+/**
+ * Copies a format descriptor.
+ */
+void vcap_copy_format(vcap_format_t* src, vcap_format_t* dst) {
+	dst->code = src->code;
+	strncpy(dst->code_str, src->code_str, sizeof(src->code_str));
+	strncpy(dst->desc, src->desc, sizeof(src->desc));
+	
+	if (src->sizes > 0) {
+		dst->sizes = src->sizes;
+		dst->widths = (uint32_t*)malloc(src->sizes * sizeof(uint32_t));
+		dst->heights = (uint32_t*)malloc(src->sizes * sizeof(uint32_t));
+		memcpy(dst->widths, src->widths, src->sizes * sizeof(uint32_t));
+		memcpy(dst->heights, src->heights, src->sizes * sizeof(uint32_t));
+	} else {
+		dst->sizes = 0;
+	}
+}
+
 /*
  * Retrieves all frame rates supported by the camera for a given format and frame size.
  */
@@ -581,6 +628,7 @@ int vcap_get_controls(vcap_camera_t* camera, vcap_control_t** controls) {
 			
 			if (VCAP_CTRL_INVALID != id && VCAP_CTRL_TYPE_INVALID != type) {
 				vcap_control_t* control = &(*controls)[num];
+				
 				control->id = id;
 				control->type = type;
 				control->default_value = qctrl.default_value;
@@ -619,6 +667,50 @@ int vcap_get_controls(vcap_camera_t* camera, vcap_control_t** controls) {
 	}
 	
 	return num;
+}
+
+/**
+ * Destroys a control descriptor.
+ */
+void vcap_destroy_control(vcap_control_t* control) {
+	if (control->menu_length > 0)
+		free(control->menu);
+	
+	free(control);
+}
+
+/**
+ * Destroys an array of control descriptors.
+ */
+void vcap_destroy_controls(vcap_control_t* controls, uint16_t num_controls) {
+	for (int i = 0; i < num_controls; i++) {
+		if (controls[i].menu_length > 0)
+			free(controls[i].menu);
+	}
+	
+	free(controls);
+}
+
+/**
+ * Copies a control descriptor.
+ */
+void vcap_copy_control(vcap_control_t* src, vcap_control_t* dst) {
+	strncpy(dst->name, src->name, sizeof(src->name));
+	
+	dst->id = src->id;
+	dst->type = src->type;
+	dst->min = src->min;
+	dst->max = src->max;
+	dst->step = src->step;
+	dst->default_value = src->default_value;
+	
+	if (src->menu_length > 0) {
+		dst->menu_length = src->menu_length;
+		dst->menu = (vcap_menu_item_t*)malloc(src->menu_length * sizeof(vcap_menu_item_t));
+		memcpy(dst->menu, src->menu, src->menu_length * sizeof(vcap_menu_item_t));
+	} else {
+		dst->menu_length = 0;
+	}
 }
 
 /*

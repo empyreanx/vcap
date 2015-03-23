@@ -33,6 +33,10 @@ link_directories(lib)
 add_executable(info "examples/info.c")
 target_link_libraries (info vcap)
 
+# Grab example
+add_executable(grab "examples/grab.c")
+target_link_libraries (grab vcap)
+
 # SDL example
 find_package(SDL)
 

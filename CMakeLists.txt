@@ -37,6 +37,17 @@ target_link_libraries (info vcap)
 add_executable(grab "examples/grab.c")
 target_link_libraries (grab vcap)
 
+# PNG example
+find_package(PNG)
+
+if(PNG_FOUND)
+	include_directories(${PNG_INCLUDE_DIR})
+	add_executable(png "examples/png.c")
+	target_link_libraries(png vcap ${PNG_LIBRARY})
+else(PNG_FOUND)
+	message(WARNING "You need libPNG install in order to build examples/png.c")
+endif(PNG_FOUND)
+
 # SDL example
 find_package(SDL)
 
@@ -45,5 +56,5 @@ if(SDL_FOUND)
 	add_executable(sdl "examples/sdl.c")
 	target_link_libraries(sdl vcap ${SDL_LIBRARY})
 else(SDL_FOUND)
-	message(WARNING "You need SDL1.2 install in order to build examples/sdl.cpp")
+	message(WARNING "You need SDL1.2 install in order to build examples/sdl.c")
 endif(SDL_FOUND)

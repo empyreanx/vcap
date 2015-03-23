@@ -40,5 +40,6 @@ doc/**
 examples/info
 examples/grab
 examples/sdl
+examples/png
 image.raw
-
+image.png

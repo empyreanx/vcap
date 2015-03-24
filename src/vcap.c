@@ -49,12 +49,12 @@ static int vcap_format_priority(uint32_t code);
 /*
  * Retrieves frame sizes for a given format code.
  */
-static int vcap_get_sizes(vcap_camera_t* camera, uint32_t format_code, uint32_t** widths, uint32_t** heights);
+static int vcap_get_sizes(vcap_camera_t* camera, uint32_t format_code, vcap_size_t** sizes);
 
 /*
  * Retrieves a given control's menu.
  */
-static int vcap_get_control_menu(vcap_camera_t* camera, vcap_control_id_t control_id, vcap_menu_item_t** menu);\
+static int vcap_get_control_menu(vcap_camera_t* camera, vcap_control_id_t control_id, vcap_menu_item_t** menu);
 
 /*
  * Maps internal buffers.
@@ -399,12 +399,12 @@ int vcap_auto_set_format(vcap_camera_t* camera) {
 	
 	if (format_priority_map[min_priority]) {
 		format_code = formats[min_index].code;
-		width = formats[min_index].widths[0];
-		height = formats[min_index].heights[0];
+		width = formats[min_index].sizes[0].width;
+		height = formats[min_index].sizes[0].height;
 	} else {
 		format_code = formats[0].code;
-		width = formats[0].widths[0];
-		height = formats[0].heights[0];
+		width = formats[0].sizes[0].width;
+		height = formats[0].sizes[0].height;
 	}
 	
 	vcap_destroy_formats(formats, num_formats);
@@ -454,15 +454,15 @@ int vcap_get_formats(vcap_camera_t* camera, vcap_format_t** formats) {
 		//copy description
 		strncpy(format->desc, (char*)fmtd.description, 32 * sizeof(char));
 		
-		uint8_t sizes = vcap_get_sizes(camera, format->code, &format->widths, &format->heights);
+		uint8_t num_sizes = vcap_get_sizes(camera, format->code, &format->sizes);
 		
-		if (-1 == sizes) {
+		if (-1 == num_sizes) {
 			vcap_set_error("Could not get frame sizes for format %d on device %s", format->code, camera->device);
 			free(*formats);
 			return -1;
 		}
 
-		format->sizes = sizes;
+		format->num_sizes = num_sizes;
 		
 		num++;
 		
@@ -520,8 +520,7 @@ int vcap_set_format(vcap_camera_t* camera, uint32_t format_code, uint32_t width,
  */
 void vcap_destroy_format(vcap_format_t* format) {
 	if (format->sizes > 0) {
-		free(format->widths);
-		free(format->heights);
+		free(format->sizes);
 	}
 	
 	free(format);
@@ -533,8 +532,7 @@ void vcap_destroy_format(vcap_format_t* format) {
 void vcap_destroy_formats(vcap_format_t* formats, uint16_t num_formats) {
 	for (int i = 0; i < num_formats; i++) {
 		if (formats[i].sizes > 0) {
-			free(formats[i].widths);
-			free(formats[i].heights);
+			free(formats[i].sizes);
 		}
 	}
 	
@@ -549,14 +547,12 @@ void vcap_copy_format(vcap_format_t* src, vcap_format_t* dst) {
 	strncpy(dst->code_str, src->code_str, sizeof(src->code_str));
 	strncpy(dst->desc, src->desc, sizeof(src->desc));
 	
-	if (src->sizes > 0) {
-		dst->sizes = src->sizes;
+	if (src->num_sizes > 0) {
+		dst->num_sizes = src->num_sizes;
 		
-		dst->widths = (uint32_t*)malloc(src->sizes * sizeof(uint32_t));
-		dst->heights = (uint32_t*)malloc(src->sizes * sizeof(uint32_t));
+		dst->sizes = (vcap_size_t*)malloc(src->num_sizes * sizeof(vcap_size_t));
 		
-		memcpy(dst->widths, src->widths, src->sizes * sizeof(uint32_t));
-		memcpy(dst->heights, src->heights, src->sizes * sizeof(uint32_t));
+		memcpy(dst->sizes, src->sizes, src->num_sizes * sizeof(vcap_size_t));
 	} else {
 		dst->sizes = 0;
 	}
@@ -964,13 +960,12 @@ static vcap_control_type_t vcap_convert_control_type(uint32_t type) {
 	}
 }
 
-static int vcap_get_sizes(vcap_camera_t* camera, uint32_t format_code, uint32_t** widths, uint32_t** heights) {
+static int vcap_get_sizes(vcap_camera_t* camera, uint32_t format_code, vcap_size_t** sizes) {
 	struct v4l2_frmsizeenum fenum;
 	
 	int index, num = 0;
 	
-	*widths = NULL;
-	*heights = NULL;
+	*sizes = NULL;
 
 	VCAP_CLEAR(fenum);
 	fenum.index = index = 0;
@@ -978,11 +973,10 @@ static int vcap_get_sizes(vcap_camera_t* camera, uint32_t format_code, uint32_t*
 	
 	while (-1 != vcap_ioctl(camera->fd, VIDIOC_ENUM_FRAMESIZES, &fenum)) {
 		if (fenum.type == V4L2_FRMSIZE_TYPE_DISCRETE) {
-			*widths = (uint32_t*)realloc(*widths, (num + 1) * sizeof(uint32_t));
-			*heights = (uint32_t*)realloc(*heights, (num + 1) * sizeof(uint32_t));
+			*sizes = (vcap_size_t*)realloc(*sizes, (num + 1) * sizeof(vcap_size_t));
 			
-			(*widths)[num] = fenum.discrete.width;
-			(*heights)[num] = fenum.discrete.height;
+			(*sizes)[num].width = fenum.discrete.width;
+			(*sizes)[num].height = fenum.discrete.height;
 			
 			num++;
 		}

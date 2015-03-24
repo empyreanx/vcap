@@ -48,12 +48,12 @@ int main(int argc, char** argv) {
 			/*
 			 * Iterate through frame sizes.
 			 */
-			for (int k = 0; k < formats[j].sizes; k++) {
-				printf("\t%dx%d", formats[j].widths[k], formats[j].heights[k]);
+			for (int k = 0; k < formats[j].num_sizes; k++) {
+				printf("\t%dx%d", formats[j].sizes[k].width, formats[j].sizes[k].height);
 				
 				uint16_t* frame_rates;
 				
-				int num_frame_rates = vcap_get_frame_rates(camera, formats[j].code, formats[j].widths[k], formats[j].heights[k], &frame_rates);
+				int num_frame_rates = vcap_get_frame_rates(camera, formats[j].code, formats[j].sizes[k].width, formats[j].sizes[k].height, &frame_rates);
 				
 				if (-1 == num_frame_rates) {
 					printf("Error: %s\n", vcap_error());

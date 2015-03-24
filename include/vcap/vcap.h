@@ -15,15 +15,22 @@
  */
 
 /**
+ * \brief Frame size descriptor.
+ */
+typedef struct {
+	uint32_t width;
+	uint32_t height;
+} vcap_size_t;
+
+/**
  * \brief Camera format descriptor.
  */
 typedef struct {
 	uint32_t code;				//!< FOURCC pixel format code
 	char code_str[5];			//!< FOURCC pixel format string
 	char desc[32];				//!< Format description
-	uint8_t sizes;				//!< Number of frame sizes for this format
-	uint32_t* widths;			//!< Frame widths
-	uint32_t* heights;			//!< Frame heights
+	uint8_t num_sizes;			//!< Number of frame sizes for this format
+	vcap_size_t* sizes;			//!< Frame sizes
 } vcap_format_t;
 
 /**

@@ -1,13 +1,12 @@
-#ifndef _QCAP_H
-#define _QCAP_H
+#ifndef _VCAP_H
+#define _VCAP_H
 
 #include <vcap/vcap_controls.h>
+#include <vcap/vcap_decode.h>
+#include <vcap/vcap_formats.h>
 
 #include <stdint.h>
 #include <string.h>
-
-#define VCAP_MAX_MMAP_BUFFERS 4
-#define VCAP_MIN_MMAP_BUFFERS 2
 
 /**
  * \file
@@ -80,6 +79,11 @@ typedef struct {
 	uint8_t num_buffers;		//!< Internal
 	vcap_buffer_t *buffers;		//!< Internal
 } vcap_camera_t;
+
+/**
+ * \brief Sets the most recent error message.
+ */
+void vcap_set_error(const char *fmt, ...);
 
 /**
  * \brief Returns the last Vcap error message. This function is not thread-safe.

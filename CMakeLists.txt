@@ -23,7 +23,7 @@ endif(DOXYGEN_FOUND)
 include_directories(include)
 
 add_definitions(-Wall -std=c99 -D_GNU_SOURCE)
-add_library(vcap SHARED "src/vcap.c" "src/vcap_decode.c")
+add_library(vcap SHARED "src/vcap.c" "src/vcap_decode.c" "src/vcap_formats.c")
 
 # Examples
 

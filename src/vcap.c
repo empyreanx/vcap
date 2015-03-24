@@ -16,15 +16,13 @@
 
 #define VCAP_CLEAR(arg) memset(&arg, 0, sizeof(arg))
 
+#define VCAP_MAX_MMAP_BUFFERS 4
+#define VCAP_MIN_MMAP_BUFFERS 2
+
 /*
  * Contains the most recent error message.
  */
 static char vcap_error_msg[1024] = "\0";
-
-/*
- * Sets the most recent error message.
- */
-static void vcap_set_error(const char *fmt, ...);
 
 /*
  * Wraps the 'ioctl' function so that the IO control request is retried if an interrupt occurs.
@@ -35,11 +33,6 @@ static int vcap_ioctl(int fd, int request, void *arg);
  * Filters device list so that 'scandir' returns only video devices.
  */
 static int vcap_video_device_filter(const struct dirent *a);
-
-/*
- * Converts a FOURCC character code to a string.
- */
-static void vcap_fourcc_str(uint32_t code, char* str);
 
 /*
  * Retrieves the auto set priority associated with a particular format.
@@ -554,7 +547,7 @@ void vcap_copy_format(vcap_format_t* src, vcap_format_t* dst) {
 		
 		memcpy(dst->sizes, src->sizes, src->num_sizes * sizeof(vcap_size_t));
 	} else {
-		dst->sizes = 0;
+		dst->num_sizes = 0;
 	}
 }
 
@@ -888,7 +881,7 @@ int vcap_grab_frame(vcap_camera_t *camera, uint8_t **buffer) {
 /*
  * Static functions:
  */
-static void vcap_set_error(const char *fmt, ...) {
+void vcap_set_error(const char *fmt, ...) {
 	va_list args;
 		
 	va_start(args, fmt);
@@ -913,14 +906,6 @@ static int vcap_video_device_filter(const struct dirent *a) {
 		return 1;
 	else
 		return 0;
-}
-
-static void vcap_fourcc_str(uint32_t code, char* str) {
-	str[0] = (code >> 0) & 0xFF;
-	str[1] = (code >> 8) & 0xFF;
-	str[2] = (code >> 16) & 0xFF;
-	str[3] = (code >> 24) & 0xFF;
-	str[4] = '\0';
 }
 
 static int vcap_format_priority(uint32_t code) {

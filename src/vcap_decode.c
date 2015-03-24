@@ -19,8 +19,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <vcap/vcap_formats.h> 
-#include <vcap/vcap_decode.h>
+#include <vcap/vcap.h> 
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -42,7 +41,7 @@ static void vcap_spca505_to_yuv420(uint8_t *src, uint8_t *dst, int width, int he
 static void vcap_spca508_to_yuv420(uint8_t *src, uint8_t *dst, int width, int height);
 static void vcap_yvu420_to_rgb24(uint8_t *src, uint8_t *dst, int width, int height);
 
-int vcap_decode(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height, uint32_t format_code, uint8_t bgr) {
+int vcap_decode(uint8_t *src, uint8_t *dst, uint32_t format_code, uint32_t width, uint32_t height, uint8_t bgr) {
 	uint8_t *tmp_dst, *tmp_rgb, *tmp_yuv;
 	
 	switch (format_code) {
@@ -143,6 +142,14 @@ int vcap_decode(uint8_t *src, uint8_t *dst, uint32_t width, uint32_t height, uin
 		
 		return 0;
 	}
+	
+	printf("format_code: %d\n", format_code);
+	
+	char code_str[5];
+	
+	vcap_fourcc_str(format_code, code_str);
+	
+	vcap_set_error("Unable to decode format %s", code_str);
 	
 	return -1;
 }

@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
 			return -1;
 		}
 		
-		if (-1 == vcap_decode(raw_buffer, rgb_buffer, width, height, format_code, 0)) {
+		if (-1 == vcap_decode(raw_buffer, rgb_buffer, format_code, width, height, 0)) {
 			printf("Error: Unable to decode frame; format not supported\n");
 			return -1;
 		}

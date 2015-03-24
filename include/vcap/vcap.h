@@ -100,6 +100,11 @@ int vcap_destroy_camera(vcap_camera_t* camera);
 int vcap_destroy_cameras(vcap_camera_t* cameras, uint16_t num_cameras);
 
 /**
+ * \brief Copies a camera handle.
+ */
+int vcap_copy_camera(vcap_camera_t* src, vcap_camera_t* dst);
+
+/**
  * \brief Opens the underlying device.
  */
 int vcap_open_camera(vcap_camera_t* camera);

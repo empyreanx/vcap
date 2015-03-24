@@ -58,3 +58,8 @@ if(SDL_FOUND)
 else(SDL_FOUND)
 	message(WARNING "You need SDL1.2 install in order to build examples/sdl.c")
 endif(SDL_FOUND)
+
+# Installation
+
+install(DIRECTORY include/vcap DESTINATION include)
+install(FILES lib/libvcap.so DESTINATION lib)

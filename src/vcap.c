@@ -131,67 +131,6 @@ char* vcap_error() {
 }
 
 /*
- * Allocates and initializes a camera handle.
- */
-vcap_camera_t* vcap_create_camera(const char* device) {
-	vcap_camera_t* camera = (vcap_camera_t*)malloc(sizeof(vcap_camera_t));
-	
-	if (camera == NULL)
-		return NULL;
-	
-	strncpy(camera->device, device, sizeof(camera->device));
-	
-	camera->opened = camera->streaming = 0;
-	
-	return camera;
-}
-
-/*
- * Destroys a camera handle, releasing all resources in the process.
- */
-int vcap_destroy_camera(vcap_camera_t* camera) {
-	if (NULL == camera) {
-		vcap_set_error("Cannot destroy null camera handle");
-		return -1;
-	}
-	
-	if (camera->streaming) {
-		if (-1 == vcap_stop_capture(camera))
-			return -1;
-	}
-	
-	if (camera->opened) {
-		if (-1 == vcap_close_camera(camera))
-			return -1;
-	}
-	
-	free(camera);
-	
-	return 0;
-}
-
-/*
- * Destroys an array of cameras handles, releasing all resources in the process.
- */
-int vcap_destroy_cameras(vcap_camera_t* cameras, uint16_t num_cameras) {
-	for (int i = 0; i < num_cameras; i++) {
-		if (cameras[i].streaming) {
-			if (-1 == vcap_stop_capture(&cameras[i]))
-				return -1;
-		}
-	
-		if (cameras[i].opened) {
-			if (-1 == vcap_close_camera(&cameras[i]))
-				return -1;
-		}
-	}
-	
-	free(cameras);
-	
-	return 0;
-}
-
-/*
  * Retrieves all supported cameras connected to the system.
  */
 int vcap_cameras(vcap_camera_t** cameras) {
@@ -249,6 +188,94 @@ int vcap_cameras(vcap_camera_t** cameras) {
 	}
 	
 	return num;
+}
+
+/*
+ * Allocates and initializes a camera handle.
+ */
+vcap_camera_t* vcap_create_camera(const char* device) {
+	vcap_camera_t* camera = (vcap_camera_t*)malloc(sizeof(vcap_camera_t));
+	
+	if (camera == NULL) {
+		vcap_set_error("Unable to allocate camera handle for device %s\n", device);
+		return NULL;
+	}
+	strncpy(camera->device, device, sizeof(camera->device));
+	
+	camera->driver[0] = '\0';
+	camera->info[0] = '\0';
+	
+	camera->opened = camera->streaming = 0;
+	
+	camera->num_buffers = 0;
+	
+	return camera;
+}
+
+/*
+ * Destroys a camera handle, releasing all resources in the process.
+ */
+int vcap_destroy_camera(vcap_camera_t* camera) {
+	if (NULL == camera) {
+		vcap_set_error("Cannot destroy null camera handle");
+		return -1;
+	}
+	
+	if (camera->streaming) {
+		if (-1 == vcap_stop_capture(camera))
+			return -1;
+	}
+	
+	if (camera->opened) {
+		if (-1 == vcap_close_camera(camera))
+			return -1;
+	}
+	
+	free(camera);
+	
+	return 0;
+}
+
+/*
+ * Destroys an array of cameras handles, releasing all resources in the process.
+ */
+int vcap_destroy_cameras(vcap_camera_t* cameras, uint16_t num_cameras) {
+	for (int i = 0; i < num_cameras; i++) {
+		if (cameras[i].streaming) {
+			if (-1 == vcap_stop_capture(&cameras[i]))
+				return -1;
+		}
+	
+		if (cameras[i].opened) {
+			if (-1 == vcap_close_camera(&cameras[i]))
+				return -1;
+		}
+	}
+	
+	free(cameras);
+	
+	return 0;
+}
+
+/*
+ * Copies a camera handle.
+ */
+int vcap_copy_camera(vcap_camera_t* src, vcap_camera_t* dst) {
+	if (src->streaming) {
+		vcap_set_error("Cannot copy camera handle for device %s because it is streaming\n", src->device);
+		return -1;
+	}
+	
+	dst->streaming = 0;
+	
+	strncpy(dst->device, src->device, sizeof(src->device));
+	strncpy(dst->driver, src->driver, sizeof(src->driver));
+	strncpy(dst->info, src->info, sizeof(src->info));
+	
+	dst->fd = src->fd;
+	dst->opened = src->opened;
+	
+	return 0;
 }
 
 /*

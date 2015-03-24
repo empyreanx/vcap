@@ -551,8 +551,10 @@ void vcap_copy_format(vcap_format_t* src, vcap_format_t* dst) {
 	
 	if (src->sizes > 0) {
 		dst->sizes = src->sizes;
+		
 		dst->widths = (uint32_t*)malloc(src->sizes * sizeof(uint32_t));
 		dst->heights = (uint32_t*)malloc(src->sizes * sizeof(uint32_t));
+		
 		memcpy(dst->widths, src->widths, src->sizes * sizeof(uint32_t));
 		memcpy(dst->heights, src->heights, src->sizes * sizeof(uint32_t));
 	} else {

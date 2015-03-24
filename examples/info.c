@@ -78,9 +78,9 @@ int main(int argc, char** argv) {
 				
 				printf("\n");
 			}
-			
-			vcap_destroy_formats(formats, num_formats);
 		}
+		
+		vcap_destroy_formats(formats, num_formats);
 		
 		vcap_control_t* controls;
 		

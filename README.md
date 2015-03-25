@@ -26,6 +26,11 @@ To install:
 To generate documentation (if Doxygen is installed):
 
 *$ make doc*
+
+## Example
+
+This example grabs a raw frame, from the first camera on the bus, and stores it in a file:
+
 ```cpp
 #include <vcap/vcap.h>
 

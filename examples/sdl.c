@@ -1,5 +1,5 @@
 /*
- * VCap: A Video4Linux2 Capture Library
+ * Vcap - a Video4Linux2 capture library
  * 
  * Copyright (C) 2014 James McLean
  * 

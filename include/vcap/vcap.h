@@ -1,9 +1,9 @@
 #ifndef _VCAP_H
 #define _VCAP_H
 
-#include <vcap/vcap_controls.h>
-#include <vcap/vcap_decode.h>
-#include <vcap/vcap_formats.h>
+#include <vcap/controls.h>
+#include <vcap/decode.h>
+#include <vcap/formats.h>
 
 #include <stdint.h>
 #include <string.h>

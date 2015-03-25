@@ -1,5 +1,4 @@
 #include <vcap/vcap.h>
-#include <vcap/vcap_formats.h>
 
 #include <dirent.h>
 #include <errno.h>

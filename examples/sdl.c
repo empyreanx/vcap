@@ -41,7 +41,7 @@ void sdl_cleanup(sdl_context_t* ctx);
 
 /*
  * Grabs frames from a camera and displays them in a window in real-time. 
- * You must have SDL version 1.2 install for this example to compile.
+ * You must have SDL version 1.2 installed for this example to compile.
  */
 int main(int argc, char* argv[]) {
 	vcap_camera_t* cameras;
@@ -139,8 +139,8 @@ int sdl_init(sdl_context_t* ctx, int width, int height) {
 		printf("Unable to set video mode: %s\n", SDL_GetError());
 		return -1;
 	}
-
-    uint32_t rmask, gmask, bmask;
+	
+	uint32_t rmask, gmask, bmask;
 
 	#if SDL_BYTEORDER == SDL_BIG_ENDIAN
 		rmask = 0xff000000;

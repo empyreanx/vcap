@@ -1,6 +1,6 @@
 # Vcap
  
-### Introduction
+## Introduction
 
 Vcap is a library written in C that aims to make using the Video4Linux2 API simple. It was designed to make the common 
 case of capturing frames using memory-mapped device buffers quick and easy.
@@ -13,7 +13,7 @@ In contrast with similar projects, Vcap is licensed under the LGPL v2.1 which pe
 
 This project also has [C++ bindings](https://github.com/jrimclean/vcap-cpp).
 
-### Building and 
+## Building and Installation
 
 You must have CMake and a C compiler installed. 
 

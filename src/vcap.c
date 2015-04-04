@@ -383,13 +383,6 @@ int vcap_close_camera(vcap_camera_t* camera) {
 }
 
 /*
- * Checks if the camera is open.
- */
-int vcap_camera_opened(vcap_camera_t* camera) {
-	return camera->opened;
-}
-
-/*
  * Automatically sets the format on a camera based on the format's priority.
  */
 int vcap_auto_set_format(vcap_camera_t* camera) {
@@ -868,13 +861,6 @@ int vcap_stop_capture(vcap_camera_t *camera) {
 	camera->capturing = 0;
 	
 	return 0;
-}
-
-/*
- * Checks if the camera is capturing.
- */
-int vcap_camera_capturing(vcap_camera_t* camera) {
-	return camera->capturing;
 }
 
 /*

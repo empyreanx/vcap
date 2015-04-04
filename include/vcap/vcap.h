@@ -91,11 +91,11 @@ typedef struct {
 	char device[64];			//!< Camera device name
 	char driver[64];			//!< Device driver name
 	char info[256];				//!< Additional device information
+	uint8_t opened;				//!< True if the camera is open; false otherwise
+	uint8_t capturing;			//!< True if the camera is capturing; false otherwise
 	
 	//private
 	int fd;						//!< Internal
-	uint8_t opened;				//!< Internal
-	uint8_t capturing;			//!< Internal
 	uint8_t num_buffers;		//!< Internal
 	vcap_buffer_t *buffers;		//!< Internal
 } vcap_camera_t;
@@ -144,11 +144,6 @@ int vcap_open_camera(vcap_camera_t* camera);
  * \brief Closes the underlying device.
  */
 int vcap_close_camera(vcap_camera_t* camera);
-
-/**
- * \brief Returns true if the camera is open; false otherwise.
- */
-int vcap_camera_opened(vcap_camera_t* camera);
 
 /**
  * \brief Automatically sets the format on a camera based on the format's priority.
@@ -244,11 +239,6 @@ int vcap_start_capture(vcap_camera_t *camera);
  * \brief Stop stream.
  */
 int vcap_stop_capture(vcap_camera_t *camera);
-
-/**
- * \brief Returns true if the camera is streaming; false otherwise.
- */
-int vcap_camera_capturing(vcap_camera_t* camera);
 
 /**
  * \brief Allocates a buffer, grabs an image from the camera and stores it in the buffer.

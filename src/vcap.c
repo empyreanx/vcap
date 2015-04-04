@@ -194,7 +194,7 @@ int vcap_cameras(vcap_camera_t** cameras) {
 		strncpy(camera->driver, (char*)cap.driver, sizeof(camera->driver));
 		snprintf(camera->info, sizeof(camera->info), "%s (%s)", cap.card, cap.bus_info);
 		
-		camera->opened = camera->streaming = 0;
+		camera->opened = camera->capturing = 0;
 		
 		num++;
 	}
@@ -217,7 +217,7 @@ vcap_camera_t* vcap_create_camera(const char* device) {
 	camera->driver[0] = '\0';
 	camera->info[0] = '\0';
 	
-	camera->opened = camera->streaming = 0;
+	camera->opened = camera->capturing = 0;
 	
 	camera->num_buffers = 0;
 	
@@ -233,7 +233,7 @@ int vcap_destroy_camera(vcap_camera_t* camera) {
 		return -1;
 	}
 	
-	if (camera->streaming) {
+	if (camera->capturing) {
 		if (-1 == vcap_stop_capture(camera))
 			return -1;
 	}
@@ -253,7 +253,7 @@ int vcap_destroy_camera(vcap_camera_t* camera) {
  */
 int vcap_destroy_cameras(vcap_camera_t* cameras, uint16_t num_cameras) {
 	for (int i = 0; i < num_cameras; i++) {
-		if (cameras[i].streaming) {
+		if (cameras[i].capturing) {
 			if (-1 == vcap_stop_capture(&cameras[i]))
 				return -1;
 		}
@@ -273,12 +273,12 @@ int vcap_destroy_cameras(vcap_camera_t* cameras, uint16_t num_cameras) {
  * Copies a camera handle.
  */
 int vcap_copy_camera(vcap_camera_t* src, vcap_camera_t* dst) {
-	if (src->streaming) {
+	if (src->capturing) {
 		vcap_set_error("Cannot copy camera handle for device %s because it is streaming\n", src->device);
 		return -1;
 	}
 	
-	dst->streaming = 0;
+	dst->capturing = 0;
 	
 	strncpy(dst->device, src->device, sizeof(src->device));
 	strncpy(dst->driver, src->driver, sizeof(src->driver));
@@ -368,7 +368,7 @@ int vcap_close_camera(vcap_camera_t* camera) {
 		return -1;
 	}
 	
-	if (camera->streaming) {
+	if (camera->capturing) {
 		if (-1 == vcap_stop_capture(camera))
 			return -1;
 	}
@@ -380,6 +380,13 @@ int vcap_close_camera(vcap_camera_t* camera) {
 		camera->opened = 0;
 		return 0;
 	}
+}
+
+/*
+ * Checks if the camera is open.
+ */
+int vcap_camera_open(vcap_camera_t* camera) {
+	return camera->opened;
 }
 
 /*
@@ -799,7 +806,7 @@ void vcap_copy_menu_item(vcap_menu_item_t* src, vcap_menu_item_t* dst) {
  * Start stream.
  */
 int vcap_start_capture(vcap_camera_t *camera) {
-	if (camera->streaming) {
+	if (camera->capturing) {
 		vcap_set_error("Device %s is already streaming", camera->device);
 		return -1;
 	}
@@ -832,7 +839,7 @@ int vcap_start_capture(vcap_camera_t *camera) {
 		return -1;
 	}	
 	
-	camera->streaming = 1;
+	camera->capturing = 1;
 	
 	return 0;
 }
@@ -841,7 +848,7 @@ int vcap_start_capture(vcap_camera_t *camera) {
  * Stop stream.
  */
 int vcap_stop_capture(vcap_camera_t *camera) {
-	if (!camera->streaming) {
+	if (!camera->capturing) {
 		vcap_set_error("Device %s is not streaming", camera->device);
 		return -1;
 	}
@@ -858,9 +865,16 @@ int vcap_stop_capture(vcap_camera_t *camera) {
 		return -1;
 	}
 	
-	camera->streaming = 0;
+	camera->capturing = 0;
 	
 	return 0;
+}
+
+/*
+ * Checks if the camera is capturing.
+ */
+int vcap_camera_capturing(vcap_camera_t* camera) {
+	return camera->capturing;
 }
 
 /*

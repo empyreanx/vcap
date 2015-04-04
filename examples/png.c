@@ -19,7 +19,7 @@
  */
  
 #include <vcap/vcap.h>
-#include <vcap/vcap_decode.h>
+#include <vcap/decode.h>
 
 #include <png.h>
 #include <stdint.h>
@@ -65,15 +65,17 @@ int main(int argc, char* argv[]) {
 	sleep(3);
 	
 	//obtain the currently selected format
-	uint32_t format_code, width, height;
+	vcap_format_t format;
 	
-	if (-1 == vcap_get_format(camera, &format_code, &width, &height)) {
+	if (-1 == vcap_get_format(camera, &format)) {
 		printf("Error: %s\n", vcap_error());
 		return -1;
 	}
 	
+	vcap_size_t size = format.size;
+	
 	//allocate a buffer to store the decoded RGB image
-	uint8_t* rgb_buffer = (uint8_t*)malloc(3 * width * height);
+	uint8_t* rgb_buffer = (uint8_t*)malloc(3 * size.width * size.height);
 	
 	//grab and decode frame
 	uint8_t* raw_buffer;
@@ -85,7 +87,7 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}	
 	
-	if (-1 == vcap_decode(raw_buffer, rgb_buffer, format_code, width, height, 0)) {
+	if (-1 == vcap_decode(raw_buffer, rgb_buffer, format.code, size.width, size.height, 0)) {
 		printf("Error: Unable to decode frame; format not supported\n");
 		return -1;
 	}
@@ -93,7 +95,7 @@ int main(int argc, char* argv[]) {
 	//compress rgb24 to png
 	png_buffer_t png_buffer;
 		
-	if (rgb24_to_png(rgb_buffer, &png_buffer, width, height) == -1) {
+	if (rgb24_to_png(rgb_buffer, &png_buffer, size.width, size.height) == -1) {
 		printf("Error converting data to PNG\n");
 		return -1;
 	}

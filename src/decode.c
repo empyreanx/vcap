@@ -141,13 +141,11 @@ int vcap_decode(uint8_t *src, uint8_t *dst, uint32_t format_code, uint32_t width
 		return 0;
 	}
 	
-	printf("format_code: %d\n", format_code);
+	char code_string[5];
 	
-	char code_str[5];
+	vcap_fourcc_string(format_code, code_string);
 	
-	vcap_fourcc_str(format_code, code_str);
-	
-	vcap_set_error("Unable to decode format %s", code_str);
+	vcap_set_error("Unable to decode format %s", code_string);
 	
 	return -1;
 }

@@ -212,6 +212,7 @@ vcap_camera_t* vcap_create_camera(const char* device) {
 		vcap_set_error("Unable to allocate camera handle for device %s\n", device);
 		return NULL;
 	}
+	
 	strncpy(camera->device, device, sizeof(camera->device));
 	
 	camera->driver[0] = '\0';
@@ -386,14 +387,16 @@ int vcap_close_camera(vcap_camera_t* camera) {
  * Automatically sets the format on a camera based on the format's priority.
  */
 int vcap_auto_set_format(vcap_camera_t* camera) {
-	vcap_format_t* formats;
+	vcap_format_info_t* formats;
 	
 	int num_formats = vcap_get_formats(camera, &formats);
 	
-	if (num_formats <= 0)
+	if (num_formats <= 0) {
+		vcap_set_error("Unable to auto set format; no formats found.");
 		return -1;
+	}
 	
-	//determine highest (lower index is higher priority) priority format
+	//determine highest (lower index is higher priority) priority 	format
 	int min_priority = (sizeof(format_priority_map) / sizeof(uint32_t)) - 1;
 	int min_index;
 	
@@ -407,22 +410,24 @@ int vcap_auto_set_format(vcap_camera_t* camera) {
 	}
 	
 	//set format accordingly
-	uint32_t format_code, width, height;
+	vcap_format_t format;
 	
 	if (format_priority_map[min_priority]) {
-		format_code = formats[min_index].code;
-		width = formats[min_index].sizes[0].width;
-		height = formats[min_index].sizes[0].height;
+		format.code = formats[min_index].code;
+		format.size.width = formats[min_index].sizes[0].width;
+		format.size.height = formats[min_index].sizes[0].height;
 	} else {
-		format_code = formats[0].code;
-		width = formats[0].sizes[0].width;
-		height = formats[0].sizes[0].height;
+		format.code = formats[0].code;
+		format.size.width = formats[0].sizes[0].width;
+		format.size.height = formats[0].sizes[0].height;
 	}
 	
 	vcap_destroy_formats(formats, num_formats);
 	
-	if (-1 == vcap_set_format(camera, format_code, width, height))
+	if (-1 == vcap_set_format(camera, format)) {
+		vcap_set_error("Unable to auto set format");
 		return -1;
+	}
 	
 	//set frame rate, not sure if this is needed
 	/*uint16_t* frame_rates;
@@ -441,7 +446,7 @@ int vcap_auto_set_format(vcap_camera_t* camera) {
 /*
  * Retrieves all formats supported by the camera.
  */
-int vcap_get_formats(vcap_camera_t* camera, vcap_format_t** formats) {
+int vcap_get_formats(vcap_camera_t* camera, vcap_format_info_t** formats) {
 	struct v4l2_fmtdesc fmtd;
 	
 	int index, num = 0;
@@ -453,18 +458,18 @@ int vcap_get_formats(vcap_camera_t* camera, vcap_format_t** formats) {
 	fmtd.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	
 	while (-1 != vcap_ioctl(camera->fd, VIDIOC_ENUM_FMT, &fmtd)) {
-		*formats = (vcap_format_t*)realloc(*formats, (num + 1) * sizeof(vcap_format_t));
+		*formats = (vcap_format_info_t*)realloc(*formats, (num + 1) * sizeof(vcap_format_info_t));
 		
-		vcap_format_t *format = &(*formats)[num];
+		vcap_format_info_t *format = &(*formats)[num];
 		
 		//copy pixel format
 		format->code = fmtd.pixelformat;
 		
 		//convert fourcc code to string representation
-		vcap_fourcc_str(fmtd.pixelformat, format->code_str);
+		vcap_fourcc_string(fmtd.pixelformat, format->code_string);
 		
 		//copy description
-		strncpy(format->desc, (char*)fmtd.description, 32 * sizeof(char));
+		strncpy(format->description, (char*)fmtd.description, 32 * sizeof(char));
 		
 		uint8_t num_sizes = vcap_get_sizes(camera, format->code, &format->sizes);
 		
@@ -489,7 +494,7 @@ int vcap_get_formats(vcap_camera_t* camera, vcap_format_t** formats) {
 /*
  * Retrieves the camera's current format.
  */
-int vcap_get_format(vcap_camera_t* camera, uint32_t* format_code, uint32_t* width, uint32_t* height) {
+int vcap_get_format(vcap_camera_t* camera, vcap_format_t* format) {
 	struct v4l2_format fmt;
 	
 	VCAP_CLEAR(fmt);
@@ -500,9 +505,9 @@ int vcap_get_format(vcap_camera_t* camera, uint32_t* format_code, uint32_t* widt
 		return -1;
 	}
 	
-	*format_code = fmt.fmt.pix.pixelformat;
-	*width = fmt.fmt.pix.width;
-	*height = fmt.fmt.pix.height;
+	format->code = fmt.fmt.pix.pixelformat;
+	format->size.width = fmt.fmt.pix.width;
+	format->size.height = fmt.fmt.pix.height;
 	
 	return 0;
 }
@@ -510,13 +515,13 @@ int vcap_get_format(vcap_camera_t* camera, uint32_t* format_code, uint32_t* widt
 /*
  * Sets the camera's format.
  */
-int vcap_set_format(vcap_camera_t* camera, uint32_t format_code, uint32_t width, uint32_t height) {
+int vcap_set_format(vcap_camera_t* camera, vcap_format_t format) {
 	struct v4l2_format fmt;
 	
 	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	fmt.fmt.pix.width = width;
-	fmt.fmt.pix.height = height;
-	fmt.fmt.pix.pixelformat = format_code;
+	fmt.fmt.pix.width = format.size.width;
+	fmt.fmt.pix.height = format.size.height;
+	fmt.fmt.pix.pixelformat = format.code;
 	fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
 	
 	if (-1 == vcap_ioctl(camera->fd, VIDIOC_S_FMT, &fmt)) {
@@ -530,7 +535,7 @@ int vcap_set_format(vcap_camera_t* camera, uint32_t format_code, uint32_t width,
 /**
  * Destroys a format descriptor.
  */
-void vcap_destroy_format(vcap_format_t* format) {
+void vcap_destroy_format(vcap_format_info_t* format) {
 	if (format->sizes > 0) {
 		free(format->sizes);
 	}
@@ -541,7 +546,7 @@ void vcap_destroy_format(vcap_format_t* format) {
 /**
  * Destroys an array of format descriptors.
  */
-void vcap_destroy_formats(vcap_format_t* formats, uint16_t num_formats) {
+void vcap_destroy_formats(vcap_format_info_t* formats, uint16_t num_formats) {
 	for (int i = 0; i < num_formats; i++) {
 		if (formats[i].sizes > 0) {
 			free(formats[i].sizes);
@@ -554,10 +559,10 @@ void vcap_destroy_formats(vcap_format_t* formats, uint16_t num_formats) {
 /**
  * Copies a format descriptor.
  */
-void vcap_copy_format(vcap_format_t* src, vcap_format_t* dst) {
+void vcap_copy_format(vcap_format_info_t* src, vcap_format_info_t* dst) {
 	dst->code = src->code;
-	strncpy(dst->code_str, src->code_str, sizeof(src->code_str));
-	strncpy(dst->desc, src->desc, sizeof(src->desc));
+	strncpy(dst->code_string, src->code_string, sizeof(src->code_string));
+	strncpy(dst->description, src->description, sizeof(src->description));
 	
 	if (src->num_sizes > 0) {
 		dst->num_sizes = src->num_sizes;
@@ -573,7 +578,7 @@ void vcap_copy_format(vcap_format_t* src, vcap_format_t* dst) {
 /*
  * Retrieves all frame rates supported by the camera for a given format and frame size.
  */
-int vcap_get_frame_rates(vcap_camera_t* camera, uint32_t format_code, uint32_t width, uint32_t height, uint16_t** frame_rates) {
+int vcap_get_frame_rates(vcap_camera_t* camera, vcap_format_t format, uint16_t** frame_rates) {
 	struct v4l2_frmivalenum frenum;
 	
 	int index, num = 0;
@@ -582,9 +587,9 @@ int vcap_get_frame_rates(vcap_camera_t* camera, uint32_t format_code, uint32_t w
 	
 	VCAP_CLEAR(frenum);
 	frenum.index = index = 0;
-	frenum.pixel_format = format_code;
-	frenum.width = width;
-	frenum.height = height;
+	frenum.pixel_format = format.code;
+	frenum.width = format.size.width;
+	frenum.height = format.size.height;
 	
 	while (-1 != vcap_ioctl(camera->fd, VIDIOC_ENUM_FRAMEINTERVALS, &frenum)) {
 		if (V4L2_FRMIVAL_TYPE_DISCRETE == frenum.type) {
@@ -595,9 +600,9 @@ int vcap_get_frame_rates(vcap_camera_t* camera, uint32_t format_code, uint32_t w
 		
 		VCAP_CLEAR(frenum);
 		frenum.index = ++index;
-		frenum.pixel_format = format_code;
-		frenum.width = width;
-		frenum.height = height;
+		frenum.pixel_format = format.code;
+		frenum.width = format.size.width;
+		frenum.height = format.size.height;
 	}
 	
 	return num;
@@ -642,7 +647,7 @@ int vcap_set_frame_rate(vcap_camera_t *camera, uint16_t frame_rate) {
 /*
  * Retrieves all supported camera controls.
  */
-int vcap_get_controls(vcap_camera_t* camera, vcap_control_t** controls) {
+int vcap_get_controls(vcap_camera_t* camera, vcap_control_info_t** controls) {
 	if (!camera->opened)
 		return -1;
 	
@@ -657,14 +662,14 @@ int vcap_get_controls(vcap_camera_t* camera, vcap_control_t** controls) {
 
 	while (0 == vcap_ioctl(camera->fd, VIDIOC_QUERYCTRL, &qctrl)) {
 		if (!(qctrl.flags & V4L2_CTRL_FLAG_DISABLED)) {
-			*controls = (vcap_control_t*)realloc(*controls, (num + 1) * sizeof(vcap_control_t));
+			*controls = (vcap_control_info_t*)realloc(*controls, (num + 1) * sizeof(vcap_control_info_t));
 			
 			//convert control id/type
 			vcap_control_id_t id = vcap_convert_control_id(qctrl.id);
 			vcap_control_type_t type = vcap_convert_control_type(qctrl.type);
 			
 			if (VCAP_CTRL_INVALID != id && VCAP_CTRL_TYPE_INVALID != type) {
-				vcap_control_t* control = &(*controls)[num];
+				vcap_control_info_t* control = &(*controls)[num];
 				
 				control->id = id;
 				control->type = type;
@@ -709,7 +714,7 @@ int vcap_get_controls(vcap_camera_t* camera, vcap_control_t** controls) {
 /**
  * Destroys a control descriptor.
  */
-void vcap_destroy_control(vcap_control_t* control) {
+void vcap_destroy_control(vcap_control_info_t* control) {
 	if (control->menu_length > 0)
 		free(control->menu);
 	
@@ -719,7 +724,7 @@ void vcap_destroy_control(vcap_control_t* control) {
 /**
  * Destroys an array of control descriptors.
  */
-void vcap_destroy_controls(vcap_control_t* controls, uint16_t num_controls) {
+void vcap_destroy_controls(vcap_control_info_t* controls, uint16_t num_controls) {
 	for (int i = 0; i < num_controls; i++) {
 		if (controls[i].menu_length > 0)
 			free(controls[i].menu);
@@ -731,7 +736,7 @@ void vcap_destroy_controls(vcap_control_t* controls, uint16_t num_controls) {
 /**
  * Copies a control descriptor.
  */
-void vcap_copy_control(vcap_control_t* src, vcap_control_t* dst) {
+void vcap_copy_control(vcap_control_info_t* src, vcap_control_info_t* dst) {
 	strncpy(dst->name, src->name, sizeof(src->name));
 	
 	dst->id = src->id;

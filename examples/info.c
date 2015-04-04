@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
 			return -1;
 		}
 		
-		vcap_format_t* formats;
+		vcap_format_info_t* formats;
 		
 		int num_formats = vcap_get_formats(camera, &formats);
 		
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
 		 * Iterate through formats.
 		 */
 		for (int j = 0; j < num_formats; j++) {
-			printf("%s (%s)\n", formats[j].code_str, formats[j].desc);
+			printf("%s (%s)\n", formats[j].code_string, formats[j].description);
 						
 			/*
 			 * Iterate through frame sizes.
@@ -71,9 +71,12 @@ int main(int argc, char** argv) {
 			for (int k = 0; k < formats[j].num_sizes; k++) {
 				printf("\t%dx%d", formats[j].sizes[k].width, formats[j].sizes[k].height);
 				
-				uint16_t* frame_rates;
+				vcap_format_t format;
+				format.code = formats[j].code;
+				format.size = formats[j].sizes[k];
 				
-				int num_frame_rates = vcap_get_frame_rates(camera, formats[j].code, formats[j].sizes[k].width, formats[j].sizes[k].height, &frame_rates);
+				uint16_t* frame_rates;
+				int num_frame_rates = vcap_get_frame_rates(camera, format, &frame_rates);
 				
 				if (-1 == num_frame_rates) {
 					printf("Error: %s\n", vcap_error());
@@ -102,7 +105,7 @@ int main(int argc, char** argv) {
 		
 		vcap_destroy_formats(formats, num_formats);
 		
-		vcap_control_t* controls;
+		vcap_control_info_t* controls;
 		
 		int num_controls = vcap_get_controls(camera, &controls);
 		

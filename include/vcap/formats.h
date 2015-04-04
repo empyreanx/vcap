@@ -31,7 +31,7 @@
 /**
  * \brief Converts a FOURCC character code to a string.
  */
-void vcap_fourcc_str(uint32_t code, char* str);
+void vcap_fourcc_string(uint32_t code, char* str);
 
 /**
  * \brief Converts a FOURCC code to it's numerical representation.

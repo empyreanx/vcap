@@ -19,6 +19,7 @@ if(DOXYGEN_FOUND)
 endif(DOXYGEN_FOUND)
 
 # Library
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 
 include_directories(include)
 
@@ -26,7 +27,6 @@ add_definitions(-Wall -std=c99 -D_GNU_SOURCE)
 add_library(vcap SHARED "src/vcap.c" "src/decode.c" "src/formats.c")
 
 # Examples
-
 link_directories(lib)
 
 # Info example

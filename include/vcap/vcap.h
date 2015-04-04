@@ -148,7 +148,7 @@ int vcap_close_camera(vcap_camera_t* camera);
 /**
  * \brief Returns true if the camera is open; false otherwise.
  */
-int vcap_camera_open(vcap_camera_t* camera);
+int vcap_camera_opened(vcap_camera_t* camera);
 
 /**
  * \brief Automatically sets the format on a camera based on the format's priority.

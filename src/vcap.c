@@ -385,7 +385,7 @@ int vcap_close_camera(vcap_camera_t* camera) {
 /*
  * Checks if the camera is open.
  */
-int vcap_camera_open(vcap_camera_t* camera) {
+int vcap_camera_opened(vcap_camera_t* camera) {
 	return camera->opened;
 }
 

@@ -525,7 +525,7 @@ int vcap_set_format(vcap_camera_t* camera, vcap_format_t format) {
 	fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
 	
 	if (-1 == vcap_ioctl(camera->fd, VIDIOC_S_FMT, &fmt)) {
-		vcap_set_error("Could not get format on device %s (%s)", camera->device, strerror(errno));
+		vcap_set_error("Could not set format on device %s (%s)", camera->device, strerror(errno));
 		return -1;
 	}
 	

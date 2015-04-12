@@ -618,7 +618,7 @@ int vcap_get_frame_rate(vcap_camera_t *camera, uint16_t* frame_rate) {
 	parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	
 	if(-1 == vcap_ioctl(camera->fd, VIDIOC_G_PARM, &parm)) {
-		vcap_set_error("Could not get framerate on deivce %s (%s)", camera->device, strerror(errno));
+		vcap_set_error("Could not get framerate on device %s (%s)", camera->device, strerror(errno));
 		return -1;
 	}
 	
@@ -638,7 +638,7 @@ int vcap_set_frame_rate(vcap_camera_t *camera, uint16_t frame_rate) {
 	parm.parm.capture.timeperframe.denominator = frame_rate;
 	
 	if(-1 == vcap_ioctl(camera->fd, VIDIOC_S_PARM, &parm)) {
-		vcap_set_error("Could not set framerate on deivce %s (%s)", camera->device, strerror(errno));
+		vcap_set_error("Could not set framerate on device %s (%s)", camera->device, strerror(errno));
 		return -1;
 	}
 	

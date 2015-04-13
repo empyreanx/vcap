@@ -198,6 +198,8 @@ int vcap_cameras(vcap_camera_t** cameras) {
 		camera->opened = camera->capturing = 0;
 		
 		num++;
+		
+		close(fd);
 	}
 	
 	return num;

@@ -196,6 +196,7 @@ int vcap_cameras(vcap_camera_t** cameras) {
 		snprintf(camera->info, sizeof(camera->info), "%s (%s)", cap.card, cap.bus_info);
 		
 		camera->opened = camera->capturing = 0;
+		camera->num_buffers = 0;
 		
 		num++;
 		
@@ -222,7 +223,6 @@ vcap_camera_t* vcap_create_camera(const char* device) {
 	camera->info[0] = '\0';
 	
 	camera->opened = camera->capturing = 0;
-	
 	camera->num_buffers = 0;
 	
 	return camera;
@@ -319,7 +319,7 @@ int vcap_open_camera(vcap_camera_t* camera) {
 	//open device
 	camera->fd = open(camera->device, O_RDWR, 0);
 	
-	if (camera->fd == -1) {
+	if (-1 == camera->fd) {
 		vcap_set_error("Unable to open device %s", camera->device);
 		return -1;
 	}

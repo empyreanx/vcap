@@ -854,15 +854,15 @@ int vcap_stop_capture(vcap_camera_t *camera) {
 		return -1;
 	}
 	
-	if (-1 == vcap_umap_buffers(camera)) {
-		vcap_set_error("Unable to unmap buffers on device %s", camera->device);
-		return -1;
-	}
-	
 	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	
 	if (-1 == vcap_ioctl(camera->fd, VIDIOC_STREAMOFF, &type)) {
 		vcap_set_error("Unable to turn off stream on device %s (%s)", camera->device, strerror(errno));
+		return -1;
+	}	
+	
+	if (-1 == vcap_umap_buffers(camera)) {
+		vcap_set_error("Unable to unmap buffers on device %s", camera->device);
 		return -1;
 	}
 	

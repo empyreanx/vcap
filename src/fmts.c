@@ -455,18 +455,18 @@ int vcap_set_fmt(vcap_fg* fg, vcap_fmt_id fid, vcap_size size) {
 
     struct v4l2_format fmt;
 
-	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	fmt.fmt.pix.width = size.width;
-	fmt.fmt.pix.height = size.height;
-	fmt.fmt.pix.pixelformat = fmt_map[fid];
-	fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
+    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    fmt.fmt.pix.width = size.width;
+    fmt.fmt.pix.height = size.height;
+    fmt.fmt.pix.pixelformat = fmt_map[fid];
+    fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
 
-	if (vcap_ioctl(fg->fd, VIDIOC_S_FMT, &fmt) == -1) {
+    if (vcap_ioctl(fg->fd, VIDIOC_S_FMT, &fmt) == -1) {
         VCAP_ERROR_ERRNO("Unable to set format on device '%s'", fg->device.path);
-		return -1;
-	}
+        return -1;
+    }
 
-	return 0;
+    return 0;
 }
 
 int vcap_get_interval(vcap_fg* fg, vcap_interval* interval) {
@@ -481,12 +481,12 @@ int vcap_get_interval(vcap_fg* fg, vcap_interval* interval) {
     }
 
     struct v4l2_streamparm parm;
-	parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-	if (vcap_ioctl(fg->fd, VIDIOC_G_PARM, &parm) == -1) {
-		VCAP_ERROR_ERRNO("Unable to get frame interval on device '%s'", fg->device.path);
-		return -1;
-	}
+    if (vcap_ioctl(fg->fd, VIDIOC_G_PARM, &parm) == -1) {
+        VCAP_ERROR_ERRNO("Unable to get frame interval on device '%s'", fg->device.path);
+        return -1;
+    }
 
     interval->numerator = parm.parm.capture.timeperframe.numerator;
     interval->denominator = parm.parm.capture.timeperframe.denominator;
@@ -518,8 +518,8 @@ static int enum_fmts(vcap_fg* fg, vcap_fmt_desc* desc, uint32_t index) {
     struct v4l2_fmtdesc fmtd;
 
     VCAP_CLEAR(fmtd);
-	fmtd.index = index;
-	fmtd.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    fmtd.index = index;
+    fmtd.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (vcap_ioctl(fg->fd, VIDIOC_ENUM_FMT, &fmtd) == -1) {
         if (errno == EINVAL) {
@@ -547,8 +547,8 @@ static int enum_sizes(vcap_fg* fg, vcap_fmt_id fid, vcap_size* size, uint32_t in
     struct v4l2_frmsizeenum fenum;
 
     VCAP_CLEAR(fenum);
-	fenum.index = index;
-	fenum.pixel_format = fmt_map[fid];
+    fenum.index = index;
+    fenum.pixel_format = fmt_map[fid];
 
     if (vcap_ioctl(fg->fd, VIDIOC_ENUM_FRAMESIZES, &fenum) == -1) {
         if (errno == EINVAL) {
@@ -598,10 +598,10 @@ static int enum_intervals(vcap_fg* fg, vcap_fmt_id fid, vcap_size size, vcap_int
 }
 
 static vcap_ctrl_id convert_fmt_id(uint32_t id) {
-	for (int i = 0; i < VCAP_FMT_UNKNOWN; i++) {
-		if (fmt_map[i] == id)
-			return (vcap_ctrl_id)i;
-	}
+    for (int i = 0; i < VCAP_FMT_UNKNOWN; i++) {
+        if (fmt_map[i] == id)
+            return (vcap_ctrl_id)i;
+    }
 
-	return VCAP_FMT_UNKNOWN;
+    return VCAP_FMT_UNKNOWN;
 }

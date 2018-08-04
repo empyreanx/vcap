@@ -105,11 +105,11 @@ error:
 }
 
 void vcap_fourcc_string(uint32_t code, uint8_t* str) {
-	str[0] = (code >> 0) & 0xFF;
-	str[1] = (code >> 8) & 0xFF;
-	str[2] = (code >> 16) & 0xFF;
-	str[3] = (code >> 24) & 0xFF;
-	str[4] = '\0';
+    str[0] = (code >> 0) & 0xFF;
+    str[1] = (code >> 8) & 0xFF;
+    str[2] = (code >> 16) & 0xFF;
+    str[3] = (code >> 24) & 0xFF;
+    str[4] = '\0';
 }
 
 int vcap_ioctl(int fd, int request, void *arg) {

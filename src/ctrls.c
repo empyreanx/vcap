@@ -282,15 +282,15 @@ int vcap_get_ctrl(vcap_fg* fg, vcap_ctrl_id cid, int32_t* value) {
 
     struct v4l2_control ctrl;
 
-	VCAP_CLEAR(ctrl);
-	ctrl.id = ctrl_map[cid];
+    VCAP_CLEAR(ctrl);
+    ctrl.id = ctrl_map[cid];
 
-	if (vcap_ioctl(fg->fd, VIDIOC_G_CTRL, &ctrl) == -1) {
-		VCAP_ERROR_ERRNO("Could not get control (%d) value on device '%s'", cid, fg->device.path);
-		return -1;
-	}
+    if (vcap_ioctl(fg->fd, VIDIOC_G_CTRL, &ctrl) == -1) {
+        VCAP_ERROR_ERRNO("Could not get control (%d) value on device '%s'", cid, fg->device.path);
+        return -1;
+    }
 
-	*value = ctrl.value;
+    *value = ctrl.value;
 
     return 0;
 }
@@ -308,16 +308,16 @@ int vcap_set_ctrl(vcap_fg* fg, vcap_ctrl_id cid, int32_t value) {
 
     struct v4l2_control ctrl;
 
-	VCAP_CLEAR(ctrl);
-	ctrl.id = ctrl_map[cid];
-	ctrl.value = value;
+    VCAP_CLEAR(ctrl);
+    ctrl.id = ctrl_map[cid];
+    ctrl.value = value;
 
-	if (vcap_ioctl(fg->fd, VIDIOC_S_CTRL, &ctrl) == -1) {
-		VCAP_ERROR_ERRNO("Could not set control (%d) value on device '%s'", cid, fg->device.path);
-		return -1;
-	}
+    if (vcap_ioctl(fg->fd, VIDIOC_S_CTRL, &ctrl) == -1) {
+        VCAP_ERROR_ERRNO("Could not set control (%d) value on device '%s'", cid, fg->device.path);
+        return -1;
+    }
 
-	return 0;
+    return 0;
 }
 
 int vcap_reset_ctrl(vcap_fg* fg, vcap_ctrl_id cid) {
@@ -410,8 +410,8 @@ int enum_menu(vcap_fg* fg, vcap_ctrl_id cid, vcap_menu_item* item, uint32_t inde
     struct v4l2_querymenu qmenu;
 
     VCAP_CLEAR(qmenu);
-	qmenu.id = ctrl_map[cid];
-	qmenu.index = index;
+    qmenu.id = ctrl_map[cid];
+    qmenu.index = index;
 
     if (vcap_ioctl(fg->fd, VIDIOC_QUERYMENU, &qmenu) == -1) {
         if (errno == EINVAL) {
@@ -436,19 +436,19 @@ int enum_menu(vcap_fg* fg, vcap_ctrl_id cid, vcap_menu_item* item, uint32_t inde
 }
 
 static vcap_ctrl_id convert_ctrl_id(uint32_t id) {
-	for (int i = 0; i < VCAP_CTRL_UNKNOWN; i++) {
-		if (ctrl_map[i] == id)
-			return (vcap_ctrl_id)i;
-	}
+    for (int i = 0; i < VCAP_CTRL_UNKNOWN; i++) {
+        if (ctrl_map[i] == id)
+            return (vcap_ctrl_id)i;
+    }
 
-	return VCAP_CTRL_UNKNOWN;
+    return VCAP_CTRL_UNKNOWN;
 }
 
 static vcap_ctrl_type convert_ctrl_type(uint32_t type) {
     for (int i = 0; i < VCAP_CTRL_TYPE_UNKNOWN; i++) {
-		if (type_map[i] == type)
-			return (vcap_ctrl_type)i;
-	}
+        if (type_map[i] == type)
+            return (vcap_ctrl_type)i;
+    }
 
-	return VCAP_CTRL_TYPE_UNKNOWN;
+    return VCAP_CTRL_TYPE_UNKNOWN;
 }

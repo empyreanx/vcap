@@ -1,256 +1,660 @@
-/*
- * Vcap - a Video4Linux2 capture library
- * 
- * Copyright (C) 2014 James McLean
- * 
- * This library is free software; you can redistribute it and/or 
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- */
+/*! \file vcap.h
+    \mainpage Vcap
+    \version  0.2.0
+    \author   James McLean <empyreanx@zoho.com>
+    \date     August 4, 2018
+    \brief    A video capture library for Linux
 
-#ifndef _VCAP_H
-#define _VCAP_H
+    \section About
+    Vcap aims to provide a concise API for working with cameras and other video
+    capture devices that have drivers implementing the V4L2 spec. It is built
+    on top of the libv4l userspace library (the only required dependency) which
+    provides seamless decoding for a variety of formats.
 
-#include <vcap/controls.h>
-#include <vcap/decode.h>
-#include <vcap/formats.h>
+    Vcap is built with performance in mind and thus minimizes the use of dynamic
+    memory allocation. Vcap provides simple, low-level access to device controls,
+    enabling applications to make use of the full range of functionality
+    provided by V4L2.
+*/
 
+//==============================================================================
+// Vcap - A Video4Linux2 capture library
+//
+// Copyright (C) 2018 James McLean
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+//==============================================================================
+
+#ifndef VCAP_H
+#define VCAP_H
+
+#include "ctrls.h"
+#include "fmts.h"
+
+#include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 
-/**
- * \file
- * \brief Main header.
- */
+typedef struct vcap_fg vcap_fg;                         ///< Frame grabber
+typedef struct vcap_fmt_itr vcap_fmt_itr;               ///< Format iterator
+typedef struct vcap_size_itr vcap_size_itr;             ///< Size iterator
+typedef struct vcap_interval_itr vcap_interval_itr;   ///< Frame interval iterator
+typedef struct vcap_ctrl_itr vcap_ctrl_itr;             ///< Control iterator
+typedef struct vcap_menu_itr vcap_menu_itr;             ///< Menu iterator
 
-/**
- * \brief Frame size.
- */
+///
+/// \brief Video capture device infomation
+///
 typedef struct {
-	uint32_t width;
-	uint32_t height;
-} vcap_size_t;
+    char path[512];             ///< Device path
+    uint8_t driver[16];         ///< Device driver name
+    uint8_t card[32];           ///< Video hardware info
+    uint8_t bus_info[32];       ///< Bus info
+    uint32_t version;           ///< Driver version
+    uint8_t version_str[16];    ///< Driver version str
+} vcap_device;
 
-/**
- * \brief Frame format.
- */
+///
+/// \brief Pixel format description
+///
 typedef struct {
-	uint32_t code;
-	vcap_size_t size;
-} vcap_format_t;
+    vcap_fmt_id id;             ///< Format ID
+    uint8_t name[32];           ///< Format name
+    uint8_t fourcc[5];          ///< FourCC string
+} vcap_fmt_desc;
 
-/**
- * \brief Camera format descriptor.
- */
+///
+/// \brief Frame dimensions
+///
 typedef struct {
-	uint32_t code;				//!< FOURCC pixel format code
-	char code_string[5];		//!< FOURCC pixel format string
-	char description[32];		//!< Format description
-	uint8_t num_sizes;			//!< Number of frame sizes for this format
-	vcap_size_t* sizes;			//!< Frame sizes
-} vcap_format_info_t;
+    uint32_t width;             ///< Frame width
+    uint32_t height;            ///< Frame height
+} vcap_size;
 
-/**
- * \brief Control menu item.
- */
+///
+/// \brief Frame interval. The frame rate is "denominator/numerator".
+///
 typedef struct {
-	uint32_t value;				//!< Menu item value
-	char name[32];				//!< Menu item name
-} vcap_menu_item_t;
+    uint32_t numerator;         ///< Interval numerator
+    uint32_t denominator;       ///< Interval denominator
+} vcap_interval;
 
-/**
- * \brief Camera control descriptor.
- */
+///
+/// \brief Control descriptor
+///
 typedef struct {
-	char name[32];				//!< Menu item value
-	vcap_control_id_t id;		//!< Control identifier
-	vcap_control_type_t type;	//!< Control type
-	int32_t min;				//!< Minimum control value
-	int32_t max;				//!< Maximum control value
-	int32_t step;				//!< Control step
-	int32_t default_value;		//!< Default control value
-	uint8_t menu_length;		//!< Control menu length
-	vcap_menu_item_t *menu;		//!< Control menu
-} vcap_control_info_t;
+    vcap_ctrl_id id;            ///< Control ID
+    uint8_t name[32];           ///< Control name
+    vcap_ctrl_type type;        ///< Control type
+    uint8_t type_name[16];      ///< Control type name
+    int32_t min;                ///< The minimum value of the control
+    int32_t max;                ///< The maximum value of the control
+    int32_t step;               ///< The spacing between consecutive values
+    int32_t default_value;      ///< The default value of the control (set when the driver is first loaded)
+    uint8_t read_only;          ///< VCAP_TRUE if read-only and VCAP_FALSE if read/write
+} vcap_ctrl_desc;
 
-/**
- * \brief Internal camera buffer.
- */
+///
+/// \brief Control menu item
+///
 typedef struct {
-	size_t size;				//!< Buffer size
-	void *data;					//!< Buffer data
-} vcap_buffer_t;
+    uint32_t index;             ///< Menu item index (value used to set the control)
 
-/**
- * \brief Camera device handle.
- */
+    union {
+        uint8_t name[32];       ///< Menu item name (used if control type is VCAP_CTRL_TYPE_MENU)
+        int64_t value;          ///< Menu item value (used if control type is VCAP_CTRL_TYPE_INTEGER_MENU)
+    };
+
+} vcap_menu_item;
+
+///
+/// \brief Defines a rectangle
+///
 typedef struct {
-	//public
-	char device[64];			//!< Camera device name
-	char driver[64];			//!< Device driver name
-	char info[256];				//!< Additional device information
-	uint8_t opened;				//!< True if the camera is open; false otherwise
-	uint8_t capturing;			//!< True if the camera is capturing; false otherwise
-	
-	//private
-	int fd;						//!< Internal
-	uint8_t num_buffers;		//!< Internal
-	vcap_buffer_t *buffers;		//!< Internal
-} vcap_camera_t;
+    int32_t top;                ///< Top edge of rectangle
+    int32_t left;               ///< Left edge of rectangle
+    int32_t width;              ///< Width of rectangle
+    int32_t height;             ///< Height of rectangle
+} vcap_rect;
 
-/**
- * \brief Sets the most recent error message.
- */
-void vcap_set_error(const char *fmt, ...);
+///
+/// \brief Defines a video frame
+///
+typedef struct {
+    vcap_size size;             ///< Size of frame
+    size_t stride;              ///< Length of row in bytes
+    size_t length;              ///< Length of data in bytes
+    uint8_t* data;              ///< Frame data
+} vcap_frame;
 
-/**
- * \brief Returns the last Vcap error message. This function is not thread-safe.
- */
-char* vcap_error();
+#define VCAP_TRUE           1   ///< True
+#define VCAP_FALSE          0   ///< False
 
-/**
- * \brief Retrieves all supported cameras connected to the system.
- */
-int vcap_cameras(vcap_camera_t** cameras);
+#define VCAP_FMT_OK         0   ///< Format is supported
+#define VCAP_FMT_INVALID   -1   ///< Format is not supported
+#define VCAP_FMT_ERROR     -2   ///< Error reading format descriptor
 
-/**
- * \brief Allocates and initializes a camera handle.
- */
-vcap_camera_t* vcap_create_camera(const char* device);
+#define VCAP_CTRL_OK        0   ///< Control is supported
+#define VCAP_CTRL_INACTIVE -1   ///< Control is supported, but inactive
+#define VCAP_CTRL_INVALID  -2   ///< Control is not supported
+#define VCAP_CTRL_ERROR    -3   ///< Error reading control descriptor
 
-/**
- * \brief Destroys a camera handle, releasing all resources in the process.
- */
-int vcap_destroy_camera(vcap_camera_t* camera);
+#define VCAP_ENUM_OK        0   ///< Successfully enumerated item (valid index)
+#define VCAP_ENUM_INVALID  -1   ///< Invalid index
+#define VCAP_ENUM_DISABLED -2   ///< Valid index, but item is disabled
+#define VCAP_ENUM_ERROR    -3   ///< Error enumerating item
 
-/**
- * \brief Destroys an array of cameras handles, releasing all resources in the process.
- */
-int vcap_destroy_cameras(vcap_camera_t* cameras, uint16_t num_cameras);
+typedef void* (*vcap_malloc_func)(size_t size); ///< Custom malloc function type
+typedef void (*vcap_free_func)(void* ptr);      ///< Custom free function type
 
-/**
- * \brief Copies a camera handle.
- */
-int vcap_copy_camera(vcap_camera_t* src, vcap_camera_t* dst);
+//------------------------------------------------------------------------------
+///
+/// \brief  Set a custom 'malloc' and 'free' function
+///
+/// This is not strictly necessary since vcap does very little dynamic memory
+/// allocation. However, if you are already using a custom allocator you might
+/// as well use this function. By default Vcap uses the standard malloc and free.
+///
+void vcap_set_alloc(vcap_malloc_func malloc_func, vcap_free_func free_func);
 
-/**
- * \brief Opens the underlying device.
- */
-int vcap_open_camera(vcap_camera_t* camera);
+//------------------------------------------------------------------------------
+///
+/// \brief  Returns a string containing the last error message
+///
+const char* vcap_get_error();
 
-/**
- * \brief Closes the underlying device.
- */
-int vcap_close_camera(vcap_camera_t* camera);
+//------------------------------------------------------------------------------
+///
+/// \brief  Prints device information
+///
+/// This function prints device information (path, driver, bus info etc...), and
+/// enumerates and displays information about all formats and controls.
+///
+/// \param  fg  Frame grabber
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_dump_info(vcap_fg* fg);
 
-/**
- * \brief Automatically sets the format on a camera based on the format's priority.
- */
-int vcap_auto_set_format(vcap_camera_t* camera);
+//------------------------------------------------------------------------------
+///
+/// \brief  Enumerates video capture devices
+///
+/// Retrieves the video capture device at the specified 'index' and stores
+/// the corresponding device information in the 'vcap_device' struct pointed to
+/// by the 'device' parameter.
+///
+/// \param  device  Pointer to the device info struct
+/// \param  index   The index of the device to query
+///
+/// \returns VCAP_ENUM_OK      if the device information was retrieved successfully,
+///          VCAP_ENUM_INVALID if the index is invalid, and
+///          VCAP_ENUM_ERROR   if querying the device failed.
+///
+int vcap_enum_devices(vcap_device* device, int index);
 
-/**
- * \brief Retrieves all formats supported by the camera.
- */
-int vcap_get_formats(vcap_camera_t* camera, vcap_format_info_t** formats);
+//------------------------------------------------------------------------------
+///
+/// \brief  Retrieves video capture device information
+///
+/// This function retrieves video capture device information for the device at
+/// the specified path.
+///
+/// \param  path    The path of the device handle
+/// \param  device  Pointer to the struct in which to store the device info
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_get_device(const char* path, vcap_device* device);
 
-/**
- * \brief Retrieves the camera's current format.
- */
-int vcap_get_format(vcap_camera_t* camera, vcap_format_t* format);
+//------------------------------------------------------------------------------
+///
+/// \brief  Opens a video capture device
+///
+/// Attempts to open a video capture device using the information stored in the
+/// 'vcap_device' struct pointed to by the 'device' parameter. The function
+/// returns a pointer to a frame grabber.
+///
+/// \param  device  Pointer to the device info
+///
+/// \returns NULL on error and a pointer to a frame grabber otherwise
+///
+vcap_fg* vcap_open(vcap_device* device);
 
-/**
- * \brief Sets the camera's format.
- */
-int vcap_set_format(vcap_camera_t* camera, vcap_format_t format);
+//------------------------------------------------------------------------------
+///
+/// \brief  Closes a video capture device
+///
+/// Closes the device and deallocates the frame grabber.
+///
+/// \param  fg  Pointer to the frame grabber
+///
+void vcap_close(vcap_fg* fg);
 
-/**
- * \brief Destroys a format descriptor.
- */
-void vcap_destroy_format(vcap_format_info_t* format);
+//------------------------------------------------------------------------------
+///
+/// \brief  Allocates a video frame
+///
+/// Allocates a video frame used for capturing. The frame is used (and reused)
+/// when reading data from the video capture device. If the format or frame size
+/// is altered the frame should be deallocated and a new one allocated since the
+/// size of the buffer will have changed.
+///
+/// \param  fg  Pointer to the frame grabber
+///
+/// \returns NULL on error and a pointer to the video frame otherwise
+///
+vcap_frame* vcap_alloc_frame(vcap_fg* fg);
 
-/**
- * \brief Destroys an array of format descriptors.
- */
-void vcap_destroy_formats(vcap_format_info_t* formats, uint16_t num_formats);
+//------------------------------------------------------------------------------
+///
+/// \brief  Deallocates all resources held by 'frame'
+///
+/// Deallocates the frame data and the frame.
+///
+/// \param  frame  Pointer to the frame struct
+///
+void vcap_free_frame(vcap_frame* frame);
 
-/**
- * \brief Copies a format descriptor.
- */
-void vcap_copy_format(vcap_format_info_t* src, vcap_format_info_t* dst);
+//------------------------------------------------------------------------------
+///
+/// \brief  Grabs a grabs a frame
+///
+/// Grabs a frame from a video capture device using the specified frame grabber.
+///
+/// \param  fg     Pointer to the frame grabber
+/// \param  frame  Pointer to the frame
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_grab(vcap_fg* fg, vcap_frame* frame);
 
-/**
- * \brief Retrieves all frame rates supported by the camera for a given format and frame size.
- */
-int vcap_get_frame_rates(vcap_camera_t* camera, vcap_format_t format, uint16_t** frame_rates);
+//------------------------------------------------------------------------------
+///
+/// \brief  Get cropping bounds
+///
+/// Retrieves a rectangle that determines the valid cropping area for the
+/// specified frame grabber.
+///
+/// \param  fg     Pointer to the frame grabber
+/// \param  rect   Pointer to the rectangle
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_get_crop_bounds(vcap_fg* fg, vcap_rect* rect);
 
-/**
- * \brief Retrieves the camera's current frame rate.
- */
-int vcap_get_frame_rate(vcap_camera_t *camera, uint16_t* frame_rate);
+//------------------------------------------------------------------------------
+///
+/// \brief  Resets cropping rectangle
+///
+/// Resets the cropping rectange to its default dimensions.
+///
+/// \param  fg  Pointer to the frame grabber
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_reset_crop(vcap_fg* fg);
 
-/**
- * \brief Sets the camera's frame rate.
- */
-int vcap_set_frame_rate(vcap_camera_t *camera, uint16_t frame_rate);
+//------------------------------------------------------------------------------
+///
+/// \brief  Get the current cropping rectangle
+///
+/// Retrieves the current cropping rectangle for the specified frame grabber
+/// and stores it in 'rect'.
+///
+/// \param  fg    Pointer to the frame grabber
+/// \param  rect  Pointer to rectangle
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_get_crop(vcap_fg* fg, vcap_rect* rect);
 
-/**
- * \brief Retrieves all supported camera controls.
- */
-int vcap_get_controls(vcap_camera_t* camera, vcap_control_info_t** controls);
+//------------------------------------------------------------------------------
+///
+/// \brief  Sets the cropping rectangle
+///
+/// Sets the cropping rectangle for the specified frame grabber.
+///
+/// \param  fg    Pointer to the frame grabber
+/// \param  rect  Pointer to rectangle
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_set_crop(vcap_fg* fg, vcap_rect rect);
 
-/**
- * \brief Destroys a format descriptor.
- */
-void vcap_destroy_control(vcap_control_info_t* control);
+//------------------------------------------------------------------------------
+///
+/// \brief  Retrieves a format descriptor
+///
+/// Retrieves a format descriptor for the specified format ID.
+///
+/// \param  fg    Pointer to the frame grabber
+/// \param  fid   The format ID
+/// \param  desc  Pointer to the format descriptor
+///
+/// \returns VCAP_FMT_OK      if the format descriptor was retrieved successfully,
+///          VCAP_FMT_INVALID if the format ID is invalid
+///          VCAP_FMT_ERROR   if getting the format descriptor failed
+///
+int vcap_get_fmt_desc(vcap_fg* fg, vcap_fmt_id fid, vcap_fmt_desc* desc);
 
-/**
- * \brief Destroys an array of control descriptors.
- */
-void vcap_destroy_controls(vcap_control_info_t* controls, uint16_t num_controls);
+//------------------------------------------------------------------------------
+///
+/// \brief  Creates a new format iterator
+///
+/// Creates and initializes new format iterator for the specified frame grabber.
+///
+/// \param  fg  Pointer to the frame grabber
+///
+/// \returns An initialized 'vcap_fmt_itr' struct
+///
+vcap_fmt_itr vcap_new_fmt_itr(vcap_fg* fg);
 
-/**
- * \brief Copies a control descriptor.
- */
-void vcap_copy_control(vcap_control_info_t* src, vcap_control_info_t* dst);
+//------------------------------------------------------------------------------
+///
+/// \brief  Advances the specified format iterator
+///
+/// Copies the current format descriptor into 'desc' and advances the iterator.
+///
+/// \param  itr   Pointer to iterator
+/// \param  desc  Pointer to the format descriptor
+///
+/// \returns 0 if there was an error or there are no more formats, and 1 otherwise
+///
+int vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_desc* desc);
 
-/**
- * \brief Retrieves a control's current value.
- */
-int vcap_get_control_value(vcap_camera_t* camera, vcap_control_id_t control_id, int32_t* value);
+//------------------------------------------------------------------------------
+///
+/// \brief  Checks if there was an error while creating or advancing the iterator
+///
+/// \param  itr  Pointer to iterator
+///
+/// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
+///
+int vcap_fmt_itr_error(vcap_fmt_itr* itr);
 
-/**
- * \brief Set a control's value.
- */
-int vcap_set_control_value(vcap_camera_t* camera, vcap_control_id_t control_id, int32_t value);
+//------------------------------------------------------------------------------
+///
+/// \brief  Creates a new frame size iterator
+///
+/// Creates and initializes new frame size iterator for the specified frame
+/// grabber and format ID.
+///
+/// \param  fg   Pointer to the frame grabber
+/// \param  fid  The format ID
+///
+/// \returns An initialized 'vcap_size_itr' struct
+///
+vcap_size_itr vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fid);
 
-/**
- * \brief Copies a menu item.
- */
-void vcap_copy_menu_item(vcap_menu_item_t* src, vcap_menu_item_t* dst);
+//------------------------------------------------------------------------------
+///
+/// \brief  Advances the specified frame size iterator
+///
+/// Copies the current frame size into 'size' and advances the iterator.
+///
+/// \param  itr   Pointer to iterator
+/// \param  size  Pointer to the frame size
+///
+/// \returns 0 if there was an error or there are no more sizes, and 1 otherwise
+///
+int vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size);
 
-/**
- * \brief Start stream.
- */
-int vcap_start_capture(vcap_camera_t *camera);
+//------------------------------------------------------------------------------
+///
+/// \brief  Checks if there was an error while creating or advancing the iterator
+///
+/// \param  itr  Pointer to iterator
+///
+/// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
+///
+int vcap_size_itr_error(vcap_size_itr* itr);
 
-/**
- * \brief Stop stream.
- */
-int vcap_stop_capture(vcap_camera_t *camera);
+//------------------------------------------------------------------------------
+///
+/// \brief  Creates a new frame interval iterator
+///
+/// Creates and initializes new frame interval iterator for the specified frame
+/// grabber, format ID, and frame size.
+///
+/// \param  fg    Pointer to the frame grabber
+/// \param  fid   The format ID
+/// \param  size  The frame size
+///
+/// \returns An initialized 'vcap_interval_itr' struct
+///
+vcap_interval_itr vcap_new_interval_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size size);
 
-/**
- * \brief Allocates a buffer, grabs an image from the camera and stores it in the buffer.
- */
-int vcap_grab_frame(vcap_camera_t *camera, uint8_t **buffer);
+//------------------------------------------------------------------------------
+///
+/// \brief  Advances the specified frame interval iterator
+///
+/// Copies the current frame interval into 'interval' and advances the iterator.
+///
+/// \param  itr       Pointer to iterator
+/// \param  interval  Pointer to the frame interval
+///
+/// \returns 0 if there was an error or there are no more sizes, and 1 otherwise
+///
+int vcap_interval_itr_next(vcap_interval_itr* itr, vcap_interval* interval);
 
-#endif
+//------------------------------------------------------------------------------
+///
+/// \brief  Checks if there was an error while creating or advancing the iterator
+///
+/// \param  itr  Pointer to iterator
+///
+/// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
+///
+int vcap_interval_itr_error(vcap_interval_itr* itr);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Gets the current format and frame size
+///
+/// Retrieves the current format ID and frame size simultaneously for the
+/// specified frame grabber.
+///
+/// \param  fg    Pointer to the frame grabber
+/// \param  fid   Pointer to the format ID
+/// \param  size  Pointer to the frame size
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_get_fmt(vcap_fg* fg, vcap_fmt_id* fid, vcap_size* size);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Sets the format and frame size
+///
+/// Sets the format ID and frame size simultaneously for the specified frame
+/// grabber.
+///
+/// \param  fg    Pointer to the frame grabber
+/// \param  fid   The format ID
+/// \param  size  The frame size
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_set_fmt(vcap_fg* fg, vcap_fmt_id fid, vcap_size size);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Get the current frame interval
+///
+/// Retrieves the current frame interval for the specified frame grabber.
+///
+/// \param  fg        Pointer to the frame grabber
+/// \param  interval  Pointer to the frame interval
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_get_interval(vcap_fg* fg, vcap_interval* interval);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Sets the frame interval
+///
+/// Sets the frame interval for the specified frame grabber.
+///
+/// \param  fg        Pointer to the frame grabber
+/// \param  interval  The frame interval
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_set_interval(vcap_fg* fg, vcap_interval interval);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Retrieves a control descriptor
+///
+/// Retrieves a control descriptor for the specified control ID.
+///
+/// \param  fg    Pointer to the frame grabber
+/// \param  cid   The control ID
+/// \param  desc  Pointer to the control descriptor
+///
+/// \returns VCAP_CTRL_OK       if the control descriptor was retrieved successfully,
+///          VCAP_CTRL_INACTIVE if the control ID is valid, but the control is inactive,
+///          VCAP_CTRL_INVALID  if the control ID is invalid, and
+///          VCAP_CTRL_ERROR    if getting the control descriptor failed
+///
+int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id cid, vcap_ctrl_desc* desc);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Creates a new control iterator
+///
+/// Creates and initializes new control iterator for the specified frame grabber.
+///
+/// \param  fg  Pointer to the frame grabber
+///
+/// \returns An initialized 'vcap_ctrl_itr' struct
+///
+vcap_ctrl_itr vcap_new_ctrl_itr(vcap_fg* fg);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Advances the specified control iterator
+///
+/// Copies the current control descriptor into 'desc' and advances the iterator.
+///
+/// \param  itr   Pointer to iterator
+/// \param  desc  Pointer to the control descriptor
+///
+/// \returns 0 if there was an error or there are no more controls, and 1 otherwise
+///
+int vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_desc* desc);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Checks if there was an error while creating or advancing the iterator
+///
+/// \param  itr  Pointer to iterator
+///
+/// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
+///
+int vcap_ctrl_itr_error(vcap_ctrl_itr* itr);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Creates a new menu iterator
+///
+/// Creates and initializes a new menu iterator for the specified frame
+/// grabber and control ID.
+///
+/// \param  fg   Pointer to the frame grabber
+/// \param  cid  The control ID
+///
+/// \returns An initialized 'vcap_menu_itr' struct
+///
+vcap_menu_itr vcap_new_menu_itr(vcap_fg* fg, vcap_ctrl_id cid);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Advances the specified menu iterator
+///
+/// Copies the current menu item into 'item' and advances the iterator.
+///
+/// \param  itr   Pointer to iterator
+/// \param  item  Pointer to the menu item
+///
+/// \returns 0 if there was an error or there are no more controls, and 1 otherwise
+///
+int vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Checks if there was an error while creating or advancing the iterator
+///
+/// \param  itr  Pointer to iterator
+///
+/// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
+///
+int vcap_menu_itr_error(vcap_menu_itr* itr);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Gets a control's value
+///
+/// Retrieves the current value of a control with the specified control ID.
+///
+/// \param  fg     Pointer to the frame grabber
+/// \param  cid    The control ID
+/// \param  value  The control value
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_get_ctrl(vcap_fg* fg, vcap_ctrl_id cid, int32_t* value);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Sets a control's value
+///
+/// Sets the value of a control value with the specified control ID.
+///
+/// \param  fg     Pointer to the frame grabber
+/// \param  cid    The control ID
+/// \param  value  The control value
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_set_ctrl(vcap_fg* fg, vcap_ctrl_id cid, int32_t value);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Resets a control's value
+///
+/// Resets the value of the specified control to its default value.
+///
+/// \param  fg   Pointer to the frame grabber
+/// \param  cid  The control ID
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_reset_ctrl(vcap_fg* fg, vcap_ctrl_id cid);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Resets a all controls to defaults
+///
+/// Resets all controls to their default values.
+///
+/// \param  fg  Pointer to the frame grabber
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_reset_all_ctrls(vcap_fg* fg);
+
+#endif // VCAP_H

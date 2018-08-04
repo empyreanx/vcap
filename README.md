@@ -1,106 +1,81 @@
 # Vcap
- 
+
 ## Introduction
 
-Vcap is a library written in C that aims to make using the Video4Linux2 API simple. It was designed to make the common 
-case of capturing frames using memory-mapped device buffers quick and easy.
+Vcap aims to provide a concise API for working with cameras and other video capture devices that have drivers implementing the V4L2 spec. It is built on top of the libv4l userspace library (the only required dependency) which provides seamless decoding for a variety of formats.
 
-Vcap was also written with computer vision applications in mind and thus allows setting camera controls that enhance or
-interfere with computer vision and image processing techniques. Vcap also includes a (growing) number of pixel format
-decoding functions, enabling seamless support for many devices. 
+Vcap is built with performance in mind and thus minimizes the use of dynamic memory allocation. Vcap provides simple, low-level access to device controls, enabling applications to make use of the full range of functionality provided by V4L2.
 
-In contrast with similar projects, Vcap is licensed under the LGPL v2.1 which permits it's use in commercial products.
-
-This project also has [C++ bindings](https://github.com/jrimclean/vcap-cpp).
+This is the second iteration of Vcap, the previous version was written in 2015 when I was still a fledgling C/C++ developer. This version contains many improvements including of how formats and controls are enumerated (iterators!) and how memory is managed. Enjoy!
 
 ## Building and Installation
 
-You must have CMake and a C compiler installed. 
+You must have CMake and a C compiler installed.
 
-*$ cmake . && make*
+*$ mkdir vcap-build && cd vcap-build*
+
+*$ cmake ../vcap && make*
 
 To install:
 
-*$ make install*
+*$ sudo make install*
 
 To generate documentation (if Doxygen is installed):
 
-*$ make doc*
+*$ make docs*
+
+There are a variety of examples available. To build the PNG example use the
+following *cmake* command and run *make* again:
+
+*$ cmake ../vcap -DBUILD\_PNG\_EXAMPLE=ON*
+
+Other examples are built similarly.
 
 ## Example
 
-This example grabs a raw frame, from the first camera on the bus, and stores it in a file:
+A minimal example of grabbing a raw frame and saving it to a file (without error checking):
 
-```cpp
+```c
 #include <vcap/vcap.h>
-
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 
-/*
- * Grabs raw data from a camera and saves it to the file 'image.raw'
- */
-int main(int argc, char* argv[]) {
-	vcap_camera_t* cameras;
-	
-	int num_cameras = vcap_cameras(&cameras);
-	
-	if (num_cameras <= 0) {
-		printf("No cameras found!\n");
-		return -1;
-	}
-	
-	//open the first camera found
-	vcap_camera_t* camera = &cameras[0];
-	
-	if (-1 == vcap_open_camera(camera)) {
-		printf("Error: %s\n", vcap_error());
-		return -1;
-	}
-	
-	//start capturing
-	if (-1 == vcap_start_capture(camera)) {
-		printf("Error: %s\n", vcap_error());
-		return -1;
-	}
-	
-	//some cameras require time to initialize
-	sleep(3);
-	
-	//grab frame
-	uint8_t* raw_buffer;
-	
-	int buffer_size = vcap_grab_frame(camera, &raw_buffer);
-	
-	if (-1 == buffer_size) {
-		printf("Error: %s\n", vcap_error());
-		return -1;
-	}	
-	
-	//write frame to file
-	FILE* file = fopen("image.raw", "wb");
-			
-	if (fwrite(raw_buffer, buffer_size, 1, file) != 1)
-		printf("Error writing to file!\n");
-	else
-		printf("Wrote output file 'image.raw' (%d bytes)\n", buffer_size);
-			
-	fclose(file);
-	
-	//clean up
-	if (-1 == vcap_destroy_cameras(cameras, num_cameras)) {
-		printf("Error: %s\n", vcap_error());
-		return -1;
-	}
-	
-	free(raw_buffer);
-	
-	return 0;
+int main(int argc, char** argv) {
+    vcap_device device;
+
+    // Find first device on the bus
+    vcap_enum_devices(&device, 0);
+
+    // Open device
+    vcap_fg* fg = vcap_open(&device);
+
+    // Set format to RGB24
+    vcap_set_fmt(fg, V4L2_PIX_FMT_RGB24, size);
+
+    // Allocate a frame
+    vcap_frame* vcap_frame = vcap_alloc_frame(fg);
+
+    // Grab a frame
+    vcap_grab(fg, frame);
+
+    // Save raw frame
+    File* file = fopen("out.raw", "w");
+    fwrite(frame->data, frame->length, 1, file);
+    fclose(file);
+
+    // Free frame
+    vcap_free_frame(frame);
+
+    // Close device
+    vcap_close(fg);
+
+    return 0;
 }
 ```
 
+## Acknowledgements
+I would like to thank Gavin Baker (author of [libfg](http://antonym.org/libfg/)) and Matthew Brush (author of [libfg2](https://github.com/codebrainz/libfg2)).
+Although Vcap is different in many ways, I found their approach inspiring when writing the second iteration of Vcap.
+
 ## License
-Copyright (c) 2015 James McLean  
+Copyright (c) 2018 James McLean  
 Licensed under LGPL v2.1.

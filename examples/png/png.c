@@ -27,8 +27,8 @@
 #include <string.h>
 
 typedef struct {
-	uint8_t *data;
-	size_t size;
+    uint8_t *data;
+    size_t size;
 } png_buffer_t;
 
 int rgb24_to_png(uint8_t *input, png_buffer_t *buffer, int width, int height);
@@ -79,12 +79,12 @@ int main(int argc, char** argv) {
     }
 
     //compress rgb24 to png
-	png_buffer_t png_buffer;
+    png_buffer_t png_buffer;
 
-	if (rgb24_to_png(frame->data, &png_buffer, frame->size.width, frame->size.height) == -1) {
-		printf("Error converting data to PNG\n");
-		goto error;
-	}
+    if (rgb24_to_png(frame->data, &png_buffer, frame->size.width, frame->size.height) == -1) {
+        printf("Error converting data to PNG\n");
+        goto error;
+    }
 
     file = fopen("out.png", "wb");
 
@@ -120,106 +120,106 @@ error:
 }
 
 void png_write_to_buffer(png_structp png_ptr, png_bytep data, png_size_t length) {
-	png_buffer_t* buffer = (png_buffer_t*)png_get_io_ptr(png_ptr);
-	size_t new_size = length + buffer->size;
+    png_buffer_t* buffer = (png_buffer_t*)png_get_io_ptr(png_ptr);
+    size_t new_size = length + buffer->size;
 
-	if (buffer->data) {
-		buffer->data = (uint8_t*)realloc(buffer->data, new_size);
-	} else {
-		buffer->data = (uint8_t*)malloc(new_size);
-	}
+    if (buffer->data) {
+        buffer->data = (uint8_t*)realloc(buffer->data, new_size);
+    } else {
+        buffer->data = (uint8_t*)malloc(new_size);
+    }
 
-	if (!buffer->data) {
-		png_error(png_ptr, "Write error");
-	}
+    if (!buffer->data) {
+        png_error(png_ptr, "Write error");
+    }
 
-	memcpy(buffer->data + buffer->size, data, length);
-	buffer->size += length;
+    memcpy(buffer->data + buffer->size, data, length);
+    buffer->size += length;
 }
 
 void png_dummy_flush(png_structp png_ptr) {
 }
 
 int rgb24_to_png(uint8_t *input, png_buffer_t *buffer, int width, int height) {
-	/*
-	 * Initialize buffer info
-	 */
-	buffer->size = 0;
-	buffer->data = NULL;
+    /*
+     * Initialize buffer info
+     */
+    buffer->size = 0;
+    buffer->data = NULL;
 
-	/*
-	 * More initalization
-	 */
-	int code = 0;
-	png_structp png_ptr;
-	png_infop info_ptr;
+    /*
+     * More initalization
+     */
+    int code = 0;
+    png_structp png_ptr;
+    png_infop info_ptr;
 
-	/*
-	 * Initialize write structure
-	 */
-	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    /*
+     * Initialize write structure
+     */
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 
-	if (png_ptr == NULL) {
-		printf("Could not allocate write struct\n");
-		return -1;
-	}
+    if (png_ptr == NULL) {
+        printf("Could not allocate write struct\n");
+        return -1;
+    }
 
-	png_bytep* rows = (png_bytep*)png_malloc(png_ptr, height * sizeof(png_bytep));
+    png_bytep* rows = (png_bytep*)png_malloc(png_ptr, height * sizeof(png_bytep));
 
-	/*
-	 * Initialize info structure
-	 */
-	info_ptr = png_create_info_struct(png_ptr);
+    /*
+     * Initialize info structure
+     */
+    info_ptr = png_create_info_struct(png_ptr);
 
-	if (info_ptr == NULL) {
-		printf("Could not allocate info struct\n");
-		code = -1;
-		goto finally;
-	}
+    if (info_ptr == NULL) {
+        printf("Could not allocate info struct\n");
+        code = -1;
+        goto finally;
+    }
 
-	/*
-	 * Setup exception handling
-	 */
-	if (setjmp(png_jmpbuf(png_ptr))) {
-		printf("Error during png creation\n");
-		code = -1;
-		goto finally;
-	}
+    /*
+     * Setup exception handling
+     */
+    if (setjmp(png_jmpbuf(png_ptr))) {
+        printf("Error during png creation\n");
+        code = -1;
+        goto finally;
+    }
 
-	/*
-	 * Write header (8 bit colour depth)
-	 */
-	png_set_IHDR(png_ptr, info_ptr, width, height, 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+    /*
+     * Write header (8 bit colour depth)
+     */
+    png_set_IHDR(png_ptr, info_ptr, width, height, 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
-	for (int i = 0; i < height; i++) {
-		rows[i] = (png_bytep)&input[3 * i * width];
-	}
+    for (int i = 0; i < height; i++) {
+        rows[i] = (png_bytep)&input[3 * i * width];
+    }
 
-	png_set_rows(png_ptr, info_ptr, rows);
+    png_set_rows(png_ptr, info_ptr, rows);
 
-	png_set_write_fn(png_ptr, buffer, png_write_to_buffer, png_dummy_flush);
+    png_set_write_fn(png_ptr, buffer, png_write_to_buffer, png_dummy_flush);
 
-	png_write_info(png_ptr, info_ptr);
+    png_write_info(png_ptr, info_ptr);
 
-	png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+    png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
 
-	finally: {
-		if (info_ptr != NULL) {
-			png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
-		}
+    finally: {
+        if (info_ptr != NULL) {
+            png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
+        }
 
-		if (png_ptr != NULL) {
-			png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-		}
+        if (png_ptr != NULL) {
+            png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+        }
 
-		if (rows != NULL) {
-			for (int i = 0; i < height; i++) {
-				png_free(png_ptr, rows[i]);
-			}
+        if (rows != NULL) {
+            for (int i = 0; i < height; i++) {
+                png_free(png_ptr, rows[i]);
+            }
 
-			png_free(png_ptr, rows);
-		}
-	}
+            png_free(png_ptr, rows);
+        }
+    }
 
-	return code;
+    return code;
 }

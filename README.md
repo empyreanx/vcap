@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     vcap_grab(fg, frame);
 
     // Save raw frame
-    File* file = fopen("out.raw", "w");
+    File* file = fopen("out.raw", "wb");
     fwrite(frame->data, frame->length, 1, file);
     fclose(file);
 

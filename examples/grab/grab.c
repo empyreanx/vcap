@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
         goto error;
     }
 
-    file = fopen("out.raw", "w");
+    file = fopen("out.raw", "wb");
 
     if (!file) {
         perror("Cannot open image");

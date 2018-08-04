@@ -267,7 +267,7 @@ vcap_fmt_itr vcap_new_fmt_itr(vcap_fg* fg) {
 
 int vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_desc* desc) {
     if (!itr)
-        return 0;// TODO: Find another way of handling this
+        return 0; // TODO: Find another way of handling this
 
     if (!desc) {
         VCAP_ERROR("Parameter 'desc' cannot be null");

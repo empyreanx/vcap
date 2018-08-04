@@ -24,10 +24,10 @@ To generate documentation (if Doxygen is installed):
 
 *$ make docs*
 
-There are a variety of examples available. To build the PNG example use the
+There are a variety of examples available. To build the "info" example use the
 following *cmake* command and run *make* again:
 
-*$ cmake ../vcap -DBUILD\_PNG\_EXAMPLE=ON*
+*$ cmake ../vcap -DBUILD\_INFO\_EXAMPLE=ON*
 
 Other examples are built similarly.
 
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
     vcap_fg* fg = vcap_open(&device);
 
     // Set format to RGB24
-    vcap_set_fmt(fg, V4L2_PIX_FMT_RGB24, size);
+    vcap_set_fmt(fg, VCAP_FMT_RGB24, size);
 
     // Allocate a frame
     vcap_frame* vcap_frame = vcap_alloc_frame(fg);

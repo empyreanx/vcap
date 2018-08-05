@@ -62,50 +62,56 @@ int vcap_dump_info(vcap_fg* fg) {
 
     // Enumerate formats
     vcap_fmt_desc fmt_desc;
-    vcap_fmt_itr fmt_itr = vcap_new_fmt_itr(fg);
+    vcap_fmt_itr* fmt_itr = vcap_new_fmt_itr(fg);
 
-    while (vcap_fmt_itr_next(&fmt_itr, &fmt_desc)) {
+    while (vcap_fmt_itr_next(fmt_itr, &fmt_desc)) {
         printf("------------------------------------------------\n");
         printf("Format: %s, FourCC: %s\n", fmt_desc.name, fmt_desc.fourcc);
         printf("Sizes:\n");
 
         // Enumerate sizes
         vcap_size size;
-        vcap_size_itr size_itr = vcap_new_size_itr(fg, fmt_desc.id);
+        vcap_size_itr* size_itr = vcap_new_size_itr(fg, fmt_desc.id);
 
-        while (vcap_size_itr_next(&size_itr, &size)) {
+        while (vcap_size_itr_next(size_itr, &size)) {
             printf("   %u x %u: ", size.width, size.height);
             printf("(Frame rates:");
 
             // Enumerate frame rates
             vcap_rate rate;
-            vcap_rate_itr rate_itr = vcap_new_rate_itr(fg, fmt_desc.id, size);
+            vcap_rate_itr* rate_itr = vcap_new_rate_itr(fg, fmt_desc.id, size);
 
-            while (vcap_rate_itr_next(&rate_itr, &rate)) {
+            while (vcap_rate_itr_next(rate_itr, &rate)) {
                 printf(" %u/%u", rate.numerator, rate.denominator);
             }
 
-            if (vcap_rate_itr_error(&rate_itr))
+            if (vcap_rate_itr_error(rate_itr))
                 return -1;
+
+            vcap_free_rate_itr(rate_itr);
 
             printf(")\n");
         }
 
-        if (vcap_size_itr_error(&size_itr))
+        if (vcap_size_itr_error(size_itr))
             return -1;
+
+        vcap_free_size_itr(size_itr);
     }
 
-    if (vcap_fmt_itr_error(&fmt_itr))
+    if (vcap_fmt_itr_error(fmt_itr))
         return -1;
+
+    vcap_free_fmt_itr(fmt_itr);
 
     // Enumerate controls
     printf("------------------------------------------------\n");
     printf("Controls:\n");
 
     vcap_ctrl_desc ctrl_desc;
-    vcap_ctrl_itr ctrl_itr = vcap_new_ctrl_itr(fg);
+    vcap_ctrl_itr* ctrl_itr = vcap_new_ctrl_itr(fg);
 
-    while (vcap_ctrl_itr_next(&ctrl_itr, &ctrl_desc)) {
+    while (vcap_ctrl_itr_next(ctrl_itr, &ctrl_desc)) {
         printf("   Name: %s, Type: %s\n", ctrl_desc.name, ctrl_desc.type_name);
 
         if (ctrl_desc.type == VCAP_CTRL_TYPE_MENU || ctrl_desc.type == VCAP_CTRL_TYPE_INTEGER_MENU) {
@@ -113,22 +119,26 @@ int vcap_dump_info(vcap_fg* fg) {
 
             // Enumerate menu
             vcap_menu_item menu_item;
-            vcap_menu_itr menu_itr = vcap_new_menu_itr(fg, ctrl_desc.id);
+            vcap_menu_itr* menu_itr = vcap_new_menu_itr(fg, ctrl_desc.id);
 
-            while (vcap_menu_itr_next(&menu_itr, &menu_item)) {
+            while (vcap_menu_itr_next(menu_itr, &menu_item)) {
                 if (ctrl_desc.type == VCAP_CTRL_TYPE_MENU)
                     printf("      %i : %s\n", menu_item.index, menu_item.name);
                 else
                     printf("      %i : %li\n", menu_item.index, menu_item.value);
             }
 
-            if (vcap_menu_itr_error(&menu_itr))
+            if (vcap_menu_itr_error(menu_itr))
                 return -1;
+
+            vcap_free_menu_itr(menu_itr);
         }
     }
 
-    if (vcap_ctrl_itr_error(&ctrl_itr))
+    if (vcap_ctrl_itr_error(ctrl_itr))
         return -1;
+
+    vcap_free_ctrl_itr(ctrl_itr);
 
     return 0;
 }

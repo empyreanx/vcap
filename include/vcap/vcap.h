@@ -363,7 +363,7 @@ int vcap_get_fmt_desc(vcap_fg* fg, vcap_fmt_id fid, vcap_fmt_desc* desc);
 ///
 /// \returns An initialized 'vcap_fmt_itr' struct
 ///
-vcap_fmt_itr vcap_new_fmt_itr(vcap_fg* fg);
+vcap_fmt_itr* vcap_new_fmt_itr(vcap_fg* fg);
 
 //------------------------------------------------------------------------------
 ///
@@ -390,6 +390,14 @@ int vcap_fmt_itr_error(vcap_fmt_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
+/// \brief  Deallocates the iterator
+///
+/// \param  itr  Pointer to iterator
+///
+void vcap_free_fmt_itr(vcap_fmt_itr* itr);
+
+//------------------------------------------------------------------------------
+///
 /// \brief  Creates a new frame size iterator
 ///
 /// Creates and initializes new frame size iterator for the specified frame
@@ -400,7 +408,7 @@ int vcap_fmt_itr_error(vcap_fmt_itr* itr);
 ///
 /// \returns An initialized 'vcap_size_itr' struct
 ///
-vcap_size_itr vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fid);
+vcap_size_itr* vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fid);
 
 //------------------------------------------------------------------------------
 ///
@@ -427,6 +435,14 @@ int vcap_size_itr_error(vcap_size_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
+/// \brief  Deallocates the iterator
+///
+/// \param  itr  Pointer to iterator
+///
+void vcap_free_size_itr(vcap_size_itr* itr);
+
+//------------------------------------------------------------------------------
+///
 /// \brief  Creates a new frame rate iterator
 ///
 /// Creates and initializes new frame rate iterator for the specified frame
@@ -438,7 +454,7 @@ int vcap_size_itr_error(vcap_size_itr* itr);
 ///
 /// \returns An initialized 'vcap_rate_itr' struct
 ///
-vcap_rate_itr vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size size);
+vcap_rate_itr* vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size size);
 
 //------------------------------------------------------------------------------
 ///
@@ -462,6 +478,14 @@ int vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate);
 /// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
 ///
 int vcap_rate_itr_error(vcap_rate_itr* itr);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Deallocates the iterator
+///
+/// \param  itr  Pointer to iterator
+///
+void vcap_free_rate_itr(vcap_rate_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
@@ -546,7 +570,7 @@ int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id cid, vcap_ctrl_desc* desc);
 ///
 /// \returns An initialized 'vcap_ctrl_itr' struct
 ///
-vcap_ctrl_itr vcap_new_ctrl_itr(vcap_fg* fg);
+vcap_ctrl_itr* vcap_new_ctrl_itr(vcap_fg* fg);
 
 //------------------------------------------------------------------------------
 ///
@@ -573,6 +597,14 @@ int vcap_ctrl_itr_error(vcap_ctrl_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
+/// \brief  Deallocates the iterator
+///
+/// \param  itr  Pointer to iterator
+///
+void vcap_free_ctrl_itr(vcap_ctrl_itr* itr);
+
+//------------------------------------------------------------------------------
+///
 /// \brief  Creates a new menu iterator
 ///
 /// Creates and initializes a new menu iterator for the specified frame
@@ -583,7 +615,7 @@ int vcap_ctrl_itr_error(vcap_ctrl_itr* itr);
 ///
 /// \returns An initialized 'vcap_menu_itr' struct
 ///
-vcap_menu_itr vcap_new_menu_itr(vcap_fg* fg, vcap_ctrl_id cid);
+vcap_menu_itr* vcap_new_menu_itr(vcap_fg* fg, vcap_ctrl_id cid);
 
 //------------------------------------------------------------------------------
 ///
@@ -607,6 +639,14 @@ int vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item);
 /// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
 ///
 int vcap_menu_itr_error(vcap_menu_itr* itr);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Deallocates the iterator
+///
+/// \param  itr  Pointer to iterator
+///
+void vcap_free_menu_itr(vcap_menu_itr* itr);
 
 //------------------------------------------------------------------------------
 ///

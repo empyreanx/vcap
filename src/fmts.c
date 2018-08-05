@@ -249,18 +249,22 @@ int vcap_get_fmt_desc(vcap_fg* fg, vcap_fmt_id fid, vcap_fmt_desc* desc) {
     return VCAP_FMT_INVALID;
 }
 
-vcap_fmt_itr vcap_new_fmt_itr(vcap_fg* fg) {
-    vcap_fmt_itr itr;
-
+vcap_fmt_itr* vcap_new_fmt_itr(vcap_fg* fg) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
-        itr.result = VCAP_ENUM_ERROR;
-        return itr;
+        return NULL;
     }
 
-    itr.fg = fg;
-    itr.index = 0;
-    itr.result = enum_fmts(fg, &itr.desc, 0);
+    vcap_fmt_itr* itr = vcap_malloc(sizeof(vcap_fmt_itr));
+
+    if (!itr) {
+        VCAP_ERROR_ERRNO("Out of memory allocating fmt iterator");
+        return NULL;
+    }
+
+    itr->fg = fg;
+    itr->index = 0;
+    itr->result = enum_fmts(fg, &itr->desc, 0);
 
     return itr;
 }
@@ -297,25 +301,33 @@ int vcap_fmt_itr_error(vcap_fmt_itr* itr) {
         return VCAP_FALSE;
 }
 
-vcap_size_itr vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fid) {
-    vcap_size_itr itr;
+void vcap_free_fmt_itr(vcap_fmt_itr* itr) {
+    if (itr)
+        vcap_free(itr);
+}
 
+vcap_size_itr* vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fid) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
-        itr.result = VCAP_ENUM_ERROR;
-        return itr;
+        return NULL;
     }
 
     if (fid < 0 || fid >= VCAP_FMT_UNKNOWN) {
         VCAP_ERROR("Invalid format (out of range)");
-        itr.result = VCAP_ENUM_ERROR;
-        return itr;
+        return NULL;
     }
 
-    itr.fg = fg;
-    itr.fid = fid;
-    itr.index = 0;
-    itr.result = enum_sizes(fg, fid, &itr.size, 0);
+    vcap_size_itr* itr = vcap_malloc(sizeof(vcap_size_itr));
+
+    if (!itr) {
+        VCAP_ERROR_ERRNO("Out of memory allocating size iterator");
+        return NULL;
+    }
+
+    itr->fg = fg;
+    itr->fid = fid;
+    itr->index = 0;
+    itr->result = enum_sizes(fg, fid, &itr->size, 0);
 
     return itr;
 }
@@ -352,26 +364,34 @@ int vcap_size_itr_error(vcap_size_itr* itr) {
         return VCAP_FALSE;
 }
 
-vcap_rate_itr vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size size) {
-    vcap_rate_itr itr;
+void vcap_free_size_itr(vcap_size_itr* itr) {
+    if (itr)
+        vcap_free(itr);
+}
 
+vcap_rate_itr* vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size size) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
-        itr.result = VCAP_ENUM_ERROR;
-        return itr;
+        return NULL;
     }
 
     if (fid < 0 || fid >= VCAP_FMT_UNKNOWN) {
         VCAP_ERROR("Invalid format (out of range)");
-        itr.result = VCAP_ENUM_ERROR;
-        return itr;
+        return NULL;
     }
 
-    itr.fg = fg;
-    itr.fid = fid;
-    itr.size = size;
-    itr.index = 0;
-    itr.result = enum_rates(fg, fid, size, &itr.rate, 0);
+    vcap_rate_itr* itr = vcap_malloc(sizeof(vcap_rate_itr));
+
+    if (!itr) {
+        VCAP_ERROR_ERRNO("Out of memory allocating rate iterator");
+        return NULL;
+    }
+
+    itr->fg = fg;
+    itr->fid = fid;
+    itr->size = size;
+    itr->index = 0;
+    itr->result = enum_rates(fg, fid, size, &itr->rate, 0);
 
     return itr;
 }
@@ -406,6 +426,11 @@ int vcap_rate_itr_error(vcap_rate_itr* itr) {
         return VCAP_TRUE;
     else
         return VCAP_FALSE;
+}
+
+void vcap_free_rate_itr(vcap_rate_itr* itr) {
+    if (itr)
+        vcap_free(itr);
 }
 
 int vcap_get_fmt(vcap_fg* fg, vcap_fmt_id* fid, vcap_size* size) {

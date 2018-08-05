@@ -161,18 +161,22 @@ int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id cid, vcap_ctrl_desc* desc) {
         return VCAP_CTRL_OK;
 }
 
-vcap_ctrl_itr vcap_new_ctrl_itr(vcap_fg* fg) {
-    vcap_ctrl_itr itr;
-
+vcap_ctrl_itr* vcap_new_ctrl_itr(vcap_fg* fg) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
-        itr.result = VCAP_ENUM_ERROR;
-        return itr;
+        return NULL;
     }
 
-    itr.fg = fg;
-    itr.index = 0;
-    itr.result = enum_ctrls(fg, &itr.desc, 0);
+    vcap_ctrl_itr* itr = vcap_malloc(sizeof(vcap_ctrl_itr));
+
+    if (!itr) {
+        VCAP_ERROR_ERRNO("Out of memory allocating ctrl iterator");
+        return NULL;
+    }
+
+    itr->fg = fg;
+    itr->index = 0;
+    itr->result = enum_ctrls(fg, &itr->desc, 0);
 
     return itr;
 }
@@ -209,25 +213,33 @@ int vcap_ctrl_itr_error(vcap_ctrl_itr* itr) {
         return VCAP_FALSE;
 }
 
-vcap_menu_itr vcap_new_menu_itr(vcap_fg* fg, vcap_ctrl_id cid) {
-    vcap_menu_itr itr;
+void vcap_free_ctrl_itr(vcap_ctrl_itr* itr) {
+    if (itr)
+        vcap_free(itr);
+}
 
+vcap_menu_itr* vcap_new_menu_itr(vcap_fg* fg, vcap_ctrl_id cid) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
-        itr.result = VCAP_ENUM_ERROR;
-        return itr;
+        return NULL;
     }
 
     if (cid < 0 || cid >= VCAP_CTRL_UNKNOWN) {
         VCAP_ERROR("Invalid control (out of range)");
-        itr.result = VCAP_ENUM_ERROR;
-        return itr;
+        return NULL;
     }
 
-    itr.fg = fg;
-    itr.cid = cid;
-    itr.index = 0;
-    itr.result = enum_menu(fg, cid, &itr.item, 0);
+    vcap_menu_itr* itr = vcap_malloc(sizeof(vcap_menu_itr));
+
+    if (!itr) {
+        VCAP_ERROR_ERRNO("Out of memory allocating menu iterator");
+        return NULL;
+    }
+
+    itr->fg = fg;
+    itr->cid = cid;
+    itr->index = 0;
+    itr->result = enum_menu(fg, cid, &itr->item, 0);
 
     return itr;
 }
@@ -262,6 +274,11 @@ int vcap_menu_itr_error(vcap_menu_itr* itr) {
         return VCAP_TRUE;
     else
         return VCAP_FALSE;
+}
+
+void vcap_free_menu_itr(vcap_menu_itr* itr) {
+    if (itr)
+        vcap_free(itr);
 }
 
 int vcap_get_ctrl(vcap_fg* fg, vcap_ctrl_id cid, int32_t* value) {

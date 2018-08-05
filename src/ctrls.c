@@ -148,6 +148,11 @@ int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id cid, vcap_ctrl_desc* desc) {
     // Copy type string
     strncpy((char*)desc->type_name, type_name_map[type], sizeof(desc->type_name));
 
+    // Min/Max/Step
+    desc->min = qctrl.minimum;
+    desc->max = qctrl.maximum;
+    desc->step = qctrl.step;
+
     // Read-only (TODO: consider handling grabbed devices differently)
     if (qctrl.flags & V4L2_CTRL_FLAG_GRABBED || qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY)
         desc->read_only = VCAP_TRUE;

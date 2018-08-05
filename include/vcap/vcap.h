@@ -49,7 +49,7 @@
 typedef struct vcap_fg vcap_fg;                         ///< Frame grabber
 typedef struct vcap_fmt_itr vcap_fmt_itr;               ///< Format iterator
 typedef struct vcap_size_itr vcap_size_itr;             ///< Size iterator
-typedef struct vcap_interval_itr vcap_interval_itr;   ///< Frame interval iterator
+typedef struct vcap_rate_itr vcap_rate_itr;   ///< Frame rate iterator
 typedef struct vcap_ctrl_itr vcap_ctrl_itr;             ///< Control iterator
 typedef struct vcap_menu_itr vcap_menu_itr;             ///< Menu iterator
 
@@ -83,12 +83,12 @@ typedef struct {
 } vcap_size;
 
 ///
-/// \brief Frame interval. The frame rate is "denominator/numerator".
+/// \brief Frame rate. The frame rate is "denominator/numerator".
 ///
 typedef struct {
     uint32_t numerator;         ///< Interval numerator
     uint32_t denominator;       ///< Interval denominator
-} vcap_interval;
+} vcap_rate;
 
 ///
 /// \brief Control descriptor
@@ -423,31 +423,31 @@ int vcap_size_itr_error(vcap_size_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Creates a new frame interval iterator
+/// \brief  Creates a new frame rate iterator
 ///
-/// Creates and initializes new frame interval iterator for the specified frame
+/// Creates and initializes new frame rate iterator for the specified frame
 /// grabber, format ID, and frame size.
 ///
 /// \param  fg    Pointer to the frame grabber
 /// \param  fid   The format ID
 /// \param  size  The frame size
 ///
-/// \returns An initialized 'vcap_interval_itr' struct
+/// \returns An initialized 'vcap_rate_itr' struct
 ///
-vcap_interval_itr vcap_new_interval_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size size);
+vcap_rate_itr vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size size);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Advances the specified frame interval iterator
+/// \brief  Advances the specified frame rate iterator
 ///
-/// Copies the current frame interval into 'interval' and advances the iterator.
+/// Copies the current frame rate into 'rate' and advances the iterator.
 ///
 /// \param  itr       Pointer to iterator
-/// \param  interval  Pointer to the frame interval
+/// \param  rate  Pointer to the frame rate
 ///
 /// \returns 0 if there was an error or there are no more sizes, and 1 otherwise
 ///
-int vcap_interval_itr_next(vcap_interval_itr* itr, vcap_interval* interval);
+int vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate);
 
 //------------------------------------------------------------------------------
 ///
@@ -457,7 +457,7 @@ int vcap_interval_itr_next(vcap_interval_itr* itr, vcap_interval* interval);
 ///
 /// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
 ///
-int vcap_interval_itr_error(vcap_interval_itr* itr);
+int vcap_rate_itr_error(vcap_rate_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
@@ -491,29 +491,29 @@ int vcap_set_fmt(vcap_fg* fg, vcap_fmt_id fid, vcap_size size);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Get the current frame interval
+/// \brief  Get the current frame rate
 ///
-/// Retrieves the current frame interval for the specified frame grabber.
+/// Retrieves the current frame rate for the specified frame grabber.
 ///
 /// \param  fg        Pointer to the frame grabber
-/// \param  interval  Pointer to the frame interval
+/// \param  rate  Pointer to the frame rate
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_get_interval(vcap_fg* fg, vcap_interval* interval);
+int vcap_get_rate(vcap_fg* fg, vcap_rate* rate);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Sets the frame interval
+/// \brief  Sets the frame rate
 ///
-/// Sets the frame interval for the specified frame grabber.
+/// Sets the frame rate for the specified frame grabber.
 ///
 /// \param  fg        Pointer to the frame grabber
-/// \param  interval  The frame interval
+/// \param  rate  The frame rate
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_set_interval(vcap_fg* fg, vcap_interval interval);
+int vcap_set_rate(vcap_fg* fg, vcap_rate rate);
 
 //------------------------------------------------------------------------------
 ///

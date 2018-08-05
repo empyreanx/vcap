@@ -75,17 +75,17 @@ int vcap_dump_info(vcap_fg* fg) {
 
         while (vcap_size_itr_next(&size_itr, &size)) {
             printf("   %u x %u: ", size.width, size.height);
-            printf("(Frame intervals:");
+            printf("(Frame rates:");
 
-            // Enumerate frame intervals
-            vcap_interval interval;
-            vcap_interval_itr interval_itr = vcap_new_interval_itr(fg, fmt_desc.id, size);
+            // Enumerate frame rates
+            vcap_rate rate;
+            vcap_rate_itr rate_itr = vcap_new_rate_itr(fg, fmt_desc.id, size);
 
-            while (vcap_interval_itr_next(&interval_itr, &interval)) {
-                printf(" %u/%u", interval.numerator, interval.denominator);
+            while (vcap_rate_itr_next(&rate_itr, &rate)) {
+                printf(" %u/%u", rate.numerator, rate.denominator);
             }
 
-            if (vcap_interval_itr_error(&interval_itr))
+            if (vcap_rate_itr_error(&rate_itr))
                 return -1;
 
             printf(")\n");

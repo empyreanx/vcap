@@ -68,14 +68,14 @@ struct vcap_size_itr {
     vcap_size size;
 };
 
-// Frame interval iterator
-struct vcap_interval_itr {
+// Frame rate iterator
+struct vcap_rate_itr {
     vcap_fg* fg;
     vcap_fmt_id fid;
     vcap_size size;
     uint32_t index;
     int result;
-    vcap_interval interval;
+    vcap_rate rate;
 };
 
 // Control iterator

@@ -218,7 +218,7 @@ static uint32_t fmt_map[] = {
 
 static int enum_fmts(vcap_fg* fg, vcap_fmt_desc* desc, uint32_t index);
 static int enum_sizes(vcap_fg* fg, vcap_fmt_id fid, vcap_size* size, uint32_t index);
-static int enum_intervals(vcap_fg* fg, vcap_fmt_id fid, vcap_size size, vcap_interval* interval, uint32_t index);
+static int enum_rates(vcap_fg* fg, vcap_fmt_id fid, vcap_size size, vcap_rate* rate, uint32_t index);
 
 static vcap_ctrl_id convert_fmt_id(uint32_t id);
 
@@ -352,8 +352,8 @@ int vcap_size_itr_error(vcap_size_itr* itr) {
         return VCAP_FALSE;
 }
 
-vcap_interval_itr vcap_new_interval_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size size) {
-    vcap_interval_itr itr;
+vcap_rate_itr vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size size) {
+    vcap_rate_itr itr;
 
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
@@ -371,17 +371,17 @@ vcap_interval_itr vcap_new_interval_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size 
     itr.fid = fid;
     itr.size = size;
     itr.index = 0;
-    itr.result = enum_intervals(fg, fid, size, &itr.interval, 0);
+    itr.result = enum_rates(fg, fid, size, &itr.rate, 0);
 
     return itr;
 }
 
-int vcap_interval_itr_next(vcap_interval_itr* itr, vcap_interval* interval) {
+int vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate) {
     if (!itr)
         return 0; // TODO: Find another way of handling this
 
-    if (!interval) {
-        VCAP_ERROR("Parameter 'interval' cannot be null");
+    if (!rate) {
+        VCAP_ERROR("Parameter 'rate' cannot be null");
         itr->result = VCAP_ENUM_ERROR;
         return 0;
     }
@@ -389,14 +389,14 @@ int vcap_interval_itr_next(vcap_interval_itr* itr, vcap_interval* interval) {
     if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
         return 0;
 
-    *interval = itr->interval;
+    *rate = itr->rate;
 
-    itr->result = enum_intervals(itr->fg, itr->fid, itr->size, &itr->interval, ++itr->index);
+    itr->result = enum_rates(itr->fg, itr->fid, itr->size, &itr->rate, ++itr->index);
 
     return 1;
 }
 
-int vcap_interval_itr_error(vcap_interval_itr* itr) {
+int vcap_rate_itr_error(vcap_rate_itr* itr) {
     if (!itr) {
         VCAP_ERROR("Parameter 'itr' cannot be null");
         return 1;
@@ -469,14 +469,14 @@ int vcap_set_fmt(vcap_fg* fg, vcap_fmt_id fid, vcap_size size) {
     return 0;
 }
 
-int vcap_get_interval(vcap_fg* fg, vcap_interval* interval) {
+int vcap_get_rate(vcap_fg* fg, vcap_rate* rate) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
     }
 
-    if (!interval) {
-        VCAP_ERROR("Parameter 'interval' cannot be null");
+    if (!rate) {
+        VCAP_ERROR("Parameter 'rate' cannot be null");
         return -1;
     }
 
@@ -484,17 +484,19 @@ int vcap_get_interval(vcap_fg* fg, vcap_interval* interval) {
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (vcap_ioctl(fg->fd, VIDIOC_G_PARM, &parm) == -1) {
-        VCAP_ERROR_ERRNO("Unable to get frame interval on device '%s'", fg->device.path);
+        VCAP_ERROR_ERRNO("Unable to get frame rate on device '%s'", fg->device.path);
         return -1;
     }
 
-    interval->numerator = parm.parm.capture.timeperframe.numerator;
-    interval->denominator = parm.parm.capture.timeperframe.denominator;
+    // NOTE: We swap the numerator and denominator because Vcap uses frame rates
+    // instead of intervals.
+    rate->numerator = parm.parm.capture.timeperframe.denominator;
+    rate->denominator = parm.parm.capture.timeperframe.numerator;
 
     return 0;
 }
 
-int vcap_set_interval(vcap_fg* fg, vcap_interval interval) {
+int vcap_set_rate(vcap_fg* fg, vcap_rate rate) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
@@ -502,9 +504,11 @@ int vcap_set_interval(vcap_fg* fg, vcap_interval interval) {
 
     struct v4l2_streamparm parm;
 
+    // NOTE: We swap the numerator and denominator because Vcap uses frame rates
+    // instead of intervals.
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    parm.parm.capture.timeperframe.numerator = interval.numerator;
-    parm.parm.capture.timeperframe.denominator = interval.denominator;
+    parm.parm.capture.timeperframe.numerator = rate.denominator;
+    parm.parm.capture.timeperframe.denominator = rate.numerator;
 
     if(vcap_ioctl(fg->fd, VIDIOC_S_PARM, &parm) == -1) {
         VCAP_ERROR_ERRNO("Unable to set framerate on device %s", fg->device.path);
@@ -569,7 +573,7 @@ static int enum_sizes(vcap_fg* fg, vcap_fmt_id fid, vcap_size* size, uint32_t in
     return VCAP_ENUM_OK;
 }
 
-static int enum_intervals(vcap_fg* fg, vcap_fmt_id fid, vcap_size size, vcap_interval* interval, uint32_t index) {
+static int enum_rates(vcap_fg* fg, vcap_fmt_id fid, vcap_size size, vcap_rate* rate, uint32_t index) {
     struct v4l2_frmivalenum frenum;
 
     VCAP_CLEAR(frenum);
@@ -582,17 +586,19 @@ static int enum_intervals(vcap_fg* fg, vcap_fmt_id fid, vcap_size size, vcap_int
         if (errno == EINVAL) {
             return VCAP_ENUM_INVALID;
         } else {
-            VCAP_ERROR_ERRNO("Unable to enumerate frame intervals on device '%s'", fg->device.path);
+            VCAP_ERROR_ERRNO("Unable to enumerate frame rates on device '%s'", fg->device.path);
             return VCAP_ENUM_ERROR;
         }
     }
 
-    // Only discrete frame intervals are supported
+    // Only discrete frame rates are supported
     if (frenum.type != V4L2_FRMIVAL_TYPE_DISCRETE)
         return VCAP_ENUM_DISABLED;
 
-    interval->numerator = frenum.discrete.numerator;
-    interval->denominator = frenum.discrete.denominator;
+    // NOTE: We swap the numerator and denominator because Vcap uses frame rates
+    // instead of intervals.
+    rate->numerator = frenum.discrete.denominator;
+    rate->denominator = frenum.discrete.numerator;
 
     return VCAP_ENUM_OK;
 }

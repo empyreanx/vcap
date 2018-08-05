@@ -1,6 +1,7 @@
 Todo:
 ---------
 
+* interval->rate (remember to swap numerator and denominator)
 * Adapt vcap-qt-demo -> vcap-qt
 * Export/import control settings using Jansson
 * Save frame to JPEG/PNG

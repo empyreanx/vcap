@@ -183,28 +183,28 @@ vcap_ctrl_itr* vcap_new_ctrl_itr(vcap_fg* fg) {
 
 int vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_desc* desc) {
     if (!itr)
-        return 0; // TODO: Find another way of handling this
+        return VCAP_FALSE; // TODO: Find another way of handling this
 
     if (!desc) {
         VCAP_ERROR("Parameter 'desc' cannot be null");
         itr->result = VCAP_ENUM_ERROR;
-        return 0;
+        return VCAP_FALSE;
     }
 
     if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
-        return 0;
+        return VCAP_FALSE;
 
     *desc = itr->desc;
 
     itr->result = enum_ctrls(itr->fg, &itr->desc, ++itr->index);
 
-    return 1;
+    return VCAP_TRUE;
 }
 
 int vcap_ctrl_itr_error(vcap_ctrl_itr* itr) {
     if (!itr) {
         VCAP_ERROR("Parameter 'itr' cannot be null");
-        return 1;
+        return VCAP_TRUE;
     }
 
     if (itr->result == VCAP_ENUM_ERROR)
@@ -246,28 +246,28 @@ vcap_menu_itr* vcap_new_menu_itr(vcap_fg* fg, vcap_ctrl_id cid) {
 
 int vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item) {
     if (!itr)
-        return 0; // TODO: Find another way of handling this
+        return VCAP_FALSE; // TODO: Find another way of handling this
 
     if (!item) {
         VCAP_ERROR("Parameter 'item' cannot be null");
         itr->result = VCAP_ENUM_ERROR;
-        return 0;
+        return VCAP_FALSE;
     }
 
     if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
-        return 0;
+        return VCAP_FALSE;
 
     *item = itr->item;
 
     itr->result = enum_menu(itr->fg, itr->cid, &itr->item, ++itr->index);
 
-    return 1;
+    return VCAP_TRUE;
 }
 
 int vcap_menu_itr_error(vcap_menu_itr* itr) {
     if (!itr) {
         VCAP_ERROR("Parameter 'itr' cannot be null");
-        return 1;
+        return VCAP_TRUE;
     }
 
     if (itr->result == VCAP_ENUM_ERROR)

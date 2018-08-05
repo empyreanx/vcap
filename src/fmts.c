@@ -271,28 +271,28 @@ vcap_fmt_itr* vcap_new_fmt_itr(vcap_fg* fg) {
 
 int vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_desc* desc) {
     if (!itr)
-        return 0; // TODO: Find another way of handling this
+        return VCAP_FALSE; // TODO: Find another way of handling this
 
     if (!desc) {
         VCAP_ERROR("Parameter 'desc' cannot be null");
         itr->result = VCAP_ENUM_ERROR;
-        return 0;
+        return VCAP_FALSE;
     }
 
     if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
-        return 0;
+        return VCAP_FALSE;
 
     *desc = itr->desc;
 
     itr->result = enum_fmts(itr->fg, &itr->desc, ++itr->index);
 
-    return 1;
+    return VCAP_TRUE;
 }
 
 int vcap_fmt_itr_error(vcap_fmt_itr* itr) {
     if (!itr) {
         VCAP_ERROR("Parameter 'itr' cannot be null");
-        return 1;
+        return VCAP_TRUE;
     }
 
     if (itr->result == VCAP_ENUM_ERROR)
@@ -334,28 +334,28 @@ vcap_size_itr* vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fid) {
 
 int vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size) {
     if (!itr)
-        return 0; // TODO: Find another way of handling this
+        return VCAP_FALSE; // TODO: Find another way of handling this
 
     if (!size) {
         VCAP_ERROR("Parameter 'size' cannot be null");
         itr->result = VCAP_ENUM_ERROR;
-        return 0;
+        return VCAP_FALSE;
     }
 
     if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
-        return 0;
+        return VCAP_FALSE;
 
     *size = itr->size;
 
     itr->result = enum_sizes(itr->fg, itr->fid, &itr->size, ++itr->index);
 
-    return 1;
+    return VCAP_TRUE;
 }
 
 int vcap_size_itr_error(vcap_size_itr* itr) {
     if (!itr) {
         VCAP_ERROR("Parameter 'itr' cannot be null");
-        return 1;
+        return VCAP_TRUE;
     }
 
     if (itr->result == VCAP_ENUM_ERROR)
@@ -398,28 +398,28 @@ vcap_rate_itr* vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size size) {
 
 int vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate) {
     if (!itr)
-        return 0; // TODO: Find another way of handling this
+        return VCAP_FALSE; // TODO: Find another way of handling this
 
     if (!rate) {
         VCAP_ERROR("Parameter 'rate' cannot be null");
         itr->result = VCAP_ENUM_ERROR;
-        return 0;
+        return VCAP_FALSE;
     }
 
     if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
-        return 0;
+        return VCAP_FALSE;
 
     *rate = itr->rate;
 
     itr->result = enum_rates(itr->fg, itr->fid, itr->size, &itr->rate, ++itr->index);
 
-    return 1;
+    return VCAP_TRUE;
 }
 
 int vcap_rate_itr_error(vcap_rate_itr* itr) {
     if (!itr) {
         VCAP_ERROR("Parameter 'itr' cannot be null");
-        return 1;
+        return VCAP_TRUE;
     }
 
     if (itr->result == VCAP_ENUM_ERROR)

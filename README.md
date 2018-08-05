@@ -49,6 +49,7 @@ int main(int argc, char** argv) {
     vcap_fg* fg = vcap_open(&device);
 
     // Set format to RGB24
+    vcap_size size = { 640, 480 };
     vcap_set_fmt(fg, VCAP_FMT_RGB24, size);
 
     // Allocate a frame

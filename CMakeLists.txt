@@ -52,7 +52,7 @@ add_subdirectory(examples)
 
 # Installation
 install(DIRECTORY include/vcap DESTINATION include)
-install(FILES lib/libvcap.so DESTINATION lib)
+install(TARGETS vcap DESTINATION lib)
 
 # Documentation
 if(BUILD_DOCS)

@@ -40,18 +40,22 @@
 #ifndef VCAP_H
 #define VCAP_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "ctrls.h"
 #include "fmts.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct vcap_fg vcap_fg;                         ///< Frame grabber
-typedef struct vcap_fmt_itr vcap_fmt_itr;               ///< Format iterator
-typedef struct vcap_size_itr vcap_size_itr;             ///< Size iterator
-typedef struct vcap_rate_itr vcap_rate_itr;   ///< Frame rate iterator
-typedef struct vcap_ctrl_itr vcap_ctrl_itr;             ///< Control iterator
-typedef struct vcap_menu_itr vcap_menu_itr;             ///< Menu iterator
+typedef struct vcap_fg vcap_fg;                 ///< Frame grabber
+typedef struct vcap_fmt_itr vcap_fmt_itr;       ///< Format iterator
+typedef struct vcap_size_itr vcap_size_itr;     ///< Size iterator
+typedef struct vcap_rate_itr vcap_rate_itr;     ///< Frame rate iterator
+typedef struct vcap_ctrl_itr vcap_ctrl_itr;     ///< Control iterator
+typedef struct vcap_menu_itr vcap_menu_itr;     ///< Menu iterator
 
 ///
 /// \brief Video capture device infomation
@@ -83,7 +87,7 @@ typedef struct {
 } vcap_size;
 
 ///
-/// \brief Frame rate. The frame rate is "denominator/numerator".
+/// \brief Frame rate.
 ///
 typedef struct {
     uint32_t numerator;         ///< Interval numerator
@@ -656,5 +660,9 @@ int vcap_reset_ctrl(vcap_fg* fg, vcap_ctrl_id cid);
 /// \returns -1 on error and 0 otherwise
 ///
 int vcap_reset_all_ctrls(vcap_fg* fg);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // VCAP_H

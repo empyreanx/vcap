@@ -93,7 +93,7 @@ static char* type_name_map[] = {
     "Integer",
     "Boolean",
     "Menu",
-    "Integer Menu"
+    "Integer Menu",
     "Button",
     "Unknown"
 };

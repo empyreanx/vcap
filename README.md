@@ -4,7 +4,7 @@
 
 Vcap aims to provide a concise API for working with cameras and other video capture devices that have drivers implementing the V4L2 spec. It is built on top of the libv4l userspace library (the only required dependency) which provides seamless decoding for a variety of formats.
 
-Vcap is built with performance in mind and thus minimizes the use of dynamic memory allocation. Vcap provides simple, low-level access to device controls, enabling applications to make use of the full range of functionality provided by V4L2.
+Vcap is built with performance in mind and thus eliminates the use of dynamic memory allocation during frame grabbing. Vcap provides simple, low-level access to device controls, enabling applications to make use of the full range of functionality provided by V4L2.
 
 This is the second iteration of Vcap, the previous version was written in 2015 when I was still a fledgling C/C++ developer. This version contains many improvements including of how formats and controls are enumerated (iterators!) and how memory is managed. Enjoy!
 

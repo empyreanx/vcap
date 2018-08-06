@@ -1,11 +1,9 @@
 Todo:
 ---------
 
-* interval->rate (remember to swap numerator and denominator)
-* Adapt vcap-qt-demo -> vcap-qt
+* Dump info to string?
 * Export/import control settings using Jansson
 * Save frame to JPEG/PNG
-* Dump info to string?
 * Support devices with multiple inputs
 * Support TV tuners
 * Documentation for controls

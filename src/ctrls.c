@@ -148,10 +148,11 @@ int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id cid, vcap_ctrl_desc* desc) {
     // Copy type string
     strncpy((char*)desc->type_name, type_name_map[type], sizeof(desc->type_name));
 
-    // Min/Max/Step
+    // Min/Max/Step/Default
     desc->min = qctrl.minimum;
     desc->max = qctrl.maximum;
     desc->step = qctrl.step;
+    desc->default_value = qctrl.default_value;
 
     // Read-only (TODO: consider handling grabbed devices differently)
     if (qctrl.flags & V4L2_CTRL_FLAG_GRABBED || qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY)
@@ -188,7 +189,7 @@ vcap_ctrl_itr* vcap_new_ctrl_itr(vcap_fg* fg) {
 
 int vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_desc* desc) {
     if (!itr)
-        return VCAP_FALSE; // TODO: Find another way of handling this
+        return VCAP_FALSE;
 
     if (!desc) {
         VCAP_ERROR("Parameter 'desc' cannot be null");
@@ -251,7 +252,7 @@ vcap_menu_itr* vcap_new_menu_itr(vcap_fg* fg, vcap_ctrl_id cid) {
 
 int vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item) {
     if (!itr)
-        return VCAP_FALSE; // TODO: Find another way of handling this
+        return VCAP_FALSE;
 
     if (!item) {
         VCAP_ERROR("Parameter 'item' cannot be null");

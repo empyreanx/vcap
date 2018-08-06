@@ -271,7 +271,7 @@ vcap_fmt_itr* vcap_new_fmt_itr(vcap_fg* fg) {
 
 int vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_desc* desc) {
     if (!itr)
-        return VCAP_FALSE; // TODO: Find another way of handling this
+        return VCAP_FALSE;
 
     if (!desc) {
         VCAP_ERROR("Parameter 'desc' cannot be null");
@@ -334,7 +334,7 @@ vcap_size_itr* vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fid) {
 
 int vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size) {
     if (!itr)
-        return VCAP_FALSE; // TODO: Find another way of handling this
+        return VCAP_FALSE;
 
     if (!size) {
         VCAP_ERROR("Parameter 'size' cannot be null");
@@ -398,7 +398,7 @@ vcap_rate_itr* vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size size) {
 
 int vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate) {
     if (!itr)
-        return VCAP_FALSE; // TODO: Find another way of handling this
+        return VCAP_FALSE;
 
     if (!rate) {
         VCAP_ERROR("Parameter 'rate' cannot be null");

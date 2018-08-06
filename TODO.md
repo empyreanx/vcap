@@ -5,6 +5,7 @@ Todo:
 * Adapt vcap-qt-demo -> vcap-qt
 * Export/import control settings using Jansson
 * Save frame to JPEG/PNG
+* Dump info to string?
 * Support devices with multiple inputs
 * Support TV tuners
 * Documentation for controls

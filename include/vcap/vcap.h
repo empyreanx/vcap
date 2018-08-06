@@ -142,12 +142,12 @@ typedef struct {
     uint8_t* data;              ///< Frame data
 } vcap_frame;
 
-#define VCAP_TRUE           1   ///< True
-#define VCAP_FALSE          0   ///< False
+#define VCAP_TRUE            1  ///< True
+#define VCAP_FALSE           0  ///< False
 
-#define VCAP_FMT_OK         0   ///< Format is supported
-#define VCAP_FMT_INVALID   -1   ///< Format is not supported
-#define VCAP_FMT_ERROR     -2   ///< Error reading format descriptor
+#define VCAP_FMT_OK          0  ///< Format is supported
+#define VCAP_FMT_INVALID    -1  ///< Format is not supported
+#define VCAP_FMT_ERROR      -2  ///< Error reading format descriptor
 
 #define VCAP_CTRL_OK         0  ///< Control is supported
 #define VCAP_CTRL_INACTIVE  -1  ///< Control is supported, but inactive
@@ -155,10 +155,10 @@ typedef struct {
 #define VCAP_CTRL_INVALID   -2  ///< Control is not supported
 #define VCAP_CTRL_ERROR     -3  ///< Error reading control descriptor
 
-#define VCAP_ENUM_OK        0   ///< Successfully enumerated item (valid index)
-#define VCAP_ENUM_INVALID  -1   ///< Invalid index
-#define VCAP_ENUM_DISABLED -2   ///< Valid index, but item is disabled
-#define VCAP_ENUM_ERROR    -3   ///< Error enumerating item
+#define VCAP_ENUM_OK         0  ///< Successfully enumerated item (valid index)
+#define VCAP_ENUM_INVALID   -1  ///< Invalid index
+#define VCAP_ENUM_DISABLED  -2  ///< Valid index, but item is disabled
+#define VCAP_ENUM_ERROR     -3  ///< Error enumerating item
 
 typedef void* (*vcap_malloc_func)(size_t size); ///< Custom malloc function type
 typedef void (*vcap_free_func)(void* ptr);      ///< Custom free function type

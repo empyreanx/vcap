@@ -49,11 +49,11 @@ int vcap_try_get_device(const char* path, vcap_device* device) {
 
     int fd = -1;
 
-    // Verify the device exists
+    // Device must exist
     if (stat(path, &st) == -1)
         goto error;
 
-    // Verify the device is a character device
+    // Device must be a character device
     if (!S_ISCHR(st.st_mode))
         goto error;
 
@@ -67,7 +67,7 @@ int vcap_try_get_device(const char* path, vcap_device* device) {
     if (vcap_ioctl(fd, VIDIOC_QUERYCAP, &caps) == -1)
         goto error;
 
-    // Make sure video capture is supported
+    // Ensure video capture is supported
     if (!(caps.capabilities & V4L2_CAP_VIDEO_CAPTURE))
         goto error;
 

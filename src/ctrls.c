@@ -104,15 +104,47 @@ static int enum_menu(vcap_fg* fg, vcap_ctrl_id cid, vcap_menu_item* item, uint32
 static vcap_ctrl_id convert_ctrl_id(uint32_t id);
 static vcap_ctrl_type convert_ctrl_type(uint32_t type);
 
+int vcap_ctrl_status(vcap_fg* fg, vcap_ctrl_id cid) {
+    if (!fg) {
+        VCAP_ERROR("Parameter 'fg' cannot be null");
+        return VCAP_CTRL_ERROR;
+    }
+
+    struct v4l2_queryctrl qctrl;
+
+    VCAP_CLEAR(qctrl);
+    qctrl.id = ctrl_map[cid];
+
+    if (vcap_ioctl(fg->fd, VIDIOC_QUERYCTRL, &qctrl) == -1) {
+        if (errno == EINVAL) {
+            return VCAP_CTRL_INVALID;
+        } else {
+            VCAP_ERROR_ERRNO("Unable to check control status on device '%s'", fg->device.path);
+            return VCAP_CTRL_ERROR;
+        }
+    }
+
+    if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+        return VCAP_CTRL_INVALID;
+
+    if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY || qctrl.flags & V4L2_CTRL_FLAG_GRABBED)
+        return VCAP_CTRL_READ_ONLY;
+
+    if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE)
+        return VCAP_CTRL_INACTIVE;
+
+    return VCAP_CTRL_OK;
+}
+
 int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id cid, vcap_ctrl_desc* desc) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
-        return VCAP_ENUM_ERROR;
+        return VCAP_CTRL_ERROR;
     }
 
     if (!desc) {
         VCAP_ERROR("Parameter 'desc' cannot be null");
-        return VCAP_ENUM_ERROR;
+        return VCAP_CTRL_ERROR;
     }
 
     struct v4l2_queryctrl qctrl;
@@ -154,17 +186,13 @@ int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id cid, vcap_ctrl_desc* desc) {
     desc->step = qctrl.step;
     desc->default_value = qctrl.default_value;
 
-    // Read-only (TODO: consider handling grabbed devices differently)
-    if (qctrl.flags & V4L2_CTRL_FLAG_GRABBED || qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY)
+    // Read-only flag
+    if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY)
         desc->read_only = VCAP_TRUE;
     else
         desc->read_only = VCAP_FALSE;
 
-    // Check if inactive
-    if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE)
-        return VCAP_CTRL_INACTIVE;
-    else
-        return VCAP_CTRL_OK;
+    return VCAP_CTRL_OK;
 }
 
 vcap_ctrl_itr* vcap_new_ctrl_itr(vcap_fg* fg) {

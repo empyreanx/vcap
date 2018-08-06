@@ -149,10 +149,11 @@ typedef struct {
 #define VCAP_FMT_INVALID   -1   ///< Format is not supported
 #define VCAP_FMT_ERROR     -2   ///< Error reading format descriptor
 
-#define VCAP_CTRL_OK        0   ///< Control is supported
-#define VCAP_CTRL_INACTIVE -1   ///< Control is supported, but inactive
-#define VCAP_CTRL_INVALID  -2   ///< Control is not supported
-#define VCAP_CTRL_ERROR    -3   ///< Error reading control descriptor
+#define VCAP_CTRL_OK         0  ///< Control is supported
+#define VCAP_CTRL_INACTIVE  -1  ///< Control is supported, but inactive
+#define VCAP_CTRL_READ_ONLY -2  ///< Control is presently read-only
+#define VCAP_CTRL_INVALID   -2  ///< Control is not supported
+#define VCAP_CTRL_ERROR     -3  ///< Error reading control descriptor
 
 #define VCAP_ENUM_OK        0   ///< Successfully enumerated item (valid index)
 #define VCAP_ENUM_INVALID  -1   ///< Invalid index
@@ -547,7 +548,7 @@ int vcap_set_rate(vcap_fg* fg, vcap_rate rate);
 ///
 /// \brief  Retrieves a control descriptor
 ///
-/// Retrieves a control descriptor for the specified control ID.
+/// Retrieves the control descriptor for the specified control ID.
 ///
 /// \param  fg    Pointer to the frame grabber
 /// \param  cid   The control ID
@@ -559,6 +560,23 @@ int vcap_set_rate(vcap_fg* fg, vcap_rate rate);
 ///          VCAP_CTRL_ERROR    if getting the control descriptor failed
 ///
 int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id cid, vcap_ctrl_desc* desc);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Retrieves a control descriptor
+///
+/// Retrieves the status of the control with the specified ID.
+///
+/// \param  fg    Pointer to the frame grabber
+/// \param  cid   The control ID
+///
+/// \returns VCAP_CTRL_OK        if the control descriptor was retrieved successfully,
+///          VCAP_CTRL_INACTIVE  if the control ID is valid, but the control is inactive,
+///          VCAP_CTRL_READ_ONLY if the control is active but read-only,
+///          VCAP_CTRL_INVALID   if the control ID is invalid, and
+///          VCAP_CTRL_ERROR     if getting the control descriptor failed
+///
+int vcap_ctrl_status(vcap_fg* fg, vcap_ctrl_id cid);
 
 //------------------------------------------------------------------------------
 ///

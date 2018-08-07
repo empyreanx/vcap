@@ -296,6 +296,7 @@ vcap_frame* vcap_alloc_frame(vcap_fg* fg) {
         goto error;
     }
 
+    frame->fid = vcap_convert_fmt_id(fmt.fmt.pix.pixelformat);
     frame->size.width = fmt.fmt.pix.width;
     frame->size.height = fmt.fmt.pix.height;
     frame->stride = fmt.fmt.pix.bytesperline;

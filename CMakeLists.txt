@@ -47,6 +47,7 @@ if(NOT V4L2_FOUND)
 endif()
 
 include_directories(${V4L2_INCLUDE_DIR})
+set(LIBRARIES ${V4L2_LIBRARY})
 
 # Find Jansson
 if(SUPPORT_JSON)
@@ -58,6 +59,7 @@ if(SUPPORT_JSON)
         add_definitions(-DVCAP_SUPPORT_JSON)
         include_directories(JANSSON_INCLUDE_DIRS)
         list(APPEND SOURCE_FILES "src/ext/json.c")
+        list(APPEND LIBRARIES ${JANSSON_LIBRARIES})
     endif()
 endif()
 
@@ -71,6 +73,7 @@ if(SUPPORT_PNG)
         add_definitions(-DVCAP_SUPPORT_PNG)
         include_directories(PNG_INCLUDE_DIRS)
         list(APPEND SOURCE_FILES "src/ext/png.c")
+        list(APPEND LIBRARIES ${PNG_LIBRARY})
     endif()
 endif()
 
@@ -84,6 +87,7 @@ if(SUPPORT_JPEG)
         add_definitions(-DVCAP_SUPPORT_JPEG)
         include_directories(JPEG_INCLUDE_DIR)
         list(APPEND SOURCE_FILES "src/ext/jpeg.c")
+        list(APPEND LIBRARIES ${JPEG_LIBRARIES})
     endif()
 endif()
 

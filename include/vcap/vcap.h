@@ -137,6 +137,7 @@ typedef struct {
 /// \brief Defines a video frame
 ///
 typedef struct {
+    vcap_fmt_id fid;            ///< Frame format
     vcap_size size;             ///< Size of frame
     size_t stride;              ///< Length of row in bytes
     size_t length;              ///< Length of data in bytes

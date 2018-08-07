@@ -107,4 +107,7 @@ void vcap_fourcc_string(uint32_t code, uint8_t* str);
 // Extended ioctl function
 int vcap_ioctl(int fd, int request, void *arg);
 
+// Map V4L2 pixel format to Vcap format ID
+vcap_ctrl_id vcap_convert_fmt_id(uint32_t id);
+
 #endif // VCAP_PRIV_H

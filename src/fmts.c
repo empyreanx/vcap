@@ -220,8 +220,6 @@ static int enum_fmts(vcap_fg* fg, vcap_fmt_desc* desc, uint32_t index);
 static int enum_sizes(vcap_fg* fg, vcap_fmt_id fid, vcap_size* size, uint32_t index);
 static int enum_rates(vcap_fg* fg, vcap_fmt_id fid, vcap_size size, vcap_rate* rate, uint32_t index);
 
-static vcap_ctrl_id convert_fmt_id(uint32_t id);
-
 int vcap_get_fmt_desc(vcap_fg* fg, vcap_fmt_id fid, vcap_fmt_desc* desc) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
@@ -459,7 +457,7 @@ int vcap_get_fmt(vcap_fg* fg, vcap_fmt_id* fid, vcap_size* size) {
         return -1;
     }
 
-    *fid = convert_fmt_id(fmt.fmt.pix.pixelformat);
+    *fid = vcap_convert_fmt_id(fmt.fmt.pix.pixelformat);
 
     size->width = fmt.fmt.pix.width;
     size->height = fmt.fmt.pix.height;
@@ -567,7 +565,7 @@ static int enum_fmts(vcap_fg* fg, vcap_fmt_desc* desc, uint32_t index) {
     vcap_fourcc_string(fmtd.pixelformat, desc->fourcc);
 
     // Copy pixel format
-    desc->id = convert_fmt_id(fmtd.pixelformat);
+    desc->id = vcap_convert_fmt_id(fmtd.pixelformat);
 
     return VCAP_ENUM_OK;
 }
@@ -628,7 +626,7 @@ static int enum_rates(vcap_fg* fg, vcap_fmt_id fid, vcap_size size, vcap_rate* r
     return VCAP_ENUM_OK;
 }
 
-static vcap_ctrl_id convert_fmt_id(uint32_t id) {
+vcap_ctrl_id vcap_convert_fmt_id(uint32_t id) {
     for (int i = 0; i < VCAP_FMT_UNKNOWN; i++) {
         if (fmt_map[i] == id)
             return (vcap_ctrl_id)i;

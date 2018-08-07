@@ -85,14 +85,12 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
 
     if (vcap_get_fmt(fg, &fid, &size) == -1) {
         VCAP_ERROR_THROW();
-        code = -1;
-        goto finally;
+        VCAP_ERROR_GOTO(code, finally);
     }
 
     if (json_object_set_new(root, "fid", json_integer(fid)) == -1) {
         VCAP_ERROR("Unable to set new JSON object");
-        code = -1;
-        goto finally;
+        VCAP_ERROR_GOTO(code, finally);
     }
 
     // Size
@@ -101,14 +99,12 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
 
     if (!size_obj) {
         VCAP_ERROR_THROW();
-        code = -1;
-        goto finally;
+        VCAP_ERROR_GOTO(code, finally);
     }
 
     if (json_object_set_new(root, "size", size_obj) == -1) {
         VCAP_ERROR("Unable to set new JSON object");
-        code = -1;
-        goto finally;
+        VCAP_ERROR_GOTO(code, finally);
     }
 
     // Rate
@@ -117,16 +113,14 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
 
     if (vcap_get_rate(fg, &rate) == -1) {
         VCAP_ERROR_THROW();
-        code = -1;
-        goto finally;
+        VCAP_ERROR_GOTO(code, finally);
     }
 
     json_t* rate_obj = build_rate_obj(&rate);
 
     if (!rate_obj) {
         VCAP_ERROR("Out of memory while allocating JSON object");
-        code = -1;
-        goto finally;
+        VCAP_ERROR_GOTO(code, finally);
     }
 
     if (json_object_set_new(root, "rate", rate_obj) == -1) {
@@ -140,8 +134,7 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
 
     if (!ctrls) {
         VCAP_ERROR("Out of memory while allocating JSON array");
-        code = -1;
-        goto finally;
+        VCAP_ERROR_GOTO(code, finally);
     }
 
     for (int cid = 0; cid < VCAP_CTRL_UNKNOWN; cid++) {
@@ -154,41 +147,36 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
 
         if (vcap_get_ctrl(fg, cid, &value) == -1) {
             VCAP_ERROR_THROW();
-            code = -1;
-            goto finally;
+            VCAP_ERROR_GOTO(code, finally);
         }
 
         json_t* obj = json_object();
 
         if (!obj) {
             VCAP_ERROR("Out of memory while allocating JSON object");
-            code = -1;
-            goto finally;
+            VCAP_ERROR_GOTO(code, finally);
         }
 
         if (json_object_set_new(obj, "name", json_string((char*)desc.name)) == -1) {
             VCAP_ERROR("Unable to set new JSON object");
-            code = -1;
-            goto finally;
+            VCAP_ERROR_GOTO(code, finally);
+
         }
 
         if (json_object_set_new(obj, "cid", json_integer(value)) == -1) {
             VCAP_ERROR("Unable to set new JSON object");
-            code = -1;
-            goto finally;
+            VCAP_ERROR_GOTO(code, finally);
         }
 
         if (json_array_append_new(ctrls, obj) == -1) {
             VCAP_ERROR("Unable to append new object to JSON array");
-            code = -1;
-            goto finally;
+            VCAP_ERROR_GOTO(code, finally);
         }
     }
 
     if (json_object_set_new(root, "ctrls", ctrls) == -1) {
         VCAP_ERROR("Unable to append new object to JSON array");
-        code = -1;
-        goto finally;
+        VCAP_ERROR_GOTO(code, finally);
     }
 
     // Save to file
@@ -198,14 +186,12 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
 
     if (!file) {
         VCAP_ERROR_ERRNO("Unable to open file");
-        code = -1;
-        goto finally;
+        VCAP_ERROR_GOTO(code, finally);
     }
 
     if (fputs(jsonStr, file) == EOF && ferror(file)) {
         VCAP_ERROR("Error writing to file");
-        code = -1;
-        goto finally;
+        VCAP_ERROR_GOTO(code, finally);
     }
 
 finally:

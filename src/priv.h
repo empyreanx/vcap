@@ -31,6 +31,7 @@
 #define VCAP_ERROR(FMT, ...) vcap_set_error("[%s] "FMT, __func__, ##__VA_ARGS__)
 #define VCAP_ERROR_ERRNO(FMT, ...) vcap_set_error("[%s] "FMT" (%s)", __func__, strerror(errno), ##__VA_ARGS__)
 #define VCAP_ERROR_THROW() VCAP_ERROR("[%s] ", vcap_get_error());
+#define VCAP_ERROR_GOTO(CODE, LABEL) CODE = -1; goto LABEL  
 
 // Clear data structure
 #define VCAP_CLEAR(ptr) memset(&(ptr), 0, sizeof(ptr))

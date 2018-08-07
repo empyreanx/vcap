@@ -137,7 +137,7 @@ typedef struct {
 /// \brief Defines a video frame
 ///
 typedef struct {
-    vcap_fmt_id fid;            ///< Frame format
+    vcap_fmt_id fmt;            ///< Frame format
     vcap_size size;             ///< Size of frame
     size_t stride;              ///< Length of row in bytes
     size_t length;              ///< Length of data in bytes
@@ -177,6 +177,14 @@ void vcap_set_alloc(vcap_malloc_func malloc_func, vcap_free_func free_func);
 
 //------------------------------------------------------------------------------
 ///
+/// \brief  Deallocates memory
+///
+/// \param  ptr  Pointer to the memory to be freed
+///
+void vcap_free(void* ptr);
+
+//------------------------------------------------------------------------------
+///
 /// \brief  Returns a string containing the last error message
 ///
 const char* vcap_get_error();
@@ -190,7 +198,7 @@ const char* vcap_get_error();
 /// and controls. For example, to display device information to standard output,
 /// call 'vcap_dump_info(fg, stdout)'.
 ///
-/// \param  fg    Point to the frame grabber
+/// \param  fg    Pointer to the frame grabber
 /// \param  file  The file descriptor
 ///
 /// \returns -1 on error and 0 otherwise
@@ -350,14 +358,14 @@ int vcap_set_crop(vcap_fg* fg, vcap_rect rect);
 /// Retrieves a format descriptor for the specified format ID.
 ///
 /// \param  fg    Pointer to the frame grabber
-/// \param  fid   The format ID
+/// \param  fmt   The format ID
 /// \param  desc  Pointer to the format descriptor
 ///
 /// \returns VCAP_FMT_OK      if the format descriptor was retrieved successfully,
 ///          VCAP_FMT_INVALID if the format ID is invalid
 ///          VCAP_FMT_ERROR   if getting the format descriptor failed
 ///
-int vcap_get_fmt_desc(vcap_fg* fg, vcap_fmt_id fid, vcap_fmt_desc* desc);
+int vcap_get_fmt_desc(vcap_fg* fg, vcap_fmt_id fmt, vcap_fmt_desc* desc);
 
 //------------------------------------------------------------------------------
 ///
@@ -410,11 +418,11 @@ void vcap_free_fmt_itr(vcap_fmt_itr* itr);
 /// grabber and format ID.
 ///
 /// \param  fg   Pointer to the frame grabber
-/// \param  fid  The format ID
+/// \param  fmt  The format ID
 ///
 /// \returns An initialized 'vcap_size_itr' struct
 ///
-vcap_size_itr* vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fid);
+vcap_size_itr* vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fmt);
 
 //------------------------------------------------------------------------------
 ///
@@ -455,12 +463,12 @@ void vcap_free_size_itr(vcap_size_itr* itr);
 /// grabber, format ID, and frame size.
 ///
 /// \param  fg    Pointer to the frame grabber
-/// \param  fid   The format ID
+/// \param  fmt   The format ID
 /// \param  size  The frame size
 ///
 /// \returns An initialized 'vcap_rate_itr' struct
 ///
-vcap_rate_itr* vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size size);
+vcap_rate_itr* vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fmt, vcap_size size);
 
 //------------------------------------------------------------------------------
 ///
@@ -501,12 +509,12 @@ void vcap_free_rate_itr(vcap_rate_itr* itr);
 /// specified frame grabber.
 ///
 /// \param  fg    Pointer to the frame grabber
-/// \param  fid   Pointer to the format ID
+/// \param  fmt   Pointer to the format ID
 /// \param  size  Pointer to the frame size
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_get_fmt(vcap_fg* fg, vcap_fmt_id* fid, vcap_size* size);
+int vcap_get_fmt(vcap_fg* fg, vcap_fmt_id* fmt, vcap_size* size);
 
 //------------------------------------------------------------------------------
 ///
@@ -516,12 +524,12 @@ int vcap_get_fmt(vcap_fg* fg, vcap_fmt_id* fid, vcap_size* size);
 /// grabber.
 ///
 /// \param  fg    Pointer to the frame grabber
-/// \param  fid   The format ID
+/// \param  fmt   The format ID
 /// \param  size  The frame size
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_set_fmt(vcap_fg* fg, vcap_fmt_id fid, vcap_size size);
+int vcap_set_fmt(vcap_fg* fg, vcap_fmt_id fmt, vcap_size size);
 
 //------------------------------------------------------------------------------
 ///
@@ -556,7 +564,7 @@ int vcap_set_rate(vcap_fg* fg, vcap_rate rate);
 /// Retrieves the control descriptor for the specified control ID.
 ///
 /// \param  fg    Pointer to the frame grabber
-/// \param  cid   The control ID
+/// \param  ctrl  The control ID
 /// \param  desc  Pointer to the control descriptor
 ///
 /// \returns VCAP_CTRL_OK       if the control descriptor was retrieved successfully,
@@ -564,7 +572,7 @@ int vcap_set_rate(vcap_fg* fg, vcap_rate rate);
 ///          VCAP_CTRL_INVALID  if the control ID is invalid, and
 ///          VCAP_CTRL_ERROR    if getting the control descriptor failed
 ///
-int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id cid, vcap_ctrl_desc* desc);
+int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc);
 
 //------------------------------------------------------------------------------
 ///
@@ -573,7 +581,7 @@ int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id cid, vcap_ctrl_desc* desc);
 /// Retrieves the status of the control with the specified ID.
 ///
 /// \param  fg    Pointer to the frame grabber
-/// \param  cid   The control ID
+/// \param  ctrl  The control ID
 ///
 /// \returns VCAP_CTRL_OK        if the control descriptor was retrieved successfully,
 ///          VCAP_CTRL_INACTIVE  if the control ID is valid, but the control is inactive,
@@ -581,7 +589,7 @@ int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id cid, vcap_ctrl_desc* desc);
 ///          VCAP_CTRL_INVALID   if the control ID is invalid, and
 ///          VCAP_CTRL_ERROR     if getting the control descriptor failed
 ///
-int vcap_ctrl_status(vcap_fg* fg, vcap_ctrl_id cid);
+int vcap_ctrl_status(vcap_fg* fg, vcap_ctrl_id ctrl);
 
 //------------------------------------------------------------------------------
 ///
@@ -634,11 +642,11 @@ void vcap_free_ctrl_itr(vcap_ctrl_itr* itr);
 /// grabber and control ID.
 ///
 /// \param  fg   Pointer to the frame grabber
-/// \param  cid  The control ID
+/// \param  ctrl The control ID
 ///
 /// \returns An initialized 'vcap_menu_itr' struct
 ///
-vcap_menu_itr* vcap_new_menu_itr(vcap_fg* fg, vcap_ctrl_id cid);
+vcap_menu_itr* vcap_new_menu_itr(vcap_fg* fg, vcap_ctrl_id ctrl);
 
 //------------------------------------------------------------------------------
 ///
@@ -678,12 +686,12 @@ void vcap_free_menu_itr(vcap_menu_itr* itr);
 /// Retrieves the current value of a control with the specified control ID.
 ///
 /// \param  fg     Pointer to the frame grabber
-/// \param  cid    The control ID
+/// \param  ctrl   The control ID
 /// \param  value  The control value
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_get_ctrl(vcap_fg* fg, vcap_ctrl_id cid, int32_t* value);
+int vcap_get_ctrl(vcap_fg* fg, vcap_ctrl_id ctrl, int32_t* value);
 
 //------------------------------------------------------------------------------
 ///
@@ -692,12 +700,12 @@ int vcap_get_ctrl(vcap_fg* fg, vcap_ctrl_id cid, int32_t* value);
 /// Sets the value of a control value with the specified control ID.
 ///
 /// \param  fg     Pointer to the frame grabber
-/// \param  cid    The control ID
+/// \param  ctrl   The control ID
 /// \param  value  The control value
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_set_ctrl(vcap_fg* fg, vcap_ctrl_id cid, int32_t value);
+int vcap_set_ctrl(vcap_fg* fg, vcap_ctrl_id ctrl, int32_t value);
 
 //------------------------------------------------------------------------------
 ///
@@ -706,11 +714,11 @@ int vcap_set_ctrl(vcap_fg* fg, vcap_ctrl_id cid, int32_t value);
 /// Resets the value of the specified control to its default value.
 ///
 /// \param  fg   Pointer to the frame grabber
-/// \param  cid  The control ID
+/// \param  ctrl The control ID
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_reset_ctrl(vcap_fg* fg, vcap_ctrl_id cid);
+int vcap_reset_ctrl(vcap_fg* fg, vcap_ctrl_id ctrl);
 
 //------------------------------------------------------------------------------
 ///
@@ -730,13 +738,27 @@ int vcap_reset_all_ctrls(vcap_fg* fg);
 /// \brief  Exports device settings
 ///
 /// Exports all video capture device settings, including format and controls
-/// to a file.
+/// to a JSON file.
 ///
-/// \param  frame  Pointer to the frame
+/// \param  fg    Pointer to the frame grabber
+/// \param  path  The path of the JSON file
 ///
 /// \returns -1 on error and 0 otherwise
 ///
 int vcap_export_settings(vcap_fg* fg, const char* path);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Imports device settings
+///
+/// Imports all video capture device settings, including format and controls
+/// from a JSON file.
+///
+/// \param  fg    Pointer to the frame grabber
+/// \param  path  The path of the JSON file
+///
+/// \returns -1 on error and 0 otherwise
+///
 int vcap_import_settings(vcap_fg* fg, const char* path);
 #endif
 

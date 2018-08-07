@@ -150,17 +150,17 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
         return -1;
     }
 
-    vcap_fmt_id fid;
+    vcap_fmt_id fmt;
     vcap_size size;
 
     // Format
 
-    if (vcap_get_fmt(fg, &fid, &size) == -1) {
+    if (vcap_get_fmt(fg, &fmt, &size) == -1) {
         VCAP_ERROR_THROW();
         VCAP_ERROR_GOTO(code, finally);
     }
 
-    if (json_object_set_new(root, "fid", json_integer(fid)) == -1) {
+    if (json_object_set_new(root, "fmt", json_integer(fmt)) == -1) {
         VCAP_ERROR("Unable to set new JSON object");
         VCAP_ERROR_GOTO(code, finally);
     }
@@ -209,15 +209,15 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
         VCAP_ERROR_GOTO(code, finally);
     }
 
-    for (int cid = 0; cid < VCAP_CTRL_UNKNOWN; cid++) {
+    for (int ctrl = 0; ctrl < VCAP_CTRL_UNKNOWN; ctrl++) {
         vcap_ctrl_desc desc;
 
-        if (vcap_get_ctrl_desc(fg, cid, &desc) != VCAP_CTRL_OK)
+        if (vcap_get_ctrl_desc(fg, ctrl, &desc) != VCAP_CTRL_OK)
             continue;
 
         int32_t value;
 
-        if (vcap_get_ctrl(fg, cid, &value) == -1) {
+        if (vcap_get_ctrl(fg, ctrl, &value) == -1) {
             VCAP_ERROR_THROW();
             VCAP_ERROR_GOTO(code, finally);
         }
@@ -234,7 +234,7 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
             VCAP_ERROR_GOTO(code, finally);
         }
 
-        if (json_object_set_new(obj, "cid", json_integer(cid)) == -1) {
+        if (json_object_set_new(obj, "ctrl", json_integer(ctrl)) == -1) {
             VCAP_ERROR("Unable to set new JSON object");
             VCAP_ERROR_GOTO(code, finally);
         }
@@ -331,7 +331,7 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
 
     // Format
 
-    json_t* value = json_object_get(root, "fid");
+    json_t* value = json_object_get(root, "fmt");
 
     if (!value) {
         VCAP_ERROR("Unable to read format ID");
@@ -343,7 +343,7 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
         VCAP_ERROR_GOTO(code, finally);
     }
 
-    vcap_fmt_id fid = json_integer_value(value);
+    vcap_fmt_id fmt = json_integer_value(value);
 
     // Size
 
@@ -356,7 +356,7 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
         VCAP_ERROR_GOTO(code, finally);
     }
 
-    if (vcap_set_fmt(fg, fid, size) == -1) {
+    if (vcap_set_fmt(fg, fmt, size) == -1) {
         VCAP_ERROR_THROW();
         VCAP_ERROR_GOTO(code, finally);
     }
@@ -391,18 +391,18 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
     json_array_foreach(array, index, obj) {
         // Control ID
 
-        value = json_object_get(obj, "cid");
+        value = json_object_get(obj, "ctrl");
 
         if (!value || json_typeof(value) != JSON_INTEGER) {
-            VCAP_ERROR("Invalid cid");
+            VCAP_ERROR("Invalid ctrl");
             VCAP_ERROR_GOTO(code, finally);
         }
 
-        vcap_ctrl_id cid = json_integer_value(value);
+        vcap_ctrl_id ctrl = json_integer_value(value);
 
         // Value
 
-        if (vcap_ctrl_status(fg, cid) == VCAP_CTRL_OK) {
+        if (vcap_ctrl_status(fg, ctrl) == VCAP_CTRL_OK) {
             value = json_object_get(obj, "value");
 
             if (!value || json_typeof(value) != JSON_INTEGER) {
@@ -410,7 +410,7 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
                 VCAP_ERROR_GOTO(code, finally);
             }
 
-            if (vcap_set_ctrl(fg, cid, json_integer_value(value)) == -1) {
+            if (vcap_set_ctrl(fg, ctrl, json_integer_value(value)) == -1) {
                 VCAP_ERROR_THROW();
                 VCAP_ERROR_GOTO(code, finally);
             }

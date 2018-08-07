@@ -31,7 +31,7 @@
 #define VCAP_ERROR(FMT, ...) vcap_set_error("[%s] "FMT, __func__, ##__VA_ARGS__)
 #define VCAP_ERROR_ERRNO(FMT, ...) vcap_set_error("[%s] "FMT" (%s)", __func__, strerror(errno), ##__VA_ARGS__)
 #define VCAP_ERROR_THROW() VCAP_ERROR("[%s] ", vcap_get_error());
-#define VCAP_ERROR_GOTO(CODE, LABEL) CODE = -1; goto LABEL  
+#define VCAP_ERROR_GOTO(CODE, LABEL) CODE = -1; goto LABEL
 
 // Clear data structure
 #define VCAP_CLEAR(ptr) memset(&(ptr), 0, sizeof(ptr))
@@ -40,8 +40,11 @@
 extern char vcap_error_msg[1024];
 
 // Declare allocation functions
-extern vcap_malloc_func vcap_malloc;
-extern vcap_free_func vcap_free;
+extern vcap_malloc_func vcap_malloc_ptr;
+extern vcap_free_func vcap_free_ptr;
+
+// Declare malloc function
+void* vcap_malloc(size_t size);
 
 // Buffer holder for memory mapped buffers
 typedef struct {
@@ -68,7 +71,7 @@ struct vcap_fmt_itr {
 // Size iterator
 struct vcap_size_itr {
     vcap_fg* fg;
-    vcap_fmt_id fid;
+    vcap_fmt_id fmt;
     uint32_t index;
     int result;
     vcap_size size;
@@ -77,7 +80,7 @@ struct vcap_size_itr {
 // Frame rate iterator
 struct vcap_rate_itr {
     vcap_fg* fg;
-    vcap_fmt_id fid;
+    vcap_fmt_id fmt;
     vcap_size size;
     uint32_t index;
     int result;
@@ -95,7 +98,7 @@ struct vcap_ctrl_itr {
 // Menu iterator
 struct vcap_menu_itr {
     vcap_fg* fg;
-    vcap_ctrl_id cid;
+    vcap_ctrl_id ctrl;
     uint32_t index;
     int result;
     vcap_menu_item item;

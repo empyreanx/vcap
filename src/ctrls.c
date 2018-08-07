@@ -99,12 +99,12 @@ static char* type_name_map[] = {
 };
 
 static int enum_ctrls(vcap_fg* fg, vcap_ctrl_desc* desc, uint32_t index);
-static int enum_menu(vcap_fg* fg, vcap_ctrl_id cid, vcap_menu_item* item, uint32_t index);
+static int enum_menu(vcap_fg* fg, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index);
 
 static vcap_ctrl_id convert_ctrl_id(uint32_t id);
 static vcap_ctrl_type convert_ctrl_type(uint32_t type);
 
-int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id cid, vcap_ctrl_desc* desc) {
+int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return VCAP_CTRL_ERROR;
@@ -118,7 +118,7 @@ int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id cid, vcap_ctrl_desc* desc) {
     struct v4l2_queryctrl qctrl;
 
     VCAP_CLEAR(qctrl);
-    qctrl.id = ctrl_map[cid];
+    qctrl.id = ctrl_map[ctrl];
 
     if (vcap_ioctl(fg->fd, VIDIOC_QUERYCTRL, &qctrl) == -1) {
         if (errno == EINVAL) {
@@ -163,7 +163,7 @@ int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id cid, vcap_ctrl_desc* desc) {
     return VCAP_CTRL_OK;
 }
 
-int vcap_ctrl_status(vcap_fg* fg, vcap_ctrl_id cid) {
+int vcap_ctrl_status(vcap_fg* fg, vcap_ctrl_id ctrl) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return VCAP_CTRL_ERROR;
@@ -172,7 +172,7 @@ int vcap_ctrl_status(vcap_fg* fg, vcap_ctrl_id cid) {
     struct v4l2_queryctrl qctrl;
 
     VCAP_CLEAR(qctrl);
-    qctrl.id = ctrl_map[cid];
+    qctrl.id = ctrl_map[ctrl];
 
     if (vcap_ioctl(fg->fd, VIDIOC_QUERYCTRL, &qctrl) == -1) {
         if (errno == EINVAL) {
@@ -252,13 +252,13 @@ void vcap_free_ctrl_itr(vcap_ctrl_itr* itr) {
         vcap_free(itr);
 }
 
-vcap_menu_itr* vcap_new_menu_itr(vcap_fg* fg, vcap_ctrl_id cid) {
+vcap_menu_itr* vcap_new_menu_itr(vcap_fg* fg, vcap_ctrl_id ctrl) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return NULL;
     }
 
-    if (cid < 0 || cid >= VCAP_CTRL_UNKNOWN) {
+    if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN) {
         VCAP_ERROR("Invalid control (out of range)");
         return NULL;
     }
@@ -271,9 +271,9 @@ vcap_menu_itr* vcap_new_menu_itr(vcap_fg* fg, vcap_ctrl_id cid) {
     }
 
     itr->fg = fg;
-    itr->cid = cid;
+    itr->ctrl = ctrl;
     itr->index = 0;
-    itr->result = enum_menu(fg, cid, &itr->item, 0);
+    itr->result = enum_menu(fg, ctrl, &itr->item, 0);
 
     return itr;
 }
@@ -293,7 +293,7 @@ int vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item) {
 
     *item = itr->item;
 
-    itr->result = enum_menu(itr->fg, itr->cid, &itr->item, ++itr->index);
+    itr->result = enum_menu(itr->fg, itr->ctrl, &itr->item, ++itr->index);
 
     return VCAP_TRUE;
 }
@@ -315,13 +315,13 @@ void vcap_free_menu_itr(vcap_menu_itr* itr) {
         vcap_free(itr);
 }
 
-int vcap_get_ctrl(vcap_fg* fg, vcap_ctrl_id cid, int32_t* value) {
+int vcap_get_ctrl(vcap_fg* fg, vcap_ctrl_id ctrl, int32_t* value) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
     }
 
-    if (cid < 0 || cid >= VCAP_CTRL_UNKNOWN) {
+    if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN) {
         VCAP_ERROR("Invalid control (out of range)");
         return -1;
     }
@@ -331,66 +331,66 @@ int vcap_get_ctrl(vcap_fg* fg, vcap_ctrl_id cid, int32_t* value) {
         return -1;
     }
 
-    struct v4l2_control ctrl;
+    struct v4l2_control gctrl;
 
-    VCAP_CLEAR(ctrl);
-    ctrl.id = ctrl_map[cid];
+    VCAP_CLEAR(gctrl);
+    gctrl.id = ctrl_map[ctrl];
 
-    if (vcap_ioctl(fg->fd, VIDIOC_G_CTRL, &ctrl) == -1) {
-        VCAP_ERROR_ERRNO("Could not get control (%d) value on device '%s'", cid, fg->device.path);
+    if (vcap_ioctl(fg->fd, VIDIOC_G_CTRL, &gctrl) == -1) {
+        VCAP_ERROR_ERRNO("Could not get control (%d) value on device '%s'", ctrl, fg->device.path);
         return -1;
     }
 
-    *value = ctrl.value;
+    *value = gctrl.value;
 
     return 0;
 }
 
-int vcap_set_ctrl(vcap_fg* fg, vcap_ctrl_id cid, int32_t value) {
+int vcap_set_ctrl(vcap_fg* fg, vcap_ctrl_id ctrl, int32_t value) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
     }
 
-    if (cid < 0 || cid >= VCAP_CTRL_UNKNOWN) {
+    if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN) {
         VCAP_ERROR("Invalid control (out of range)");
         return -1;
     }
 
-    struct v4l2_control ctrl;
+    struct v4l2_control sctrl;
 
-    VCAP_CLEAR(ctrl);
-    ctrl.id = ctrl_map[cid];
-    ctrl.value = value;
+    VCAP_CLEAR(sctrl);
+    sctrl.id = ctrl_map[ctrl];
+    sctrl.value = value;
 
-    if (vcap_ioctl(fg->fd, VIDIOC_S_CTRL, &ctrl) == -1) {
-        VCAP_ERROR_ERRNO("Could not set control (%d) value on device '%s'", cid, fg->device.path);
+    if (vcap_ioctl(fg->fd, VIDIOC_S_CTRL, &sctrl) == -1) {
+        VCAP_ERROR_ERRNO("Could not set control (%d) value on device '%s'", ctrl, fg->device.path);
         return -1;
     }
 
     return 0;
 }
 
-int vcap_reset_ctrl(vcap_fg* fg, vcap_ctrl_id cid) {
+int vcap_reset_ctrl(vcap_fg* fg, vcap_ctrl_id ctrl) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
     }
 
-    if (cid < 0 || cid >= VCAP_CTRL_UNKNOWN) {
+    if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN) {
         VCAP_ERROR("Invalid control (out of range)");
         return -1;
     }
 
     vcap_ctrl_desc desc;
 
-    int result = vcap_get_ctrl_desc(fg, cid, &desc);
+    int result = vcap_get_ctrl_desc(fg, ctrl, &desc);
 
     if (result == VCAP_CTRL_ERROR || result == VCAP_CTRL_INVALID)
         return -1;
 
     if (result == VCAP_CTRL_OK) {
-        if (vcap_set_ctrl(fg, cid, desc.default_value) == -1) {
+        if (vcap_set_ctrl(fg, ctrl, desc.default_value) == -1) {
             VCAP_ERROR_THROW();
             return -1;
         }
@@ -405,8 +405,8 @@ int vcap_reset_all_ctrls(vcap_fg* fg) {
         return -1;
     }
 
-    for (int cid = 0; cid < VCAP_CTRL_UNKNOWN; cid++) {
-        if (vcap_reset_ctrl(fg, cid) == -1) {
+    for (int ctrl = 0; ctrl < VCAP_CTRL_UNKNOWN; ctrl++) {
+        if (vcap_reset_ctrl(fg, ctrl) == -1) {
             VCAP_ERROR_THROW();
             return -1;
         }
@@ -418,8 +418,8 @@ int vcap_reset_all_ctrls(vcap_fg* fg) {
 int enum_ctrls(vcap_fg* fg, vcap_ctrl_desc* desc, uint32_t index) {
     int count = 0;
 
-    for (int i = 0; i < VCAP_CTRL_UNKNOWN; i++) {
-        int result = vcap_get_ctrl_desc(fg, i, desc);
+    for (int ctrl = 0; ctrl < VCAP_CTRL_UNKNOWN; ctrl++) {
+        int result = vcap_get_ctrl_desc(fg, ctrl, desc);
 
         if (result == VCAP_CTRL_ERROR)
             return VCAP_ENUM_ERROR;
@@ -437,11 +437,11 @@ int enum_ctrls(vcap_fg* fg, vcap_ctrl_desc* desc, uint32_t index) {
     return VCAP_ENUM_INVALID;
 }
 
-int enum_menu(vcap_fg* fg, vcap_ctrl_id cid, vcap_menu_item* item, uint32_t index) {
+int enum_menu(vcap_fg* fg, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index) {
     // Check if supported and a menu
     vcap_ctrl_desc desc;
 
-    int result = vcap_get_ctrl_desc(fg, cid, &desc);
+    int result = vcap_get_ctrl_desc(fg, ctrl, &desc);
 
     if (result == VCAP_CTRL_ERROR)
         return VCAP_ENUM_ERROR;
@@ -467,7 +467,7 @@ int enum_menu(vcap_fg* fg, vcap_ctrl_id cid, vcap_menu_item* item, uint32_t inde
     struct v4l2_querymenu qmenu;
 
     VCAP_CLEAR(qmenu);
-    qmenu.id = ctrl_map[cid];
+    qmenu.id = ctrl_map[ctrl];
     qmenu.index = index;
 
     if (vcap_ioctl(fg->fd, VIDIOC_QUERYMENU, &qmenu) == -1) {

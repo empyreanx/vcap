@@ -34,8 +34,16 @@
 char vcap_error_msg[1024];
 char vcap_error_tmp[1024];
 
-vcap_malloc_func vcap_malloc = malloc;
-vcap_free_func vcap_free = free;
+vcap_malloc_func vcap_malloc_ptr = malloc;
+vcap_free_func vcap_free_ptr = free;
+
+void* vcap_malloc(size_t size) {
+    return vcap_malloc_ptr(size);
+}
+
+void vcap_free(void* ptr) {
+    vcap_free_ptr(ptr);
+}
 
 void vcap_set_error(const char* fmt, ...) {
     va_list args;

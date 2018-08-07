@@ -36,8 +36,8 @@
 static int video_device_filter(const struct dirent *a);
 
 void vcap_set_alloc(vcap_malloc_func malloc_func, vcap_free_func free_func) {
-    vcap_malloc = malloc_func;
-    vcap_free = free_func;
+    vcap_malloc_ptr = malloc_func;
+    vcap_free_ptr = free_func;
 }
 
 const char* vcap_get_error() {
@@ -296,7 +296,7 @@ vcap_frame* vcap_alloc_frame(vcap_fg* fg) {
         goto error;
     }
 
-    frame->fid = vcap_convert_fmt_id(fmt.fmt.pix.pixelformat);
+    frame->fmt = vcap_convert_fmt_id(fmt.fmt.pix.pixelformat);
     frame->size.width = fmt.fmt.pix.width;
     frame->size.height = fmt.fmt.pix.height;
     frame->stride = fmt.fmt.pix.bytesperline;

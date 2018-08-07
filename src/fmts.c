@@ -217,10 +217,10 @@ static uint32_t fmt_map[] = {
 };
 
 static int enum_fmts(vcap_fg* fg, vcap_fmt_desc* desc, uint32_t index);
-static int enum_sizes(vcap_fg* fg, vcap_fmt_id fid, vcap_size* size, uint32_t index);
-static int enum_rates(vcap_fg* fg, vcap_fmt_id fid, vcap_size size, vcap_rate* rate, uint32_t index);
+static int enum_sizes(vcap_fg* fg, vcap_fmt_id fmt, vcap_size* size, uint32_t index);
+static int enum_rates(vcap_fg* fg, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index);
 
-int vcap_get_fmt_desc(vcap_fg* fg, vcap_fmt_id fid, vcap_fmt_desc* desc) {
+int vcap_get_fmt_desc(vcap_fg* fg, vcap_fmt_id fmt, vcap_fmt_desc* desc) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return VCAP_ENUM_ERROR;
@@ -239,7 +239,7 @@ int vcap_get_fmt_desc(vcap_fg* fg, vcap_fmt_id fid, vcap_fmt_desc* desc) {
         if (result == VCAP_ENUM_ERROR)
             return VCAP_FMT_ERROR;
 
-        if (result == VCAP_ENUM_OK && desc->id == fid)
+        if (result == VCAP_ENUM_OK && desc->id == fmt)
             return VCAP_FMT_OK;
 
     } while (result != VCAP_ENUM_INVALID && ++i);
@@ -304,13 +304,13 @@ void vcap_free_fmt_itr(vcap_fmt_itr* itr) {
         vcap_free(itr);
 }
 
-vcap_size_itr* vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fid) {
+vcap_size_itr* vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fmt) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return NULL;
     }
 
-    if (fid < 0 || fid >= VCAP_FMT_UNKNOWN) {
+    if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN) {
         VCAP_ERROR("Invalid format (out of range)");
         return NULL;
     }
@@ -323,9 +323,9 @@ vcap_size_itr* vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fid) {
     }
 
     itr->fg = fg;
-    itr->fid = fid;
+    itr->fmt = fmt;
     itr->index = 0;
-    itr->result = enum_sizes(fg, fid, &itr->size, 0);
+    itr->result = enum_sizes(fg, fmt, &itr->size, 0);
 
     return itr;
 }
@@ -345,7 +345,7 @@ int vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size) {
 
     *size = itr->size;
 
-    itr->result = enum_sizes(itr->fg, itr->fid, &itr->size, ++itr->index);
+    itr->result = enum_sizes(itr->fg, itr->fmt, &itr->size, ++itr->index);
 
     return VCAP_TRUE;
 }
@@ -367,13 +367,13 @@ void vcap_free_size_itr(vcap_size_itr* itr) {
         vcap_free(itr);
 }
 
-vcap_rate_itr* vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size size) {
+vcap_rate_itr* vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fmt, vcap_size size) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return NULL;
     }
 
-    if (fid < 0 || fid >= VCAP_FMT_UNKNOWN) {
+    if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN) {
         VCAP_ERROR("Invalid format (out of range)");
         return NULL;
     }
@@ -386,10 +386,10 @@ vcap_rate_itr* vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fid, vcap_size size) {
     }
 
     itr->fg = fg;
-    itr->fid = fid;
+    itr->fmt = fmt;
     itr->size = size;
     itr->index = 0;
-    itr->result = enum_rates(fg, fid, size, &itr->rate, 0);
+    itr->result = enum_rates(fg, fmt, size, &itr->rate, 0);
 
     return itr;
 }
@@ -409,7 +409,7 @@ int vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate) {
 
     *rate = itr->rate;
 
-    itr->result = enum_rates(itr->fg, itr->fid, itr->size, &itr->rate, ++itr->index);
+    itr->result = enum_rates(itr->fg, itr->fmt, itr->size, &itr->rate, ++itr->index);
 
     return VCAP_TRUE;
 }
@@ -431,14 +431,14 @@ void vcap_free_rate_itr(vcap_rate_itr* itr) {
         vcap_free(itr);
 }
 
-int vcap_get_fmt(vcap_fg* fg, vcap_fmt_id* fid, vcap_size* size) {
+int vcap_get_fmt(vcap_fg* fg, vcap_fmt_id* fmt, vcap_size* size) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
     }
 
-    if (!fid) {
-        VCAP_ERROR("Parameter 'fid' cannot be null");
+    if (!fmt) {
+        VCAP_ERROR("Parameter 'fmt' cannot be null");
         return -1;
     }
 
@@ -447,44 +447,44 @@ int vcap_get_fmt(vcap_fg* fg, vcap_fmt_id* fid, vcap_size* size) {
         return -1;
     }
 
-    struct v4l2_format fmt;
+    struct v4l2_format gfmt;
 
-    VCAP_CLEAR(fmt);
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    VCAP_CLEAR(gfmt);
+    gfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (vcap_ioctl(fg->fd, VIDIOC_G_FMT, &fmt)) {
+    if (vcap_ioctl(fg->fd, VIDIOC_G_FMT, &gfmt)) {
         VCAP_ERROR_ERRNO("Unable to get format on device '%s'", fg->device.path);
         return -1;
     }
 
-    *fid = vcap_convert_fmt_id(fmt.fmt.pix.pixelformat);
+    *fmt = vcap_convert_fmt_id(gfmt.fmt.pix.pixelformat);
 
-    size->width = fmt.fmt.pix.width;
-    size->height = fmt.fmt.pix.height;
+    size->width = gfmt.fmt.pix.width;
+    size->height = gfmt.fmt.pix.height;
 
     return 0;
 }
 
-int vcap_set_fmt(vcap_fg* fg, vcap_fmt_id fid, vcap_size size) {
+int vcap_set_fmt(vcap_fg* fg, vcap_fmt_id fmt, vcap_size size) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
     }
 
-    if (fid < 0 || fid >= VCAP_FMT_UNKNOWN) {
+    if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN) {
         VCAP_ERROR("Invalid format (out of range)");
         return -1;
     }
 
-    struct v4l2_format fmt;
+    struct v4l2_format sfmt;
 
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    fmt.fmt.pix.width = size.width;
-    fmt.fmt.pix.height = size.height;
-    fmt.fmt.pix.pixelformat = fmt_map[fid];
-    fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
+    sfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    sfmt.fmt.pix.width = size.width;
+    sfmt.fmt.pix.height = size.height;
+    sfmt.fmt.pix.pixelformat = fmt_map[fmt];
+    sfmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
 
-    if (vcap_ioctl(fg->fd, VIDIOC_S_FMT, &fmt) == -1) {
+    if (vcap_ioctl(fg->fd, VIDIOC_S_FMT, &sfmt) == -1) {
         VCAP_ERROR_ERRNO("Unable to set format on device '%s'", fg->device.path);
         return -1;
     }
@@ -570,12 +570,12 @@ static int enum_fmts(vcap_fg* fg, vcap_fmt_desc* desc, uint32_t index) {
     return VCAP_ENUM_OK;
 }
 
-static int enum_sizes(vcap_fg* fg, vcap_fmt_id fid, vcap_size* size, uint32_t index) {
+static int enum_sizes(vcap_fg* fg, vcap_fmt_id fmt, vcap_size* size, uint32_t index) {
     struct v4l2_frmsizeenum fenum;
 
     VCAP_CLEAR(fenum);
     fenum.index = index;
-    fenum.pixel_format = fmt_map[fid];
+    fenum.pixel_format = fmt_map[fmt];
 
     if (vcap_ioctl(fg->fd, VIDIOC_ENUM_FRAMESIZES, &fenum) == -1) {
         if (errno == EINVAL) {
@@ -596,12 +596,12 @@ static int enum_sizes(vcap_fg* fg, vcap_fmt_id fid, vcap_size* size, uint32_t in
     return VCAP_ENUM_OK;
 }
 
-static int enum_rates(vcap_fg* fg, vcap_fmt_id fid, vcap_size size, vcap_rate* rate, uint32_t index) {
+static int enum_rates(vcap_fg* fg, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index) {
     struct v4l2_frmivalenum frenum;
 
     VCAP_CLEAR(frenum);
     frenum.index = index;
-    frenum.pixel_format = fmt_map[fid];
+    frenum.pixel_format = fmt_map[fmt];
     frenum.width = size.width;
     frenum.height = size.height;
 

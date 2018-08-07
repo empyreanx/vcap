@@ -53,7 +53,7 @@ int vcap_save_jpeg(vcap_frame* frame, const char* path) {
         return -1;
     }
 
-    if (frame->fid != VCAP_FMT_RGB24) {
+    if (frame->fmt != VCAP_FMT_RGB24) {
         VCAP_ERROR("Frame must contain RGB24 data");
         return -1;
     }

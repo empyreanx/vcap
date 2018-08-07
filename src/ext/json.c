@@ -22,7 +22,7 @@
 
 #include <jansson.h>
 
-json_t* build_size_obj(const vcap_size* size) {
+static json_t* build_size_obj(const vcap_size* size) {
     json_t* obj = json_object();
 
     if (!obj) {
@@ -43,7 +43,7 @@ json_t* build_size_obj(const vcap_size* size) {
     return obj;
 }
 
-json_t* build_rate_obj(const vcap_rate* rate) {
+static json_t* build_rate_obj(const vcap_rate* rate) {
     json_t* obj = json_object();
 
     if (!obj) {
@@ -62,6 +62,78 @@ json_t* build_rate_obj(const vcap_rate* rate) {
     }
 
     return obj;
+}
+
+static int parse_size(json_t* obj, vcap_size* size) {
+    if (!obj) {
+        VCAP_ERROR("Size cannot be null");
+        return -1;
+    }
+
+    if (json_typeof(obj) != JSON_OBJECT) {
+        VCAP_ERROR("Invalid type of size");
+        return -1;
+    }
+
+    // Width
+
+    json_t* value = json_object_get(obj, "width");
+
+    if (!value || json_typeof(value) != JSON_INTEGER) {
+        VCAP_ERROR("Invalid integer type");
+        return -1;
+    }
+
+    size->width = json_integer_value(value);
+
+    // Height
+
+    value = json_object_get(obj, "height");
+
+    if (!value || json_typeof(value) != JSON_INTEGER) {
+        VCAP_ERROR("Invalid integer type");
+        return -1;
+    }
+
+    size->height = json_integer_value(value);
+
+    return 0;
+}
+
+static int parse_rate(json_t* obj, vcap_rate* rate) {
+    if (!obj) {
+        VCAP_ERROR("Rate cannot be null");
+        return -1;
+    }
+
+    if (json_typeof(obj) != JSON_OBJECT) {
+        VCAP_ERROR("Invalid type of rate");
+        return -1;
+    }
+
+    // Numerator
+
+    json_t* value = json_object_get(obj, "numerator");
+
+    if (!value || json_typeof(value) != JSON_INTEGER) {
+        VCAP_ERROR("Invalid integer type");
+        return -1;
+    }
+
+    rate->numerator = json_integer_value(value);
+
+    // Denominator
+
+    value = json_object_get(obj, "denominator");
+
+    if (!value || json_typeof(value) != JSON_INTEGER) {
+        VCAP_ERROR("Invalid integer type");
+        return -1;
+    }
+
+    rate->denominator = json_integer_value(value);
+
+    return 0;
 }
 
 int vcap_export_settings(vcap_fg* fg, const char* path) {
@@ -160,10 +232,14 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
         if (json_object_set_new(obj, "name", json_string((char*)desc.name)) == -1) {
             VCAP_ERROR("Unable to set new JSON object");
             VCAP_ERROR_GOTO(code, finally);
-
         }
 
-        if (json_object_set_new(obj, "cid", json_integer(value)) == -1) {
+        if (json_object_set_new(obj, "cid", json_integer(cid)) == -1) {
+            VCAP_ERROR("Unable to set new JSON object");
+            VCAP_ERROR_GOTO(code, finally);
+        }
+
+        if (json_object_set_new(obj, "value", json_integer(value)) == -1) {
             VCAP_ERROR("Unable to set new JSON object");
             VCAP_ERROR_GOTO(code, finally);
         }
@@ -209,5 +285,147 @@ finally:
 
 int vcap_import_settings(vcap_fg* fg, const char* path) {
     json_set_alloc_funcs(vcap_malloc, vcap_free);
-    return 0;
+
+    int code = 0;
+    json_t* root = NULL;
+    char* str = NULL;
+
+    // Read file
+
+    FILE *file = fopen(path, "r");
+
+    if (!file) {
+        VCAP_ERROR("Unable to open file");
+        return -1;
+    }
+
+    fseek(file, 0, SEEK_END);
+    size_t file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    str = vcap_malloc(file_size + 1);
+
+    if (!str) {
+        VCAP_ERROR("Out of memory allocating string");
+        VCAP_ERROR_GOTO(code, finally);
+    }
+
+    size_t bytes_read = fread(str, file_size, 1, file);
+
+    if (bytes_read != file_size) {
+        VCAP_ERROR("Error reading file");
+        VCAP_ERROR_GOTO(code, finally);
+    }
+
+    str[file_size] = 0;
+
+    // Parse JSON
+
+    json_error_t error;
+    root = json_loads(str, 0, &error);
+
+    if (!root) {
+        VCAP_ERROR("Parsing JSON failed (%d:%d): %s", error.line, error.column, error.text);
+        VCAP_ERROR_GOTO(code, finally);
+    }
+
+    // Format
+
+    json_t* value = json_object_get(root, "fid");
+
+    if (!value) {
+        VCAP_ERROR("Unable to read format ID");
+        VCAP_ERROR_GOTO(code, finally);
+    }
+
+    if (json_typeof(value) != JSON_INTEGER) {
+        VCAP_ERROR("Invalid format ID type");
+        VCAP_ERROR_GOTO(code, finally);
+    }
+
+    vcap_fmt_id fid = json_integer_value(value);
+
+    // Size
+
+    json_t* obj = json_object_get(root, "size");
+
+    vcap_size size;
+
+    if (parse_size(obj, &size) == -1) {
+        VCAP_ERROR_THROW();
+        VCAP_ERROR_GOTO(code, finally);
+    }
+
+    if (vcap_set_fmt(fg, fid, size) == -1) {
+        VCAP_ERROR_THROW();
+        VCAP_ERROR_GOTO(code, finally);
+    }
+
+    // Rate
+
+    obj = json_object_get(root, "rate");
+
+    vcap_rate rate;
+
+    if (parse_rate(obj, &rate) == -1) {
+        VCAP_ERROR_THROW();
+        VCAP_ERROR_GOTO(code, finally);
+    }
+
+    if (vcap_set_rate(fg, rate) == -1) {
+        VCAP_ERROR_THROW();
+        VCAP_ERROR_GOTO(code, finally);
+    }
+
+    // Controls
+
+    json_t* array = json_object_get(root, "ctrls");
+
+    if (!array) {
+        VCAP_ERROR("Unable to get control array");
+        VCAP_ERROR_GOTO(code, finally);
+    }
+
+    size_t index;
+
+    json_array_foreach(array, index, obj) {
+        // Control ID
+
+        value = json_object_get(obj, "cid");
+
+        if (!value || json_typeof(value) != JSON_INTEGER) {
+            VCAP_ERROR("Invalid cid");
+            VCAP_ERROR_GOTO(code, finally);
+        }
+
+        vcap_ctrl_id cid = json_integer_value(value);
+
+        // Value
+
+        if (vcap_ctrl_status(fg, cid) == VCAP_CTRL_OK) {
+            value = json_object_get(obj, "value");
+
+            if (!value || json_typeof(value) != JSON_INTEGER) {
+                VCAP_ERROR("Invalid value");
+                VCAP_ERROR_GOTO(code, finally);
+            }
+
+            if (vcap_set_ctrl(fg, cid, json_integer_value(value)) == -1) {
+                VCAP_ERROR_THROW();
+                VCAP_ERROR_GOTO(code, finally);
+            }
+        }
+    }
+
+finally:
+    if (file)
+        fclose(file);
+
+    if (str)
+        vcap_free(str);
+
+    if (root)
+        json_decref(root);
+
+    return code;
 }

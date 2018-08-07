@@ -50,6 +50,12 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    // Export JSON
+    if (vcap_import_settings(fg, "out.json") == -1) {
+        printf("%s\n", vcap_get_error());
+        return -1;
+    }
+
     // Close device
     vcap_close(fg);
 

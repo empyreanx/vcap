@@ -8,6 +8,10 @@ if(BUILD_INFO_EXAMPLE)
     add_subdirectory(info)
 endif()
 
+if(BUILD_JPEG_EXAMPLE)
+    add_subdirectory(jpeg)
+endif()
+
 if(BUILD_PNG_EXAMPLE)
     add_subdirectory(png)
 endif()

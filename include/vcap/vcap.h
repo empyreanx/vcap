@@ -49,6 +49,7 @@ extern "C" {
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 typedef struct vcap_fg vcap_fg;                 ///< Frame grabber
 typedef struct vcap_fmt_itr vcap_fmt_itr;       ///< Format iterator
@@ -181,16 +182,19 @@ const char* vcap_get_error();
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Prints device information
+/// \brief  Prints device information to a file descriptor
 ///
-/// This function prints device information (path, driver, bus info etc...), and
-/// enumerates and displays information about all formats and controls.
+/// This function prints (to a file descriptor) device information (path, driver,
+/// bus info etc...), and enumerates and prints information about all formats
+/// and controls. For example, to display device information to standard output,
+/// call 'vcap_dump_info(fg, stdout)'.
 ///
-/// \param  fg  Frame grabber
+/// \param  fg    Point to the frame grabber
+/// \param  file  The file descriptor
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_dump_info(vcap_fg* fg);
+int vcap_dump_info(vcap_fg* fg, FILE* file);
 
 //------------------------------------------------------------------------------
 ///
@@ -718,6 +722,46 @@ int vcap_reset_ctrl(vcap_fg* fg, vcap_ctrl_id cid);
 /// \returns -1 on error and 0 otherwise
 ///
 int vcap_reset_all_ctrls(vcap_fg* fg);
+
+#ifdef VCAP_SUPPORT_JSON
+//------------------------------------------------------------------------------
+///
+/// \brief  Exports device settings
+///
+/// Exports all video capture device settings, including format and controls
+/// to a file.
+///
+/// \param  frame  Pointer to the frame
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_export_settings(vcap_fg* fg, const char* path);
+int vcap_import_settings(vcap_fg* fg, const char* path);
+#endif
+
+#ifdef VCAP_SUPPORT_PNG
+//------------------------------------------------------------------------------
+///
+/// \brief  Saves a frame to a PNG
+///
+/// \param  frame  Pointer to the frame
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_save_png(vcap_frame* frame, const char* path);
+#endif
+
+#ifdef VCAP_SUPPORT_JPEG
+//------------------------------------------------------------------------------
+///
+/// \brief  Saves a frame to a PNG
+///
+/// \param  frame  Pointer to the frame
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_save_jpeg(vcap_frame* frame, const char* path);
+#endif
 
 #ifdef __cplusplus
 }

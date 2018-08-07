@@ -44,7 +44,7 @@ const char* vcap_get_error() {
     return vcap_error_msg;
 }
 
-int vcap_dump_info(vcap_fg* fg) {
+int vcap_dump_info(vcap_fg* fg, FILE* file) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
@@ -54,35 +54,35 @@ int vcap_dump_info(vcap_fg* fg) {
 
     // Print device info
     printf("------------------------------------------------\n");
-    printf("Device: %s\n", device.path);
-    printf("Driver: %s\n", device.driver);
-    printf("Driver version: %s\n", device.version_str);
-    printf("Card: %s\n", device.card);
-    printf("Bus Info: %s\n", device.bus_info);
+    fprintf(file, "Device: %s\n", device.path);
+    fprintf(file, "Driver: %s\n", device.driver);
+    fprintf(file, "Driver version: %s\n", device.version_str);
+    fprintf(file, "Card: %s\n", device.card);
+    fprintf(file, "Bus Info: %s\n", device.bus_info);
 
     // Enumerate formats
     vcap_fmt_desc fmt_desc;
     vcap_fmt_itr* fmt_itr = vcap_new_fmt_itr(fg);
 
     while (vcap_fmt_itr_next(fmt_itr, &fmt_desc)) {
-        printf("------------------------------------------------\n");
-        printf("Format: %s, FourCC: %s\n", fmt_desc.name, fmt_desc.fourcc);
-        printf("Sizes:\n");
+        fprintf(file, "------------------------------------------------\n");
+        fprintf(file, "Format: %s, FourCC: %s\n", fmt_desc.name, fmt_desc.fourcc);
+        fprintf(file, "Sizes:\n");
 
         // Enumerate sizes
         vcap_size size;
         vcap_size_itr* size_itr = vcap_new_size_itr(fg, fmt_desc.id);
 
         while (vcap_size_itr_next(size_itr, &size)) {
-            printf("   %u x %u: ", size.width, size.height);
-            printf("(Frame rates:");
+            fprintf(file, "   %u x %u: ", size.width, size.height);
+            fprintf(file, "(Frame rates:");
 
             // Enumerate frame rates
             vcap_rate rate;
             vcap_rate_itr* rate_itr = vcap_new_rate_itr(fg, fmt_desc.id, size);
 
             while (vcap_rate_itr_next(rate_itr, &rate)) {
-                printf(" %u/%u", rate.numerator, rate.denominator);
+                fprintf(file, " %u/%u", rate.numerator, rate.denominator);
             }
 
             if (vcap_rate_itr_error(rate_itr))
@@ -90,7 +90,7 @@ int vcap_dump_info(vcap_fg* fg) {
 
             vcap_free_rate_itr(rate_itr);
 
-            printf(")\n");
+            fprintf(file, ")\n");
         }
 
         if (vcap_size_itr_error(size_itr))
@@ -105,8 +105,8 @@ int vcap_dump_info(vcap_fg* fg) {
     vcap_free_fmt_itr(fmt_itr);
 
     // Enumerate controls
-    printf("------------------------------------------------\n");
-    printf("Controls:\n");
+    fprintf(file, "------------------------------------------------\n");
+    fprintf(file, "Controls:\n");
 
     vcap_ctrl_desc ctrl_desc;
     vcap_ctrl_itr* ctrl_itr = vcap_new_ctrl_itr(fg);

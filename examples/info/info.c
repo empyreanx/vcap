@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
     }
 
     // Dump info
-    if (vcap_dump_info(fg) == -1)
+    if (vcap_dump_info(fg, stdout) == -1)
         printf("%s\n", vcap_get_error());
 
     // Close device

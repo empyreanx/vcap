@@ -12,6 +12,10 @@ if(BUILD_JPEG_EXAMPLE)
     add_subdirectory(jpeg)
 endif()
 
+if(BUILD_JSON_EXAMPLE)
+    add_subdirectory(json)
+endif()
+
 if(BUILD_PNG_EXAMPLE)
     add_subdirectory(png)
 endif()

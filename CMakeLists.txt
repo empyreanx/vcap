@@ -12,6 +12,7 @@ option(BUILD_INFO_EXAMPLE "Build an example that dumps info about a camera to st
 option(BUILD_JPEG_EXAMPLE "Build an example that grabs and saves a frame to a PNG file" OFF)
 option(BUILD_PNG_EXAMPLE "Build an example that grabs and saves a frame to a JPEG file" OFF)
 option(BUILD_SDL_EXAMPLE "Build an example that streams frames using SDL 1.2" OFF)
+option(BUILD_JSON_EXAMPLE "Buid an example that exports/imports device settings" OFF)
 option(BUILD_DOCS "Build Doxygen docs" OFF)
 option(SUPPORT_JSON "Input/export camera settings to/from JSON" ON)
 option(SUPPORT_PNG "Save frames to PNG" ON)

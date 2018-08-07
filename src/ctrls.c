@@ -247,11 +247,6 @@ int vcap_ctrl_itr_error(vcap_ctrl_itr* itr) {
         return VCAP_FALSE;
 }
 
-void vcap_free_ctrl_itr(vcap_ctrl_itr* itr) {
-    if (itr)
-        vcap_free(itr);
-}
-
 vcap_menu_itr* vcap_new_menu_itr(vcap_fg* fg, vcap_ctrl_id ctrl) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
@@ -308,11 +303,6 @@ int vcap_menu_itr_error(vcap_menu_itr* itr) {
         return VCAP_TRUE;
     else
         return VCAP_FALSE;
-}
-
-void vcap_free_menu_itr(vcap_menu_itr* itr) {
-    if (itr)
-        vcap_free(itr);
 }
 
 int vcap_get_ctrl(vcap_fg* fg, vcap_ctrl_id ctrl, int32_t* value) {

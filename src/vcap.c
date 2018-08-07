@@ -88,7 +88,7 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
             if (vcap_rate_itr_error(rate_itr))
                 return -1;
 
-            vcap_free_rate_itr(rate_itr);
+            vcap_free(rate_itr);
 
             fprintf(file, ")\n");
         }
@@ -96,13 +96,13 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
         if (vcap_size_itr_error(size_itr))
             return -1;
 
-        vcap_free_size_itr(size_itr);
+        vcap_free(size_itr);
     }
 
     if (vcap_fmt_itr_error(fmt_itr))
         return -1;
 
-    vcap_free_fmt_itr(fmt_itr);
+    vcap_free(fmt_itr);
 
     // Enumerate controls
     fprintf(file, "------------------------------------------------\n");
@@ -131,14 +131,14 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
             if (vcap_menu_itr_error(menu_itr))
                 return -1;
 
-            vcap_free_menu_itr(menu_itr);
+            vcap_free(menu_itr);
         }
     }
 
     if (vcap_ctrl_itr_error(ctrl_itr))
         return -1;
 
-    vcap_free_ctrl_itr(ctrl_itr);
+    vcap_free(ctrl_itr);
 
     return 0;
 }

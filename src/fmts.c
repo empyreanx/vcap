@@ -299,11 +299,6 @@ int vcap_fmt_itr_error(vcap_fmt_itr* itr) {
         return VCAP_FALSE;
 }
 
-void vcap_free_fmt_itr(vcap_fmt_itr* itr) {
-    if (itr)
-        vcap_free(itr);
-}
-
 vcap_size_itr* vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fmt) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
@@ -360,11 +355,6 @@ int vcap_size_itr_error(vcap_size_itr* itr) {
         return VCAP_TRUE;
     else
         return VCAP_FALSE;
-}
-
-void vcap_free_size_itr(vcap_size_itr* itr) {
-    if (itr)
-        vcap_free(itr);
 }
 
 vcap_rate_itr* vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fmt, vcap_size size) {
@@ -424,11 +414,6 @@ int vcap_rate_itr_error(vcap_rate_itr* itr) {
         return VCAP_TRUE;
     else
         return VCAP_FALSE;
-}
-
-void vcap_free_rate_itr(vcap_rate_itr* itr) {
-    if (itr)
-        vcap_free(itr);
 }
 
 int vcap_get_fmt(vcap_fg* fg, vcap_fmt_id* fmt, vcap_size* size) {

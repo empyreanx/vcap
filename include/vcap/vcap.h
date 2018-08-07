@@ -404,14 +404,6 @@ int vcap_fmt_itr_error(vcap_fmt_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Deallocates the iterator
-///
-/// \param  itr  Pointer to iterator
-///
-void vcap_free_fmt_itr(vcap_fmt_itr* itr);
-
-//------------------------------------------------------------------------------
-///
 /// \brief  Creates a new frame size iterator
 ///
 /// Creates and initializes new frame size iterator for the specified frame
@@ -446,14 +438,6 @@ int vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size);
 /// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
 ///
 int vcap_size_itr_error(vcap_size_itr* itr);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Deallocates the iterator
-///
-/// \param  itr  Pointer to iterator
-///
-void vcap_free_size_itr(vcap_size_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
@@ -492,14 +476,6 @@ int vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate);
 /// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
 ///
 int vcap_rate_itr_error(vcap_rate_itr* itr);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Deallocates the iterator
-///
-/// \param  itr  Pointer to iterator
-///
-void vcap_free_rate_itr(vcap_rate_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
@@ -628,14 +604,6 @@ int vcap_ctrl_itr_error(vcap_ctrl_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Deallocates the iterator
-///
-/// \param  itr  Pointer to iterator
-///
-void vcap_free_ctrl_itr(vcap_ctrl_itr* itr);
-
-//------------------------------------------------------------------------------
-///
 /// \brief  Creates a new menu iterator
 ///
 /// Creates and initializes a new menu iterator for the specified frame
@@ -670,14 +638,6 @@ int vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item);
 /// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
 ///
 int vcap_menu_itr_error(vcap_menu_itr* itr);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Deallocates the iterator
-///
-/// \param  itr  Pointer to iterator
-///
-void vcap_free_menu_itr(vcap_menu_itr* itr);
 
 //------------------------------------------------------------------------------
 ///

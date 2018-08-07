@@ -27,13 +27,18 @@
 #include <errno.h>
 #include <string.h>
 
-// Private macros
-#define VCAP_ERROR(FMT, ...) vcap_set_error("%s: "FMT, __func__, ##__VA_ARGS__)
-#define VCAP_ERROR_ERRNO(FMT, ...) vcap_set_error("%s: "FMT" (%s)", __func__, strerror(errno), ##__VA_ARGS__)
+// Error macros
+#define VCAP_ERROR(FMT, ...) vcap_set_error("[%s] "FMT, __func__, ##__VA_ARGS__)
+#define VCAP_ERROR_ERRNO(FMT, ...) vcap_set_error("[%s] "FMT" (%s)", __func__, strerror(errno), ##__VA_ARGS__)
+#define VCAP_ERROR_THROW() VCAP_ERROR("[%s] ", vcap_get_error());
+
+// Clear data structure
 #define VCAP_CLEAR(ptr) memset(&(ptr), 0, sizeof(ptr))
 
-// Private global variables
+// Error message storage (this has to be a global unfortunately)
 extern char vcap_error_msg[1024];
+
+// Declare allocation functions
 extern vcap_malloc_func vcap_malloc;
 extern vcap_free_func vcap_free;
 

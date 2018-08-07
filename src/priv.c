@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 
 char vcap_error_msg[1024];
+char vcap_error_tmp[1024];
 
 vcap_malloc_func vcap_malloc = malloc;
 vcap_free_func vcap_free = free;
@@ -39,8 +40,10 @@ vcap_free_func vcap_free = free;
 void vcap_set_error(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    vsnprintf(vcap_error_msg, sizeof(vcap_error_msg), fmt, args);
+    vsnprintf(vcap_error_tmp, sizeof(vcap_error_tmp), fmt, args);
     va_end(args);
+
+    strncpy(vcap_error_msg, vcap_error_tmp, sizeof(vcap_error_msg));
 }
 
 int vcap_try_get_device(const char* path, vcap_device* device) {

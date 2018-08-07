@@ -143,7 +143,12 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
             return -1;
         }
 
-        if (json_object_set_new(obj, (char*)desc.name, json_integer(value)) == -1) {
+        if (json_object_set_new(obj, "name", json_string((char*)desc.name)) == -1) {
+            VCAP_ERROR("Unable to set new JSON object");
+            return -1;
+        }
+
+        if (json_object_set_new(obj, "cid", json_integer(value)) == -1) {
             VCAP_ERROR("Unable to set new JSON object");
             return -1;
         }

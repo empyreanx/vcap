@@ -24,6 +24,14 @@
 #include <png.h>
 #include <stdio.h>
 
+static png_voidp malloc_fn(png_structp png_ptr, png_size_t size) {
+    return vcap_malloc(size);
+}
+
+static void free_fn(png_structp png_ptr, png_voidp ptr) {
+    return vcap_free(ptr);
+}
+
 int vcap_save_png(vcap_frame* frame, const char* path) {
     if (!frame) {
         VCAP_ERROR("Parameter 'frame' cannot be null");
@@ -52,7 +60,7 @@ int vcap_save_png(vcap_frame* frame, const char* path) {
     png_infop info_ptr = NULL;
     png_bytep* rows = NULL;
 
-    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    png_ptr = png_create_write_struct_2(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL, NULL, malloc_fn, free_fn);
 
     if (!png_ptr) {
         VCAP_ERROR("Could not allocate PNG write struct\n");

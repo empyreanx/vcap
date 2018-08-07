@@ -12,6 +12,9 @@ option(BUILD_INFO_EXAMPLE "Build an example that dumps info about a camera to st
 option(BUILD_PNG_EXAMPLE "Build an example that grabs and saves a frame to a png file" OFF)
 option(BUILD_SDL_EXAMPLE "Build an example that streams frames using SDL 1.2" OFF)
 option(BUILD_DOCS "Build Doxygen docs" OFF)
+option(SUPPORT_JSON "Input/export camera settings to/from JSON" ON)
+option(SUPPORT_PNG "Save frames to PNG" ON)
+option(SUPPORT_JPEG "Save frames to JPEG" ON)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -42,6 +45,42 @@ if(NOT V4L2_FOUND)
 endif()
 
 include_directories(${V4L2_INCLUDE_DIR})
+
+# Find Jansson
+if(SUPPORT_JSON)
+    find_package(Jansson)
+
+    if(NOT JANSSON_FOUND)
+        message(WARNING "Unable to find Jansson: disabling JSON support")
+    else()
+        add_definitions(-DVCAP_SUPPORT_JSON)
+        include_directories(JANSSON_INCLUDE_DIRS)
+    endif()
+endif()
+
+# Find libpng
+if(SUPPORT_PNG)
+    find_package(PNG)
+
+    if(NOT PNG_FOUND)
+        message(WARNING "Unable to find libpng: disabling PNG support")
+    else()
+        add_definitions(-DVCAP_SUPPORT_PNG)
+        include_directories(PNG_INCLUDE_DIRS)
+    endif()
+endif()
+
+# Find libjpeg
+if(SUPPORT_JPEG)
+    find_package(JPEG)
+
+    if(NOT JPEG_FOUND)
+        message(WARNING "Unable to find libjpeg: disabling JPEG support")
+    else()
+        add_definitions(-DVCAP_SUPPORT_JPEG)
+        include_directories(JPEG_INCLUDE_DIR)
+    endif()
+endif()
 
 # Add library
 set(LIBRARY_OUTPUT_PATH lib)

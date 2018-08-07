@@ -31,11 +31,13 @@ endif()
 add_definitions(-Wall -std=c99 -D_GNU_SOURCE)
 
 # Add souce files
-file(GLOB SOURCE_FILES
+file(GLOB BASE_FILES
     include/vcap/*.h
     src/*.h
     src/*.c
 )
+
+set(SOURCE_FILES ${BASE_FILES})
 
 # Find V4L2
 find_package(V4L2 REQUIRED)
@@ -55,6 +57,7 @@ if(SUPPORT_JSON)
     else()
         add_definitions(-DVCAP_SUPPORT_JSON)
         include_directories(JANSSON_INCLUDE_DIRS)
+        list(APPEND SOURCE_FILES "src/ext/json.c")
     endif()
 endif()
 
@@ -67,6 +70,7 @@ if(SUPPORT_PNG)
     else()
         add_definitions(-DVCAP_SUPPORT_PNG)
         include_directories(PNG_INCLUDE_DIRS)
+        list(APPEND SOURCE_FILES "src/ext/png.c")
     endif()
 endif()
 
@@ -79,6 +83,7 @@ if(SUPPORT_JPEG)
     else()
         add_definitions(-DVCAP_SUPPORT_JPEG)
         include_directories(JPEG_INCLUDE_DIR)
+        list(APPEND SOURCE_FILES "src/ext/jpeg.c")
     endif()
 endif()
 

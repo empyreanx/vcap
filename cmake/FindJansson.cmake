@@ -30,7 +30,6 @@ find_library(JANSSON_LIBRARY
     DOC "Jansson library"
 )
 
-# handle the QUIETLY and REQUIRED arguments and set JANSSON_FOUND to TRUE if all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(JANSSON DEFAULT_MSG JANSSON_LIBRARY JANSSON_INCLUDE_DIR)
 

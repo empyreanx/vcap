@@ -460,7 +460,7 @@ vcap_rate_itr* vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fmt, vcap_size size);
 ///
 /// Copies the current frame rate into 'rate' and advances the iterator.
 ///
-/// \param  itr       Pointer to iterator
+/// \param  itr   Pointer to iterator
 /// \param  rate  Pointer to the frame rate
 ///
 /// \returns 0 if there was an error or there are no more sizes, and 1 otherwise
@@ -720,7 +720,7 @@ int vcap_export_settings(vcap_fg* fg, const char* path);
 /// \returns -1 on error and 0 otherwise
 ///
 int vcap_import_settings(vcap_fg* fg, const char* path);
-#endif
+#endif // VCAP_SUPPORT_JSON
 
 #ifdef VCAP_SUPPORT_PNG
 //------------------------------------------------------------------------------
@@ -732,7 +732,7 @@ int vcap_import_settings(vcap_fg* fg, const char* path);
 /// \returns -1 on error and 0 otherwise
 ///
 int vcap_save_png(vcap_frame* frame, const char* path);
-#endif
+#endif // VCAP_SUPPORT_PNG
 
 #ifdef VCAP_SUPPORT_JPEG
 //------------------------------------------------------------------------------
@@ -744,7 +744,7 @@ int vcap_save_png(vcap_frame* frame, const char* path);
 /// \returns -1 on error and 0 otherwise
 ///
 int vcap_save_jpeg(vcap_frame* frame, const char* path);
-#endif
+#endif // VCAP_SUPPORT_JPEG
 
 #ifdef __cplusplus
 }

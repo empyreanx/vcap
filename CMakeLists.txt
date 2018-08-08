@@ -24,7 +24,9 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include_directories(include)
 
 # Add definitions
-set(CMAKE_BUILD_TYPE Release)
+if(NOT DEFINED ${CMAKE_BUILD_TYPE})
+    set(CMAKE_BUILD_TYPE "Release")
+endif()
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     add_definitions(-O2)

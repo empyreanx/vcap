@@ -310,10 +310,10 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
         VCAP_ERROR_GOTO(code, finally);
     }
 
-    size_t bytes_read = fread(str, file_size, 1, file);
+    size_t bytes_read = fread(str, 1, file_size, file);
 
     if (bytes_read != file_size) {
-        VCAP_ERROR("Error reading file");
+        VCAP_ERROR("Error reading file (expected: %lu, read: %lu)", file_size, bytes_read);
         VCAP_ERROR_GOTO(code, finally);
     }
 

@@ -33,7 +33,7 @@ Other examples are built similarly.
 
 ## Example
 
-A minimal example of grabbing a raw frame and saving it to a file (without error checking):
+A minimal example (without error checking) of grabbing a frame and saving it as a PNG:
 
 ```c
 #include <vcap/vcap.h>

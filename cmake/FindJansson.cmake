@@ -1,59 +1,41 @@
-# - Try to find Jansson
-# Once done this will define
-#
-#  JANSSON_FOUND - system has Jansson
-#  JANSSON_INCLUDE_DIRS - the Jansson include directory
-#  JANSSON_LIBRARIES - Link these to use Jansson
-#
-#  Copyright (c) 2011 Lee Hambley <lee.hambley@gmail.com>
-#
-#  Redistribution and use is allowed according to the terms of the New
-#  BSD license.
-#  For details see the accompanying COPYING-CMAKE-SCRIPTS file.
-#
+##==============================================================================
+## Vcap - A Video4Linux2 capture library
+##
+## Copyright (C) 2018 James McLean
+##
+## This library is free software; you can redistribute it and/or
+## modify it under the terms of the GNU Lesser General Public
+## License as published by the Free Software Foundation; either
+## version 2.1 of the License, or (at your option) any later version.
+##
+## This library is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+## Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public
+## License along with this library; if not, write to the Free Software
+## Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+##==============================================================================
 
-if (JANSSON_LIBRARIES AND JANSSON_INCLUDE_DIRS)
-  # in cache already
-  set(JANSSON_FOUND TRUE)
-else (JANSSON_LIBRARIES AND JANSSON_INCLUDE_DIRS)
-  find_path(JANSSON_INCLUDE_DIR
-    NAMES
-      jansson.h
-    PATHS
-      /usr/include
-      /usr/local/include
-      /opt/local/include
-      /sw/include
-  )
+set(JANSSON_FOUND 0)
+
+find_path(JANSSON_INCLUDE_DIR
+    NAMES jansson.h
+    DOC "Jansson include directory"
+)
 
 find_library(JANSSON_LIBRARY
-    NAMES
-      jansson
-    PATHS
-      /usr/lib
-      /usr/local/lib
-      /opt/local/lib
-      /sw/lib
-  )
+    NAMES jansson
+    DOC "Jansson library"
+)
 
-set(JANSSON_INCLUDE_DIRS
-  ${JANSSON_INCLUDE_DIR}
-  )
+# handle the QUIETLY and REQUIRED arguments and set JANSSON_FOUND to TRUE if all listed variables are TRUE
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(JANSSON DEFAULT_MSG JANSSON_LIBRARY JANSSON_INCLUDE_DIR)
 
-if (JANSSON_LIBRARY)
-  set(JANSSON_LIBRARIES
-    ${JANSSON_LIBRARIES}
-    ${JANSSON_LIBRARY}
-    )
-endif (JANSSON_LIBRARY)
+if(NOT JANSSON_FOUND)
+    message(WARNING "Jansson not found!")
+endif()
 
-  include(FindPackageHandleStandardArgs)
-  find_package_handle_standard_args(Jansson DEFAULT_MSG
-    JANSSON_LIBRARIES JANSSON_INCLUDE_DIRS)
-
-  # show the JANSSON_INCLUDE_DIRS and JANSSON_LIBRARIES variables only in the advanced view
-  mark_as_advanced(JANSSON_INCLUDE_DIRS JANSSON_LIBRARIES)
-
-endif (JANSSON_LIBRARIES AND JANSSON_INCLUDE_DIRS)
-
-
+mark_as_advanced(JANSSON_INCLUDE_DIR JANSSON_LIBRARY)

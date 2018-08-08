@@ -344,7 +344,7 @@ int vcap_grab(vcap_fg* fg, vcap_frame* frame) {
             FD_SET(fg->fd, &fds);
 
             // Timeout
-            tv.tv_sec = 2;
+            tv.tv_sec = 5;
             tv.tv_usec = 0;
 
             result = select(fg->fd + 1, &fds, NULL, NULL, &tv);

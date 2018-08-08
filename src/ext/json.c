@@ -156,7 +156,7 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
     // Format
 
     if (vcap_get_fmt(fg, &fmt, &size) == -1) {
-        VCAP_ERROR_THROW();
+        VCAP_ERROR_LAST();
         VCAP_ERROR_GOTO(code, finally);
     }
 
@@ -170,7 +170,7 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
     json_t* size_obj = build_size_obj(&size);
 
     if (!size_obj) {
-        VCAP_ERROR_THROW();
+        VCAP_ERROR_LAST();
         VCAP_ERROR_GOTO(code, finally);
     }
 
@@ -184,7 +184,7 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
     vcap_rate rate;
 
     if (vcap_get_rate(fg, &rate) == -1) {
-        VCAP_ERROR_THROW();
+        VCAP_ERROR_LAST();
         VCAP_ERROR_GOTO(code, finally);
     }
 
@@ -218,7 +218,7 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
         int32_t value;
 
         if (vcap_get_ctrl(fg, ctrl, &value) == -1) {
-            VCAP_ERROR_THROW();
+            VCAP_ERROR_LAST();
             VCAP_ERROR_GOTO(code, finally);
         }
 
@@ -352,12 +352,12 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
     vcap_size size;
 
     if (parse_size(obj, &size) == -1) {
-        VCAP_ERROR_THROW();
+        VCAP_ERROR_LAST();
         VCAP_ERROR_GOTO(code, finally);
     }
 
     if (vcap_set_fmt(fg, fmt, size) == -1) {
-        VCAP_ERROR_THROW();
+        VCAP_ERROR_LAST();
         VCAP_ERROR_GOTO(code, finally);
     }
 
@@ -368,12 +368,12 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
     vcap_rate rate;
 
     if (parse_rate(obj, &rate) == -1) {
-        VCAP_ERROR_THROW();
+        VCAP_ERROR_LAST();
         VCAP_ERROR_GOTO(code, finally);
     }
 
     if (vcap_set_rate(fg, rate) == -1) {
-        VCAP_ERROR_THROW();
+        VCAP_ERROR_LAST();
         VCAP_ERROR_GOTO(code, finally);
     }
 
@@ -411,7 +411,7 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
             }
 
             if (vcap_set_ctrl(fg, ctrl, json_integer_value(value)) == -1) {
-                VCAP_ERROR_THROW();
+                VCAP_ERROR_LAST();
                 VCAP_ERROR_GOTO(code, finally);
             }
         }

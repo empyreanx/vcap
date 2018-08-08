@@ -30,7 +30,7 @@
 // Error macros
 #define VCAP_ERROR(fmt, ...) vcap_set_error("[%s] "fmt, __func__, ##__VA_ARGS__)
 #define VCAP_ERROR_ERRNO(fmt, ...) vcap_set_error("[%s] "fmt" (%s)", __func__, strerror(errno), ##__VA_ARGS__)
-#define VCAP_ERROR_THROW() vcap_set_error("[%s] %s", __func__, vcap_get_error());
+#define VCAP_ERROR_LAST() vcap_set_error("[%s] %s", __func__, vcap_get_error())
 #define VCAP_ERROR_GOTO(code, label) code = -1; goto label
 
 // Clear data structure
@@ -40,8 +40,8 @@
 extern char vcap_error_msg[1024];
 
 // Declare allocation functions
-extern vcap_malloc_func vcap_malloc_ptr;
-extern vcap_free_func vcap_free_ptr;
+/*extern vcap_malloc_func vcap_malloc_ptr;
+extern vcap_free_func vcap_free_ptr;*/
 
 // Declare malloc function
 void* vcap_malloc(size_t size);

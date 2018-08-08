@@ -58,10 +58,8 @@ int main(int argc, char** argv) {
     // Grab a frame
     vcap_grab(fg, frame);
 
-    // Save raw frame
-    File* file = fopen("out.raw", "wb");
-    fwrite(frame->data, frame->length, 1, file);
-    fclose(file);
+    // Save frame as PNG
+    vcap_save_png(fg, "out.png");
 
     // Free frame
     vcap_free_frame(frame);

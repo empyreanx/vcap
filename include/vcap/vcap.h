@@ -3,7 +3,7 @@
     \version  0.2.0
     \author   James McLean <empyreanx@zoho.com>
     \date     August 4, 2018
-    \brief    A video capture library for Linux
+    \brief    An open source Video4Linux2 (V4L2) capture library written in C.
 
     \section About
     Vcap aims to provide a concise API for working with cameras and other video

@@ -37,11 +37,10 @@
 #define VCAP_CLEAR(ptr) memset(&(ptr), 0, sizeof(ptr))
 
 // Error message storage (this has to be a global unfortunately)
-extern char vcap_error_msg[1024];
+const char* vcap_get_error_priv();
 
 // Declare allocation functions
-/*extern vcap_malloc_func vcap_malloc_ptr;
-extern vcap_free_func vcap_free_ptr;*/
+void vcap_set_alloc_priv(vcap_malloc_func malloc_func, vcap_free_func free_func);
 
 // Declare malloc function
 void* vcap_malloc(size_t size);

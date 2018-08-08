@@ -31,27 +31,36 @@
 #include <string.h>
 #include <sys/stat.h>
 
-char vcap_error_msg[1024];
-char vcap_error_tmp[1024];
+static char error_msg[1024];
+static char error_tmp[1024];
 
-vcap_malloc_func vcap_malloc_ptr = malloc;
-vcap_free_func vcap_free_ptr = free;
+static vcap_malloc_func malloc_func_ptr = malloc;
+static vcap_free_func free_func_ptr = free;
+
+const char* vcap_get_error_priv() {
+    return error_msg;
+}
+
+void vcap_set_alloc_priv(vcap_malloc_func malloc_func, vcap_free_func free_func) {
+    malloc_func_ptr = malloc_func;
+    free_func_ptr = free_func;
+}
 
 void* vcap_malloc(size_t size) {
-    return vcap_malloc_ptr(size);
+    return malloc_func_ptr(size);
 }
 
 void vcap_free(void* ptr) {
-    vcap_free_ptr(ptr);
+    free_func_ptr(ptr);
 }
 
 void vcap_set_error(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    vsnprintf(vcap_error_tmp, sizeof(vcap_error_tmp), fmt, args);
+    vsnprintf(error_tmp, sizeof(error_tmp), fmt, args);
     va_end(args);
 
-    strncpy(vcap_error_msg, vcap_error_tmp, sizeof(vcap_error_msg));
+    strncpy(error_msg, error_tmp, sizeof(error_msg));
 }
 
 int vcap_try_get_device(const char* path, vcap_device* device) {

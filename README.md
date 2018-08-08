@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
     vcap_grab(fg, frame);
 
     // Save frame as PNG
-    vcap_save_png(fg, "out.png");
+    vcap_save_png(frame, "out.png");
 
     // Free frame
     vcap_free_frame(frame);

@@ -30,7 +30,7 @@
 // Error macros
 #define VCAP_ERROR(fmt, ...) vcap_set_error("[%s] "fmt, __func__, ##__VA_ARGS__)
 #define VCAP_ERROR_ERRNO(fmt, ...) vcap_set_error("[%s] "fmt" (%s)", __func__, strerror(errno), ##__VA_ARGS__)
-#define VCAP_ERROR_THROW() VCAP_ERROR("[%s] ", vcap_get_error());
+#define VCAP_ERROR_THROW() vcap_set_error("[%s] %s", __func__, vcap_get_error());
 #define VCAP_ERROR_GOTO(code, label) code = -1; goto label
 
 // Clear data structure

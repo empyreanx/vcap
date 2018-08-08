@@ -376,8 +376,15 @@ int vcap_reset_ctrl(vcap_fg* fg, vcap_ctrl_id ctrl) {
 
     int result = vcap_get_ctrl_desc(fg, ctrl, &desc);
 
-    if (result == VCAP_CTRL_ERROR || result == VCAP_CTRL_INVALID)
+    if (result == VCAP_CTRL_ERROR) {
+        VCAP_ERROR_THROW();
         return -1;
+    }
+
+    if (result == VCAP_CTRL_INVALID) {
+        VCAP_ERROR("Invalid control");
+        return -1;
+    }
 
     if (result == VCAP_CTRL_OK) {
         if (vcap_set_ctrl(fg, ctrl, desc.default_value) == -1) {
@@ -396,6 +403,9 @@ int vcap_reset_all_ctrls(vcap_fg* fg) {
     }
 
     for (int ctrl = 0; ctrl < VCAP_CTRL_UNKNOWN; ctrl++) {
+        if (vcap_ctrl_status(fg, ctrl) != VCAP_CTRL_OK)
+            continue;
+
         if (vcap_reset_ctrl(fg, ctrl) == -1) {
             VCAP_ERROR_THROW();
             return -1;

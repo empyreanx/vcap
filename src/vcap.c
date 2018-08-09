@@ -453,7 +453,7 @@ int vcap_get_crop(vcap_fg* fg, vcap_rect* rect) {
     crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (vcap_ioctl(fg->fd, VIDIOC_G_CROP, &crop) == -1) {
-        if (errno == ENODATA) {
+        if (errno == ENODATA || errno == EINVAL) {
             VCAP_ERROR("Cropping is not supported on device '%s'", fg->device.path);
             return -1;
         } else {
@@ -486,7 +486,7 @@ int vcap_set_crop(vcap_fg* fg, vcap_rect rect) {
     crop.c.height = rect.height;
 
     if (vcap_ioctl(fg->fd, VIDIOC_S_CROP, &crop) == -1) {
-        if (errno == ENODATA) {
+        if (errno == ENODATA || errno == EINVAL) {
             VCAP_ERROR("Cropping is not supported on device '%s'", fg->device.path);
             return -1;
         } else {

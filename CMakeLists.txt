@@ -13,7 +13,6 @@ option(BUILD_JPEG_EXAMPLE "Build an example that grabs and saves a frame to a PN
 option(BUILD_PNG_EXAMPLE "Build an example that grabs and saves a frame to a JPEG file" OFF)
 option(BUILD_SDL_EXAMPLE "Build an example that streams frames using SDL 1.2" OFF)
 option(BUILD_JSON_EXAMPLE "Buid an example that exports/imports device settings" OFF)
-option(BUILD_DOCS "Build Doxygen docs" OFF)
 option(SUPPORT_JSON "Input/export camera settings to/from JSON" ON)
 option(SUPPORT_PNG "Save frames to PNG" ON)
 option(SUPPORT_JPEG "Save frames to JPEG" ON)
@@ -107,22 +106,18 @@ install(DIRECTORY include/vcap DESTINATION include)
 install(TARGETS vcap DESTINATION lib)
 
 # Documentation
-if(BUILD_DOCS)
-    find_package(Doxygen)
+find_package(Doxygen)
 
-    if(NOT DOXYGEN_FOUND)
-        message(FATAL_ERROR "Doxygen not found!")
-    endif()
-
+if(DOXYGEN_FOUND)
     configure_file(${PROJECT_SOURCE_DIR}/include/vcap/vcap.h ${CMAKE_CURRENT_BINARY_DIR}/vcap.h COPYONLY)
     configure_file(${PROJECT_SOURCE_DIR}/include/vcap/ctrls.h ${CMAKE_CURRENT_BINARY_DIR}/ctrls.h COPYONLY)
     configure_file(${PROJECT_SOURCE_DIR}/include/vcap/fmts.h ${CMAKE_CURRENT_BINARY_DIR}/fmts.h COPYONLY)
 
-	add_custom_target(docs
+    add_custom_target(docs
         COMMAND ${DOXYGEN_EXECUTABLE} ${PROJECT_SOURCE_DIR}/doxygen.conf
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating API documentation with Doxygen"
         VERBATIM)
 
-	set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "doc")
+    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "doc")
 endif()

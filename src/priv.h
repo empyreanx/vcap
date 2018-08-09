@@ -28,9 +28,9 @@
 #include <string.h>
 
 // Error macros
-#define VCAP_ERROR(fmt, ...) vcap_set_error("[%s] "fmt, __func__, ##__VA_ARGS__)
-#define VCAP_ERROR_ERRNO(fmt, ...) vcap_set_error("[%s] "fmt" (%s)", __func__, strerror(errno), ##__VA_ARGS__)
-#define VCAP_ERROR_LAST() vcap_set_error("[%s] %s", __func__, vcap_get_error())
+#define VCAP_ERROR(fmt, ...) vcap_set_error("[%s:%d] "fmt, __func__, __LINE__, ##__VA_ARGS__)
+#define VCAP_ERROR_ERRNO(fmt, ...) vcap_set_error("[%s:%d] "fmt" (%s)", __func__, __LINE__, strerror(errno), ##__VA_ARGS__)
+#define VCAP_ERROR_LAST() vcap_set_error("[%s:%d] %s", __func__, __LINE__, vcap_get_error())
 #define VCAP_ERROR_GOTO(code, label) code = -1; goto label
 
 // Clear data structure

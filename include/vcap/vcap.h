@@ -695,7 +695,7 @@ int vcap_reset_all_ctrls(vcap_fg* fg);
 #ifdef VCAP_SUPPORT_JSON
 //------------------------------------------------------------------------------
 ///
-/// \brief  Exports device settings
+/// \brief  Exports device settings to a JSON file (requires Jansson)
 ///
 /// Exports all video capture device settings, including format and controls
 /// to a JSON file.
@@ -709,7 +709,7 @@ int vcap_export_settings(vcap_fg* fg, const char* path);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Imports device settings
+/// \brief  Imports device settings from a JSON file (requires Jansson)
 ///
 /// Imports all video capture device settings, including format and controls
 /// from a JSON file.
@@ -725,7 +725,7 @@ int vcap_import_settings(vcap_fg* fg, const char* path);
 #ifdef VCAP_SUPPORT_PNG
 //------------------------------------------------------------------------------
 ///
-/// \brief  Saves a frame to a PNG
+/// \brief  Saves a frame to a PNG file (requires libpng)
 ///
 /// \param  frame  Pointer to the frame
 ///
@@ -737,7 +737,7 @@ int vcap_save_png(vcap_frame* frame, const char* path);
 #ifdef VCAP_SUPPORT_JPEG
 //------------------------------------------------------------------------------
 ///
-/// \brief  Saves a frame to a PNG
+/// \brief  Saves a frame to a JPEG file (requires libjpeg)
 ///
 /// \param  frame  Pointer to the frame
 ///

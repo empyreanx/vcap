@@ -287,6 +287,35 @@ void vcap_free_frame(vcap_frame* frame);
 
 //------------------------------------------------------------------------------
 ///
+/// \brief  Copies a frame
+///
+/// Copies a frame without using dynamic memory allocation. Both frames should
+/// have been allocated with 'vcap_alloc_frame' using the frame grabber
+/// settings. This function is is essentially a wrapper around 'memcpy' that
+/// provides some additional sanity checks.
+///
+/// \param  dst  Pointer to the destination frame
+/// \param  src  Pointer to the source frame
+///
+/// \returns -1 on error or 0 otherwise
+///
+int vcap_copy_frame(vcap_frame* dst, vcap_frame* src);
+
+//------------------------------------------------------------------------------
+///
+/// \brief   Clones a frame
+///
+/// Allocates a new frame and copies into it the contents of the specified
+/// frame. The resulting frame should be deallocated using 'vcap_free_frame'.
+///
+/// \param  frame  Pointer to the frame to copy
+///
+/// \returns The cloned frame
+///
+vcap_frame* vcap_clone_frame(vcap_frame* frame);
+
+//------------------------------------------------------------------------------
+///
 /// \brief  Grabs a grabs a frame
 ///
 /// Grabs a frame from a video capture device using the specified frame grabber.
@@ -372,7 +401,7 @@ int vcap_get_fmt_desc(vcap_fg* fg, vcap_fmt_id fmt, vcap_fmt_desc* desc);
 /// \brief  Creates a new format iterator
 ///
 /// Creates and initializes new format iterator for the specified frame grabber.
-///
+/// The iterator should be deallocated using 'vcap_free'.
 /// \param  fg  Pointer to the frame grabber
 ///
 /// \returns An initialized 'vcap_fmt_itr' struct
@@ -407,7 +436,7 @@ int vcap_fmt_itr_error(vcap_fmt_itr* itr);
 /// \brief  Creates a new frame size iterator
 ///
 /// Creates and initializes new frame size iterator for the specified frame
-/// grabber and format ID.
+/// grabber and format ID. The iterator should be deallocated using 'vcap_free'.
 ///
 /// \param  fg   Pointer to the frame grabber
 /// \param  fmt  The format ID
@@ -444,7 +473,8 @@ int vcap_size_itr_error(vcap_size_itr* itr);
 /// \brief  Creates a new frame rate iterator
 ///
 /// Creates and initializes new frame rate iterator for the specified frame
-/// grabber, format ID, and frame size.
+/// grabber, format ID, and frame size. The iterator should be deallocated
+/// using 'vcap_free'.
 ///
 /// \param  fg    Pointer to the frame grabber
 /// \param  fmt   The format ID
@@ -571,7 +601,8 @@ int vcap_ctrl_status(vcap_fg* fg, vcap_ctrl_id ctrl);
 ///
 /// \brief  Creates a new control iterator
 ///
-/// Creates and initializes new control iterator for the specified frame grabber.
+/// Creates and initializes new control iterator for the specified frame
+/// grabber. The iterator should be deallocated using 'vcap_free'.
 ///
 /// \param  fg  Pointer to the frame grabber
 ///
@@ -607,7 +638,7 @@ int vcap_ctrl_itr_error(vcap_ctrl_itr* itr);
 /// \brief  Creates a new menu iterator
 ///
 /// Creates and initializes a new menu iterator for the specified frame
-/// grabber and control ID.
+/// grabber and control ID. The iterator should be deallocated using 'vcap_free'.
 ///
 /// \param  fg   Pointer to the frame grabber
 /// \param  ctrl The control ID

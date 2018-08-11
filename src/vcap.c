@@ -323,6 +323,58 @@ void vcap_free_frame(vcap_frame* frame) {
     vcap_free(frame);
 }
 
+int vcap_copy_frame(vcap_frame* dst, vcap_frame* src) {
+    if (!dst || !dst->data) {
+        VCAP_ERROR("Invalid frame 'dst'");
+        return -1;
+    }
+
+    if (!src || !src->data) {
+        VCAP_ERROR("Invalid frame 'src'");
+        return -1;
+    }
+
+    if (src->length != dst->length) {
+        VCAP_ERROR("Frames do not have the same length");
+        return -1;
+    }
+
+    memcpy(dst->data, src->data, dst->length);
+
+    return 0;
+}
+
+vcap_frame* vcap_clone_frame(vcap_frame* frame) {
+    if (!frame || !frame->data) {
+        VCAP_ERROR("Invalid frame");
+        return NULL;
+    }
+
+    vcap_frame* clone = vcap_malloc(sizeof(vcap_frame));
+
+    if (!clone) {
+        VCAP_ERROR("Out of memory while cloning frame");
+        return NULL;
+    }
+
+    clone->data = vcap_malloc(frame->length);
+
+    if (!clone->data) {
+        VCAP_ERROR("Out of memory while cloning frame");
+        vcap_free(clone);
+        return NULL;
+    }
+
+    clone->fmt = frame->fmt;
+    clone->size = frame->size;
+    clone->stride = frame->stride;
+    clone->length = frame->length;
+
+    vcap_copy_frame(clone, frame);
+
+    return clone;
+}
+
 int vcap_grab(vcap_fg* fg, vcap_frame* frame) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");

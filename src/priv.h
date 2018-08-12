@@ -31,19 +31,7 @@
 #define VCAP_ERROR(fmt, ...) vcap_set_error("[%s:%d] "fmt, __func__, __LINE__, ##__VA_ARGS__)
 #define VCAP_ERROR_ERRNO(fmt, ...) vcap_set_error("[%s:%d] "fmt" (%s)", __func__, __LINE__, strerror(errno), ##__VA_ARGS__)
 #define VCAP_ERROR_LAST() vcap_set_error("[%s:%d] %s", __func__, __LINE__, vcap_get_error())
-#define VCAP_ERROR_GOTO(code, label) code = -1; goto label
-
-// Clear data structure
-#define VCAP_CLEAR(ptr) memset(&(ptr), 0, sizeof(ptr))
-
-// Error message storage (this has to be a global unfortunately)
-const char* vcap_get_error_priv();
-
-// Declare allocation functions
-void vcap_set_alloc_priv(vcap_malloc_func malloc_func, vcap_free_func free_func);
-
-// Declare malloc function
-void* vcap_malloc(size_t size);
+#define VCAP_ERROR_GOTO(ret, end) ret = -1; goto end
 
 // Buffer holder for memory mapped buffers
 typedef struct {
@@ -103,8 +91,20 @@ struct vcap_menu_itr {
     vcap_menu_item item;
 };
 
+// Clear data structure
+#define VCAP_CLEAR(arg) memset(&(arg), 0, sizeof(arg))
+
 // Sets the error message
 void vcap_set_error(const char* fmt, ...);
+
+// Private error message getter (avoids global variable)
+const char* vcap_get_error_priv();
+
+// Private allocator setter (avoids global variable)
+void vcap_set_alloc_priv(vcap_malloc_func malloc_func, vcap_free_func free_func);
+
+// Declare malloc function
+void* vcap_malloc(size_t size);
 
 // Tries to open a device. If successful it retrieves the device info.
 int vcap_try_get_device(const char* path, vcap_device* device);

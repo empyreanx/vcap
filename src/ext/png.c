@@ -23,11 +23,11 @@
 #include <png.h>
 #include <stdio.h>
 
-static png_voidp malloc_fn(png_structp png_ptr, png_size_t size) {
+static png_voidp malloc_func(png_structp png_ptr, png_size_t size) {
     return vcap_malloc(size);
 }
 
-static void free_fn(png_structp png_ptr, png_voidp ptr) {
+static void free_func(png_structp png_ptr, png_voidp ptr) {
     return vcap_free(ptr);
 }
 
@@ -54,30 +54,30 @@ int vcap_save_png(vcap_frame* frame, const char* path) {
         return -1;
     }
 
-    int code = 0;
+    int ret = 0;
     png_structp png_ptr = NULL;
     png_infop info_ptr = NULL;
     png_bytep* rows = NULL;
 
-    png_ptr = png_create_write_struct_2(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL, NULL, malloc_fn, free_fn);
+    png_ptr = png_create_write_struct_2(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL, NULL, malloc_func, free_func);
 
     if (!png_ptr) {
         VCAP_ERROR("Could not allocate PNG write struct\n");
-        VCAP_ERROR_GOTO(code, finally);
+        VCAP_ERROR_GOTO(ret, end);
     }
 
     info_ptr = png_create_info_struct(png_ptr);
 
     if (!info_ptr) {
         VCAP_ERROR("Could not allocate info struct\n");
-        VCAP_ERROR_GOTO(code, finally);
+        VCAP_ERROR_GOTO(ret, end);
     }
 
     rows = (png_bytep*)png_malloc(png_ptr, frame->size.height * sizeof(png_bytep));
 
     if (!rows) {
         VCAP_ERROR("Out of memory while allocating PNG rows");
-        VCAP_ERROR_GOTO(code, finally);
+        VCAP_ERROR_GOTO(ret, end);
     }
 
     for (int i = 0; i < frame->size.height; i++)
@@ -85,14 +85,14 @@ int vcap_save_png(vcap_frame* frame, const char* path) {
 
     if (setjmp(png_jmpbuf(png_ptr))) {
         VCAP_ERROR("Unable to initialize I/O");
-        VCAP_ERROR_GOTO(code, finally);
+        VCAP_ERROR_GOTO(ret, end);
     }
 
     png_init_io(png_ptr, file);
 
     if (setjmp(png_jmpbuf(png_ptr))) {
         VCAP_ERROR("Writing header failed");
-        VCAP_ERROR_GOTO(code, finally);
+        VCAP_ERROR_GOTO(ret, end);
     }
 
     png_set_IHDR(png_ptr, info_ptr, frame->size.width, frame->size.height, 8,
@@ -103,19 +103,19 @@ int vcap_save_png(vcap_frame* frame, const char* path) {
 
     if (setjmp(png_jmpbuf(png_ptr))) {
         VCAP_ERROR("Error writing bytes");
-        VCAP_ERROR_GOTO(code, finally);
+        VCAP_ERROR_GOTO(ret, end);
     }
 
     png_write_image(png_ptr, rows);
 
     if (setjmp(png_jmpbuf(png_ptr))) {
         VCAP_ERROR("Writing end of file failed");
-        VCAP_ERROR_GOTO(code, finally);
+        VCAP_ERROR_GOTO(ret, end);
     }
 
     png_write_end(png_ptr, NULL);
 
-finally:
+end:
 
     if (rows)
         png_free(png_ptr, rows);
@@ -129,5 +129,5 @@ finally:
     if (file)
         fclose(file);
 
-    return code;
+    return ret;
 }

@@ -65,14 +65,14 @@ int vcap_save_jpeg(vcap_frame* frame, const char* path) {
         return -1;
     }
 
-    int code = 0;
+    int ret = 0;
     JSAMPROW row_ptr[1];
     struct jpeg_compress_struct cinfo;
     error_mgr jerr;
 
     if (setjmp(jerr.jmp_buffer)) {
         VCAP_ERROR("%s", last_error);
-        VCAP_ERROR_GOTO(code, finally);
+        VCAP_ERROR_GOTO(ret, end);
     }
 
     cinfo.err = jpeg_std_error(&jerr.pub);
@@ -96,10 +96,10 @@ int vcap_save_jpeg(vcap_frame* frame, const char* path) {
 
     jpeg_finish_compress(&cinfo);
 
-finally:
+end:
 
     jpeg_destroy_compress(&cinfo);
     fclose(file);
 
-    return code;
+    return ret;
 }

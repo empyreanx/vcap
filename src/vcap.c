@@ -319,25 +319,42 @@ void vcap_free_frame(vcap_frame* frame) {
     if (!frame)
         return;
 
-    vcap_free(frame->data);
+    if (frame->data)
+        vcap_free(frame->data);
+
     vcap_free(frame);
 }
 
 int vcap_copy_frame(vcap_frame* dst, vcap_frame* src) {
-    if (!dst || !dst->data) {
-        VCAP_ERROR("Invalid frame 'dst'");
+    if (!dst) {
+        VCAP_ERROR("Parameter 'dst' cannot be null");
         return -1;
     }
 
-    if (!src || !src->data) {
+    if (!src) {
+        VCAP_ERROR("Parameter 'src' cannot be null");
+        return -1;
+    }
+
+    if (!src->data || src->length == 0) {
         VCAP_ERROR("Invalid frame 'src'");
         return -1;
     }
 
-    if (src->length != dst->length) {
-        VCAP_ERROR("Frames do not have the same length");
-        return -1;
+    if (!dst->data || src->length != dst->length) {
+        vcap_free(dst->data);
+        dst->data = vcap_malloc(src->length);
+
+        if (!dst->data) {
+            VCAP_ERROR("Out of memory while copying frame");
+            return -1;
+        }
     }
+
+    dst->fmt = src->fmt;
+    dst->size = src->size;
+    dst->stride = src->stride;
+    dst->length = src->length;
 
     memcpy(dst->data, src->data, dst->length);
 
@@ -345,9 +362,14 @@ int vcap_copy_frame(vcap_frame* dst, vcap_frame* src) {
 }
 
 vcap_frame* vcap_clone_frame(vcap_frame* frame) {
-    if (!frame || !frame->data) {
+    if (!frame) {
+        VCAP_ERROR("Parameter 'frame' cannot be null");
+        return -1;
+    }
+
+    if (!frame->data || frame->length == 0) {
         VCAP_ERROR("Invalid frame");
-        return NULL;
+        return -1;
     }
 
     vcap_frame* clone = vcap_malloc(sizeof(vcap_frame));
@@ -357,20 +379,13 @@ vcap_frame* vcap_clone_frame(vcap_frame* frame) {
         return NULL;
     }
 
-    clone->data = vcap_malloc(frame->length);
+    clone->data = NULL;
 
-    if (!clone->data) {
-        VCAP_ERROR("Out of memory while cloning frame");
-        vcap_free(clone);
+    if (vcap_copy_frame(clone, frame) == -1) {
+        VCAP_ERROR_LAST();
+        vcap_free_frame(clone);
         return NULL;
     }
-
-    clone->fmt = frame->fmt;
-    clone->size = frame->size;
-    clone->stride = frame->stride;
-    clone->length = frame->length;
-
-    vcap_copy_frame(clone, frame);
 
     return clone;
 }

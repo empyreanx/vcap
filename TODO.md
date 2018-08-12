@@ -9,6 +9,7 @@ Todo:
 * vcap_realloc to support resizing frame data during copy?
 
 **Version 0.2.1:**
+* Validation conditions should only be checked in debug mode
 * Revise API documentation
 * Documentation for controls
 * Documentation for formats

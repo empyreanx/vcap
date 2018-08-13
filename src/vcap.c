@@ -364,12 +364,12 @@ int vcap_copy_frame(vcap_frame* dst, vcap_frame* src) {
 vcap_frame* vcap_clone_frame(vcap_frame* frame) {
     if (!frame) {
         VCAP_ERROR("Parameter 'frame' cannot be null");
-        return -1;
+        return NULL;
     }
 
     if (!frame->data || frame->length == 0) {
         VCAP_ERROR("Invalid frame");
-        return -1;
+        return NULL;
     }
 
     vcap_frame* clone = vcap_malloc(sizeof(vcap_frame));

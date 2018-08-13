@@ -6,7 +6,6 @@ Todo:
 * Re-test all examples
 * Insert null characters at end of copied strings for robustness
 * Fix memory leak/error messages on error during vcap_dump_info
-* vcap_realloc to support resizing frame data during copy?
 
 **Version 0.2.1:**
 * Validation conditions should only be checked in debug mode

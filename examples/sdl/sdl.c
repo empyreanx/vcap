@@ -23,6 +23,7 @@
 #include <SDL.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef struct {
     int width;
@@ -36,10 +37,15 @@ int sdl_display(sdl_context_t* ctx, uint8_t* image);
 void sdl_cleanup(sdl_context_t* ctx);
 
 int main(int argc, char** argv) {
+    int index = 0;
+
+    if (argc == 2)
+        index = atoi(argv[1]);
+
     vcap_device device;
 
     // Find first video capture device
-    int ret = vcap_enum_devices(&device, 0);
+    int ret = vcap_enum_devices(&device, index);
 
     if (ret == VCAP_ENUM_ERROR) {
         printf("%s\n", vcap_get_error());

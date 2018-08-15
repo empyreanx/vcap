@@ -377,7 +377,7 @@ int vcap_reset_ctrl(vcap_fg* fg, vcap_ctrl_id ctrl) {
     int result = vcap_get_ctrl_desc(fg, ctrl, &desc);
 
     if (result == VCAP_CTRL_ERROR) {
-        VCAP_ERROR_LAST();
+        VCAP_ERROR("%s", vcap_get_error());;
         return -1;
     }
 
@@ -388,7 +388,7 @@ int vcap_reset_ctrl(vcap_fg* fg, vcap_ctrl_id ctrl) {
 
     if (result == VCAP_CTRL_OK) {
         if (vcap_set_ctrl(fg, ctrl, desc.default_value) == -1) {
-            VCAP_ERROR_LAST();
+            VCAP_ERROR("%s", vcap_get_error());;
             return -1;
         }
     }
@@ -407,7 +407,7 @@ int vcap_reset_all_ctrls(vcap_fg* fg) {
             continue;
 
         if (vcap_reset_ctrl(fg, ctrl) == -1) {
-            VCAP_ERROR_LAST();
+            VCAP_ERROR("%s", vcap_get_error());;
             return -1;
         }
     }

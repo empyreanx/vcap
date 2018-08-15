@@ -30,8 +30,6 @@
 // Error macros
 #define VCAP_ERROR(fmt, ...) vcap_set_error("[%s:%d] "fmt, __func__, __LINE__, ##__VA_ARGS__)
 #define VCAP_ERROR_ERRNO(fmt, ...) vcap_set_error("[%s:%d] "fmt" (%s)", __func__, __LINE__, strerror(errno), ##__VA_ARGS__)
-#define VCAP_ERROR_LAST() vcap_set_error("[%s:%d] %s", __func__, __LINE__, vcap_get_error())
-#define VCAP_ERROR_GOTO(ret, end) ret = -1; goto end
 
 // Buffer holder for memory mapped buffers
 typedef struct {

@@ -2,7 +2,6 @@ Todo:
 ---------
 
 **Version 0.2.0:**
-* Use assertions for validation
 * Examples should take an argument indicating the index of the device
 * Re-test all examples
 * Insert null characters at end of copied strings for robustness

@@ -382,7 +382,7 @@ vcap_frame* vcap_clone_frame(vcap_frame* frame) {
     clone->data = NULL;
 
     if (vcap_copy_frame(clone, frame) == -1) {
-        VCAP_ERROR_LAST();
+        VCAP_ERROR("%s", vcap_get_error());;
         vcap_free_frame(clone);
         return NULL;
     }

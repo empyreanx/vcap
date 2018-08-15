@@ -2,7 +2,6 @@ Todo:
 ---------
 
 **Version 0.2.0:**
-* Fix memory leak/error messages on error during vcap_dump_info
 * Code review
 
 **Version 0.2.1:**

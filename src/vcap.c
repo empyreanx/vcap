@@ -308,9 +308,7 @@ vcap_fg* vcap_open(vcap_device* device) {
     }
 
     fg->fd = -1;
-    fg->buffers = NULL;
-    fg->buffer_count = 0;
-
+    
     // Device must exist
     if (stat(device->path, &st) == -1) {
         VCAP_ERROR_ERRNO("Video device '%s' does not exist", device->path);

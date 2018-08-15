@@ -31,17 +31,9 @@
 #define VCAP_ERROR(fmt, ...) vcap_set_error("[%s:%d] "fmt, __func__, __LINE__, ##__VA_ARGS__)
 #define VCAP_ERROR_ERRNO(fmt, ...) vcap_set_error("[%s:%d] "fmt" (%s)", __func__, __LINE__, strerror(errno), ##__VA_ARGS__)
 
-// Buffer holder for memory mapped buffers
-typedef struct {
-    size_t size;
-    void* data;
-} vcap_buffer;
-
 // Frame grabber
 struct vcap_fg {
     int fd;
-    int buffer_count;
-    vcap_buffer* buffers;
     vcap_device device;
 };
 

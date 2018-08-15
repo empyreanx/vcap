@@ -43,15 +43,31 @@ void vcap_set_alloc(vcap_malloc_func malloc_func, vcap_free_func free_func) {
     vcap_set_alloc_priv(malloc_func, free_func);
 }
 
+//
+// Prints device information. The implementation of this function is very
+// pedantic in terms of error checking. Every error condition is checked and
+// reported. A user application may choose to ignore some error cases, trading
+// a little robustness for some convenience.
+//
 int vcap_dump_info(vcap_fg* fg, FILE* file) {
     if (!fg) {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
     }
 
+    int ret = 0;
+
+    vcap_fmt_itr* fmt_itr = NULL;
+    vcap_size_itr* size_itr = NULL;
+    vcap_rate_itr* rate_itr = NULL;
+    vcap_ctrl_itr* ctrl_itr = NULL;
+    vcap_menu_itr* menu_itr = NULL;
+
     vcap_device device = fg->device;
 
+    //==========================================================================
     // Print device info
+    //==========================================================================
     printf("------------------------------------------------\n");
     fprintf(file, "Device: %s\n", device.path);
     fprintf(file, "Driver: %s\n", device.driver);
@@ -59,56 +75,100 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
     fprintf(file, "Card: %s\n", device.card);
     fprintf(file, "Bus Info: %s\n", device.bus_info);
 
+    //==========================================================================
     // Enumerate formats
+    //==========================================================================
     vcap_fmt_desc fmt_desc;
-    vcap_fmt_itr* fmt_itr = vcap_new_fmt_itr(fg);
+    fmt_itr = vcap_new_fmt_itr(fg);
+
+    // Check for errors during format iterator allocation
+    if (!fmt_itr) {
+        VCAP_ERROR("%s", vcap_get_error());
+        ret = -1; goto end;
+    }
 
     while (vcap_fmt_itr_next(fmt_itr, &fmt_desc)) {
         fprintf(file, "------------------------------------------------\n");
         fprintf(file, "Format: %s, FourCC: %s\n", fmt_desc.name, fmt_desc.fourcc);
         fprintf(file, "Sizes:\n");
 
+        //======================================================================
         // Enumerate sizes
+        //======================================================================
         vcap_size size;
-        vcap_size_itr* size_itr = vcap_new_size_itr(fg, fmt_desc.id);
+        size_itr = vcap_new_size_itr(fg, fmt_desc.id);
+
+        // Check for errors during frame size iterator allocation
+        if (!size_itr) {
+            VCAP_ERROR("%s", vcap_get_error());
+            ret = -1; goto end;
+        }
 
         while (vcap_size_itr_next(size_itr, &size)) {
             fprintf(file, "   %u x %u: ", size.width, size.height);
             fprintf(file, "(Frame rates:");
 
+            //==================================================================
             // Enumerate frame rates
+            //==================================================================
             vcap_rate rate;
-            vcap_rate_itr* rate_itr = vcap_new_rate_itr(fg, fmt_desc.id, size);
+            rate_itr = vcap_new_rate_itr(fg, fmt_desc.id, size);
+
+            // Check for errors during frame rate iterator allocation
+            if (!rate_itr) {
+                VCAP_ERROR("%s", vcap_get_error());
+                ret = -1; goto end;
+            }
 
             while (vcap_rate_itr_next(rate_itr, &rate)) {
                 fprintf(file, " %u/%u", rate.numerator, rate.denominator);
             }
 
-            if (vcap_rate_itr_error(rate_itr))
-                return -1;
+            // Check for errors during frame rate iteration
+            if (vcap_rate_itr_error(rate_itr)) {
+                VCAP_ERROR("%s", vcap_get_error());
+                ret = -1; goto end;
+            }
 
             vcap_free(rate_itr);
+            rate_itr = NULL;
 
             fprintf(file, ")\n");
         }
 
-        if (vcap_size_itr_error(size_itr))
-            return -1;
+        // Check for errors during frame size iteration
+        if (vcap_size_itr_error(size_itr)) {
+            VCAP_ERROR("%s", vcap_get_error());
+            ret = -1; goto end;
+        }
 
         vcap_free(size_itr);
+        size_itr = NULL;
     }
 
-    if (vcap_fmt_itr_error(fmt_itr))
-        return -1;
+    // Check for errors during format iteration
+    if (vcap_fmt_itr_error(fmt_itr)) {
+        VCAP_ERROR("%s", vcap_get_error());
+        ret = -1; goto end;
+    }
 
     vcap_free(fmt_itr);
+    fmt_itr = NULL;
 
+    //==========================================================================
     // Enumerate controls
+    //==========================================================================
     fprintf(file, "------------------------------------------------\n");
     fprintf(file, "Controls:\n");
 
     vcap_ctrl_desc ctrl_desc;
-    vcap_ctrl_itr* ctrl_itr = vcap_new_ctrl_itr(fg);
+    ctrl_itr = vcap_new_ctrl_itr(fg);
+
+    // Check for errors during control iterator allocation
+    if (!ctrl_itr) {
+        VCAP_ERROR("%s", vcap_get_error());
+        ret = -1; goto end;
+    }
 
     while (vcap_ctrl_itr_next(ctrl_itr, &ctrl_desc)) {
         printf("   Name: %s, Type: %s\n", ctrl_desc.name, ctrl_desc.type_name);
@@ -116,9 +176,17 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
         if (ctrl_desc.type == VCAP_CTRL_TYPE_MENU || ctrl_desc.type == VCAP_CTRL_TYPE_INTEGER_MENU) {
             printf("   Menu:\n");
 
+            //==================================================================
             // Enumerate menu
+            //==================================================================
             vcap_menu_item menu_item;
             vcap_menu_itr* menu_itr = vcap_new_menu_itr(fg, ctrl_desc.id);
+
+            // Check for errors during menu iterator allocation
+            if (!menu_itr) {
+                VCAP_ERROR("%s", vcap_get_error());
+                ret = -1; goto end;
+            }
 
             while (vcap_menu_itr_next(menu_itr, &menu_item)) {
                 if (ctrl_desc.type == VCAP_CTRL_TYPE_MENU)
@@ -127,19 +195,44 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
                     printf("      %i : %li\n", menu_item.index, menu_item.value);
             }
 
-            if (vcap_menu_itr_error(menu_itr))
-                return -1;
+            // Check for errors during menu iteration
+            if (vcap_menu_itr_error(menu_itr)) {
+                VCAP_ERROR("%s", vcap_get_error());
+                ret = -1; goto end;
+            }
 
             vcap_free(menu_itr);
+            menu_itr = NULL;
         }
     }
 
-    if (vcap_ctrl_itr_error(ctrl_itr))
-        return -1;
+    // Check for errors during control iteration
+    if (vcap_ctrl_itr_error(ctrl_itr)) {
+        VCAP_ERROR("%s", vcap_get_error());
+        ret = -1; goto end;
+    }
 
     vcap_free(ctrl_itr);
+    ctrl_itr = NULL;
 
-    return 0;
+end:
+
+    if (fmt_itr)
+        vcap_free(fmt_itr);
+
+    if (size_itr)
+        vcap_free(size_itr);
+
+    if (rate_itr)
+        vcap_free(rate_itr);
+
+    if (ctrl_itr)
+        vcap_free(ctrl_itr);
+
+    if (menu_itr)
+        vcap_free(menu_itr);
+
+    return ret;
 }
 
 int vcap_enum_devices(vcap_device* device, int index) {

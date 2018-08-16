@@ -2,8 +2,6 @@ Todo:
 ---------
 
 **Version 0.2.0:**
-* Add apt install command to README to pickup dependencies
-* Update and test VcapQt (handle more error cases)
 * Code review
 
 **Version 0.2.1:**

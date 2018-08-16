@@ -12,11 +12,11 @@ This is the second iteration of Vcap, the previous version was written in 2015 w
 
 To install the the required libv4l dependency, run:
 
-*$ apt install libv4l-dev*
+*$ sudo apt install libv4l-dev*
 
 To install the additional dependencies (for PNG, JPEG, and JSON support), run:
 
-*$ apt install libpng-dev  libjpeg-dev libjansson-dev*
+*$ sudo apt install libpng-dev  libjpeg-dev libjansson-dev*
 
 You must have also have CMake and a C compiler installed. To build run:
 

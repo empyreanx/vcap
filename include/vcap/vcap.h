@@ -11,10 +11,10 @@
     on top of the libv4l userspace library (the only required dependency) which
     provides seamless decoding for a variety of formats.
 
-    Vcap is built with performance in mind and thus minimizes the use of dynamic
-    memory allocation. Vcap provides simple, low-level access to device controls,
-    enabling applications to make use of the full range of functionality
-    provided by V4L2.
+    Vcap is built with performance in mind and thus eliminates the use of
+    dynamic memory allocation during frame grabbing. Vcap provides simple,
+    low-level access to device controls, enabling applications to make use of
+    the full range of functionality provided by V4L2.
 */
 
 //==============================================================================
@@ -290,9 +290,8 @@ void vcap_free_frame(vcap_frame* frame);
 /// \brief  Copies a frame
 ///
 /// Copies a frame without using dynamic memory allocation. Both frames should
-/// have been allocated with 'vcap_alloc_frame' using the frame grabber
-/// settings. This function is is essentially a wrapper around 'memcpy' that
-/// provides some additional sanity checks.
+/// have been allocated with 'vcap_alloc_frame'. This function is is essentially
+/// a wrapper around 'memcpy' that provides some additional sanity checks.
 ///
 /// \param  dst  Pointer to the destination frame
 /// \param  src  Pointer to the source frame
@@ -543,7 +542,7 @@ int vcap_set_fmt(vcap_fg* fg, vcap_fmt_id fmt, vcap_size size);
 ///
 /// Retrieves the current frame rate for the specified frame grabber.
 ///
-/// \param  fg        Pointer to the frame grabber
+/// \param  fg    Pointer to the frame grabber
 /// \param  rate  Pointer to the frame rate
 ///
 /// \returns -1 on error and 0 otherwise
@@ -591,7 +590,7 @@ int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc);
 ///
 /// \returns VCAP_CTRL_OK        if the control descriptor was retrieved successfully,
 ///          VCAP_CTRL_INACTIVE  if the control ID is valid, but the control is inactive,
-///          VCAP_CTRL_READ_ONLY if the control is active but read-only,
+///          VCAP_CTRL_READ_ONLY if the control is active but currently read-only,
 ///          VCAP_CTRL_INVALID   if the control ID is invalid, and
 ///          VCAP_CTRL_ERROR     if getting the control descriptor failed
 ///

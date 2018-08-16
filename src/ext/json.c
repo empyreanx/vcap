@@ -299,6 +299,8 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
         return -1;
     }
 
+    // Get file size
+
     fseek(file, 0, SEEK_END);
     size_t file_size = ftell(file);
     fseek(file, 0, SEEK_SET);

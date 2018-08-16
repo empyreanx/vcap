@@ -2,12 +2,11 @@ Todo:
 ---------
 
 **Version 0.2.0:**
-* Allocate empty frame
-* Update and test VcapQt
+* Add apt install command to README to pickup dependencies
+* Update and test VcapQt (handle more error cases)
 * Code review
 
 **Version 0.2.1:**
-* Add apt install command to README to pickup dependencies
 * Revise API documentation
 * Documentation for controls
 * Documentation for formats

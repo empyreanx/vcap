@@ -10,17 +10,25 @@ This is the second iteration of Vcap, the previous version was written in 2015 w
 
 ## Building and Installation
 
-You must have CMake and a C compiler installed.
+To install the the required libv4l dependency, run:
+
+*$ apt install libv4l-dev*
+
+To install the additional dependencies (for PNG, JPEG, and JSON support), run:
+
+*$ apt install libpng-dev  libjpeg-dev libjansson-dev*
+
+You must have also have CMake and a C compiler installed. To build run:
 
 *$ mkdir vcap-build && cd vcap-build*
 
 *$ cmake ../vcap && make*
 
-To install:
+To install, run:
 
 *$ sudo make install*
 
-To generate documentation (if Doxygen is installed):
+To generate documentation (if Doxygen is installed), run:
 
 *$ make docs*
 

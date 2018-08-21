@@ -1,11 +1,6 @@
 Todo:
 ---------
 
-**Version 0.2.0:**
-* Retest all examples
-* Test VcapQt
-* Code review
-
 **Version 0.2.1:**
 * Migrate towards Barr Embedded C Coding Standard
 * Revise API documentation

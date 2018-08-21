@@ -22,20 +22,24 @@
 
 #include <jansson.h>
 
-static json_t* build_size_obj(const vcap_size* size) {
+static json_t* build_size_obj(const vcap_size* size)
+{
     json_t* obj = json_object();
 
-    if (!obj) {
+    if (!obj)
+    {
         VCAP_ERROR("Out of memory while allocating JSON object");
         return NULL;
     }
 
-    if (json_object_set_new(obj, "width", json_integer(size->width)) == -1) {
+    if (json_object_set_new(obj, "width", json_integer(size->width)) == -1)
+    {
         VCAP_ERROR("Unable to set new JSON object");
         return NULL;
     }
 
-    if (json_object_set_new(obj, "height", json_integer(size->height)) == -1) {
+    if (json_object_set_new(obj, "height", json_integer(size->height)) == -1)
+    {
         VCAP_ERROR("Unable to set new JSON object");
         return NULL;
     }
@@ -43,20 +47,24 @@ static json_t* build_size_obj(const vcap_size* size) {
     return obj;
 }
 
-static json_t* build_rate_obj(const vcap_rate* rate) {
+static json_t* build_rate_obj(const vcap_rate* rate)
+{
     json_t* obj = json_object();
 
-    if (!obj) {
+    if (!obj)
+    {
         VCAP_ERROR("Out of memory while allocating JSON object");
         return NULL;
     }
 
-    if (json_object_set_new(obj, "numerator", json_integer(rate->numerator)) == -1) {
+    if (json_object_set_new(obj, "numerator", json_integer(rate->numerator)) == -1)
+    {
         VCAP_ERROR("Unable to set new JSON object");
         return NULL;
     }
 
-    if (json_object_set_new(obj, "denominator", json_integer(rate->denominator)) == -1) {
+    if (json_object_set_new(obj, "denominator", json_integer(rate->denominator)) == -1)
+    {
         VCAP_ERROR("Unable to set new JSON object");
         return NULL;
     }
@@ -64,13 +72,16 @@ static json_t* build_rate_obj(const vcap_rate* rate) {
     return obj;
 }
 
-static int parse_size(json_t* obj, vcap_size* size) {
-    if (!obj) {
+static int parse_size(json_t* obj, vcap_size* size)
+{
+    if (!obj)
+    {
         VCAP_ERROR("Size cannot be null");
         return -1;
     }
 
-    if (json_typeof(obj) != JSON_OBJECT) {
+    if (json_typeof(obj) != JSON_OBJECT)
+    {
         VCAP_ERROR("Invalid type of size");
         return -1;
     }
@@ -79,7 +90,8 @@ static int parse_size(json_t* obj, vcap_size* size) {
 
     json_t* value = json_object_get(obj, "width");
 
-    if (!value || json_typeof(value) != JSON_INTEGER) {
+    if (!value || json_typeof(value) != JSON_INTEGER)
+    {
         VCAP_ERROR("Invalid integer type");
         return -1;
     }
@@ -90,7 +102,8 @@ static int parse_size(json_t* obj, vcap_size* size) {
 
     value = json_object_get(obj, "height");
 
-    if (!value || json_typeof(value) != JSON_INTEGER) {
+    if (!value || json_typeof(value) != JSON_INTEGER)
+    {
         VCAP_ERROR("Invalid integer type");
         return -1;
     }
@@ -100,13 +113,16 @@ static int parse_size(json_t* obj, vcap_size* size) {
     return 0;
 }
 
-static int parse_rate(json_t* obj, vcap_rate* rate) {
-    if (!obj) {
+static int parse_rate(json_t* obj, vcap_rate* rate)
+{
+    if (!obj)
+    {
         VCAP_ERROR("Rate cannot be null");
         return -1;
     }
 
-    if (json_typeof(obj) != JSON_OBJECT) {
+    if (json_typeof(obj) != JSON_OBJECT)
+    {
         VCAP_ERROR("Invalid type of rate");
         return -1;
     }
@@ -115,7 +131,8 @@ static int parse_rate(json_t* obj, vcap_rate* rate) {
 
     json_t* value = json_object_get(obj, "numerator");
 
-    if (!value || json_typeof(value) != JSON_INTEGER) {
+    if (!value || json_typeof(value) != JSON_INTEGER)
+    {
         VCAP_ERROR("Invalid integer type");
         return -1;
     }
@@ -126,7 +143,8 @@ static int parse_rate(json_t* obj, vcap_rate* rate) {
 
     value = json_object_get(obj, "denominator");
 
-    if (!value || json_typeof(value) != JSON_INTEGER) {
+    if (!value || json_typeof(value) != JSON_INTEGER)
+    {
         VCAP_ERROR("Invalid integer type");
         return -1;
     }
@@ -136,7 +154,8 @@ static int parse_rate(json_t* obj, vcap_rate* rate) {
     return 0;
 }
 
-int vcap_export_settings(vcap_fg* fg, const char* path) {
+int vcap_export_settings(vcap_fg* fg, const char* path)
+{
     json_set_alloc_funcs(vcap_malloc, vcap_free);
 
     int ret = 0;
@@ -145,7 +164,8 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
 
     json_t* root = json_object();
 
-    if (!root) {
+    if (!root)
+    {
         VCAP_ERROR("Out of memory while allocating JSON object");
         return -1;
     }
@@ -155,12 +175,14 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
 
     // Format
 
-    if (vcap_get_fmt(fg, &fmt, &size) == -1) {
+    if (vcap_get_fmt(fg, &fmt, &size) == -1)
+    {
         VCAP_ERROR("%s", vcap_get_error());;
         ret = -1; goto end;;
     }
 
-    if (json_object_set_new(root, "fmt", json_integer(fmt)) == -1) {
+    if (json_object_set_new(root, "fmt", json_integer(fmt)) == -1)
+    {
         VCAP_ERROR("Unable to set new JSON object");
         ret = -1; goto end;;
     }
@@ -169,12 +191,14 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
 
     json_t* size_obj = build_size_obj(&size);
 
-    if (!size_obj) {
+    if (!size_obj)
+    {
         VCAP_ERROR("%s", vcap_get_error());;
         ret = -1; goto end;;
     }
 
-    if (json_object_set_new(root, "size", size_obj) == -1) {
+    if (json_object_set_new(root, "size", size_obj) == -1)
+    {
         VCAP_ERROR("Unable to set new JSON object");
         ret = -1; goto end;;
     }
@@ -183,19 +207,22 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
 
     vcap_rate rate;
 
-    if (vcap_get_rate(fg, &rate) == -1) {
+    if (vcap_get_rate(fg, &rate) == -1)
+    {
         VCAP_ERROR("%s", vcap_get_error());;
         ret = -1; goto end;;
     }
 
     json_t* rate_obj = build_rate_obj(&rate);
 
-    if (!rate_obj) {
+    if (!rate_obj)
+    {
         VCAP_ERROR("Out of memory while allocating JSON object");
         ret = -1; goto end;;
     }
 
-    if (json_object_set_new(root, "rate", rate_obj) == -1) {
+    if (json_object_set_new(root, "rate", rate_obj) == -1)
+    {
         VCAP_ERROR("Unable to set new JSON object");
         return -1;
     }
@@ -204,12 +231,14 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
 
     json_t* ctrls = json_array();
 
-    if (!ctrls) {
+    if (!ctrls)
+    {
         VCAP_ERROR("Out of memory while allocating JSON array");
         ret = -1; goto end;;
     }
 
-    for (int ctrl = 0; ctrl < VCAP_CTRL_UNKNOWN; ctrl++) {
+    for (int ctrl = 0; ctrl < VCAP_CTRL_UNKNOWN; ctrl++)
+    {
         vcap_ctrl_desc desc;
 
         if (vcap_get_ctrl_desc(fg, ctrl, &desc) != VCAP_CTRL_OK)
@@ -217,40 +246,47 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
 
         int32_t value;
 
-        if (vcap_get_ctrl(fg, ctrl, &value) == -1) {
+        if (vcap_get_ctrl(fg, ctrl, &value) == -1)
+        {
             VCAP_ERROR("%s", vcap_get_error());;
             ret = -1; goto end;;
         }
 
         json_t* obj = json_object();
 
-        if (!obj) {
+        if (!obj)
+        {
             VCAP_ERROR("Out of memory while allocating JSON object");
             ret = -1; goto end;;
         }
 
-        if (json_object_set_new(obj, "name", json_string((char*)desc.name)) == -1) {
+        if (json_object_set_new(obj, "name", json_string((char*)desc.name)) == -1)
+        {
             VCAP_ERROR("Unable to set new JSON object");
             ret = -1; goto end;;
         }
 
-        if (json_object_set_new(obj, "ctrl", json_integer(ctrl)) == -1) {
+        if (json_object_set_new(obj, "ctrl", json_integer(ctrl)) == -1)
+        {
             VCAP_ERROR("Unable to set new JSON object");
             ret = -1; goto end;;
         }
 
-        if (json_object_set_new(obj, "value", json_integer(value)) == -1) {
+        if (json_object_set_new(obj, "value", json_integer(value)) == -1)
+        {
             VCAP_ERROR("Unable to set new JSON object");
             ret = -1; goto end;;
         }
 
-        if (json_array_append_new(ctrls, obj) == -1) {
+        if (json_array_append_new(ctrls, obj) == -1)
+        {
             VCAP_ERROR("Unable to append new object to JSON array");
             ret = -1; goto end;;
         }
     }
 
-    if (json_object_set_new(root, "ctrls", ctrls) == -1) {
+    if (json_object_set_new(root, "ctrls", ctrls) == -1)
+    {
         VCAP_ERROR("Unable to append new object to JSON array");
         ret = -1; goto end;;
     }
@@ -260,12 +296,14 @@ int vcap_export_settings(vcap_fg* fg, const char* path) {
 
     file = fopen(path, "w");
 
-    if (!file) {
+    if (!file)
+    {
         VCAP_ERROR_ERRNO("Unable to open file");
         ret = -1; goto end;;
     }
 
-    if (fputs(jsonStr, file) == EOF && ferror(file)) {
+    if (fputs(jsonStr, file) == EOF && ferror(file))
+    {
         VCAP_ERROR("Error writing to file");
         ret = -1; goto end;;
     }
@@ -283,7 +321,8 @@ end:
     return ret;
 }
 
-int vcap_import_settings(vcap_fg* fg, const char* path) {
+int vcap_import_settings(vcap_fg* fg, const char* path)
+{
     json_set_alloc_funcs(vcap_malloc, vcap_free);
 
     int ret = 0;
@@ -294,7 +333,8 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
 
     FILE *file = fopen(path, "r");
 
-    if (!file) {
+    if (!file)
+    {
         VCAP_ERROR("Unable to open file");
         return -1;
     }
@@ -307,14 +347,16 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
 
     str = vcap_malloc(file_size + 1);
 
-    if (!str) {
+    if (!str)
+    {
         VCAP_ERROR("Out of memory allocating string");
         ret = -1; goto end;;
     }
 
     size_t bytes_read = fread(str, 1, file_size, file);
 
-    if (bytes_read != file_size) {
+    if (bytes_read != file_size)
+    {
         VCAP_ERROR("Error reading file (expected: %lu, read: %lu)", file_size, bytes_read);
         ret = -1; goto end;;
     }
@@ -326,7 +368,8 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
     json_error_t error;
     root = json_loads(str, 0, &error);
 
-    if (!root) {
+    if (!root)
+    {
         VCAP_ERROR("Parsing JSON failed (%d:%d): %s", error.line, error.column, error.text);
         ret = -1; goto end;;
     }
@@ -335,12 +378,14 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
 
     json_t* value = json_object_get(root, "fmt");
 
-    if (!value) {
+    if (!value)
+    {
         VCAP_ERROR("Unable to read format ID");
         ret = -1; goto end;;
     }
 
-    if (json_typeof(value) != JSON_INTEGER) {
+    if (json_typeof(value) != JSON_INTEGER)
+    {
         VCAP_ERROR("Invalid format ID type");
         ret = -1; goto end;;
     }
@@ -353,12 +398,14 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
 
     vcap_size size;
 
-    if (parse_size(obj, &size) == -1) {
+    if (parse_size(obj, &size) == -1)
+    {
         VCAP_ERROR("%s", vcap_get_error());;
         ret = -1; goto end;;
     }
 
-    if (vcap_set_fmt(fg, fmt, size) == -1) {
+    if (vcap_set_fmt(fg, fmt, size) == -1)
+    {
         VCAP_ERROR("%s", vcap_get_error());;
         ret = -1; goto end;;
     }
@@ -369,12 +416,14 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
 
     vcap_rate rate;
 
-    if (parse_rate(obj, &rate) == -1) {
+    if (parse_rate(obj, &rate) == -1)
+    {
         VCAP_ERROR("%s", vcap_get_error());;
         ret = -1; goto end;;
     }
 
-    if (vcap_set_rate(fg, rate) == -1) {
+    if (vcap_set_rate(fg, rate) == -1)
+    {
         VCAP_ERROR("%s", vcap_get_error());;
         ret = -1; goto end;;
     }
@@ -383,19 +432,22 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
 
     json_t* array = json_object_get(root, "ctrls");
 
-    if (!array) {
+    if (!array)
+    {
         VCAP_ERROR("Unable to get control array");
         ret = -1; goto end;;
     }
 
     size_t index;
 
-    json_array_foreach(array, index, obj) {
+    json_array_foreach(array, index, obj)
+    {
         // Control ID
 
         value = json_object_get(obj, "ctrl");
 
-        if (!value || json_typeof(value) != JSON_INTEGER) {
+        if (!value || json_typeof(value) != JSON_INTEGER)
+        {
             VCAP_ERROR("Invalid ctrl");
             ret = -1; goto end;;
         }
@@ -404,15 +456,18 @@ int vcap_import_settings(vcap_fg* fg, const char* path) {
 
         // Value
 
-        if (vcap_ctrl_status(fg, ctrl) == VCAP_CTRL_OK) {
+        if (vcap_ctrl_status(fg, ctrl) == VCAP_CTRL_OK)
+        {
             value = json_object_get(obj, "value");
 
-            if (!value || json_typeof(value) != JSON_INTEGER) {
+            if (!value || json_typeof(value) != JSON_INTEGER)
+            {
                 VCAP_ERROR("Invalid value");
                 ret = -1; goto end;;
             }
 
-            if (vcap_set_ctrl(fg, ctrl, json_integer_value(value)) == -1) {
+            if (vcap_set_ctrl(fg, ctrl, json_integer_value(value)) == -1)
+            {
                 VCAP_ERROR("%s", vcap_get_error());;
                 ret = -1; goto end;;
             }

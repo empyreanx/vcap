@@ -37,24 +37,29 @@ static char error_tmp[1024];
 static vcap_malloc_func malloc_func_ptr = malloc;
 static vcap_free_func free_func_ptr = free;
 
-const char* vcap_get_error_priv() {
+const char* vcap_get_error_priv()
+{
     return error_msg;
 }
 
-void vcap_set_alloc_priv(vcap_malloc_func malloc_func, vcap_free_func free_func) {
+void vcap_set_alloc_priv(vcap_malloc_func malloc_func, vcap_free_func free_func)
+{
     malloc_func_ptr = malloc_func;
     free_func_ptr = free_func;
 }
 
-void* vcap_malloc(size_t size) {
+void* vcap_malloc(size_t size)
+{
     return malloc_func_ptr(size);
 }
 
-void vcap_free(void* ptr) {
+void vcap_free(void* ptr)
+{
     free_func_ptr(ptr);
 }
 
-void vcap_set_error(const char* fmt, ...) {
+void vcap_set_error(const char* fmt, ...)
+{
     va_list args;
     va_start(args, fmt);
     vsnprintf(error_tmp, sizeof(error_tmp), fmt, args);
@@ -63,7 +68,8 @@ void vcap_set_error(const char* fmt, ...) {
     strncpy(error_msg, error_tmp, sizeof(error_msg));
 }
 
-int vcap_try_get_device(const char* path, vcap_device* device) {
+int vcap_try_get_device(const char* path, vcap_device* device)
+{
     struct stat st;
     struct v4l2_capability caps;
 
@@ -124,7 +130,8 @@ error:
     return -1;
 }
 
-void vcap_fourcc_string(uint32_t code, uint8_t* str) {
+void vcap_fourcc_string(uint32_t code, uint8_t* str)
+{
     str[0] = (code >> 0) & 0xFF;
     str[1] = (code >> 8) & 0xFF;
     str[2] = (code >> 16) & 0xFF;
@@ -132,12 +139,15 @@ void vcap_fourcc_string(uint32_t code, uint8_t* str) {
     str[4] = '\0';
 }
 
-int vcap_ioctl(int fd, int request, void *arg) {
+int vcap_ioctl(int fd, int request, void *arg)
+{
     int result;
 
-    do {
+    do
+    {
         result = v4l2_ioctl(fd, request, arg);
-    } while (result == -1 && (errno == EINTR || errno == EAGAIN));
+    }
+    while (result == -1 && (errno == EINTR || errno == EAGAIN));
 
     return result;
 }

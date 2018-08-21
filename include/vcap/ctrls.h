@@ -28,7 +28,8 @@
 ///
 /// \brief Control IDs
 ///
-typedef enum {
+typedef enum
+{
     VCAP_CTRL_BRIGHTNESS,                  // Integer
     VCAP_CTRL_CONTRAST,                    // Integer
     VCAP_CTRL_SATURATION,                  // Integer
@@ -90,7 +91,8 @@ typedef enum {
 ///
 /// \brief Control types
 ///
-typedef enum {
+typedef enum
+{
     VCAP_CTRL_TYPE_INTEGER,
     VCAP_CTRL_TYPE_BOOLEAN,
     VCAP_CTRL_TYPE_MENU,

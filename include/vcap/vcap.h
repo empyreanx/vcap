@@ -61,7 +61,8 @@ typedef struct vcap_menu_itr vcap_menu_itr;     ///< Menu iterator
 ///
 /// \brief Video capture device infomation
 ///
-typedef struct {
+typedef struct
+{
     char path[512];             ///< Device path
     uint8_t driver[16];         ///< Device driver name
     uint8_t card[32];           ///< Video hardware info
@@ -73,7 +74,8 @@ typedef struct {
 ///
 /// \brief Pixel format description
 ///
-typedef struct {
+typedef struct
+{
     vcap_fmt_id id;             ///< Format ID
     uint8_t name[32];           ///< Format name
     uint8_t fourcc[5];          ///< FourCC string
@@ -82,7 +84,8 @@ typedef struct {
 ///
 /// \brief Frame dimensions
 ///
-typedef struct {
+typedef struct
+{
     uint32_t width;             ///< Frame width
     uint32_t height;            ///< Frame height
 } vcap_size;
@@ -90,7 +93,8 @@ typedef struct {
 ///
 /// \brief Frame rate.
 ///
-typedef struct {
+typedef struct
+{
     uint32_t numerator;         ///< Interval numerator
     uint32_t denominator;       ///< Interval denominator
 } vcap_rate;
@@ -98,7 +102,8 @@ typedef struct {
 ///
 /// \brief Control descriptor
 ///
-typedef struct {
+typedef struct
+{
     vcap_ctrl_id id;            ///< Control ID
     uint8_t name[32];           ///< Control name
     vcap_ctrl_type type;        ///< Control type
@@ -113,10 +118,12 @@ typedef struct {
 ///
 /// \brief Control menu item
 ///
-typedef struct {
+typedef struct
+{
     uint32_t index;             ///< Menu item index (value used to set the control)
 
-    union {
+    union
+    {
         uint8_t name[32];       ///< Menu item name (used if control type is VCAP_CTRL_TYPE_MENU)
         int64_t value;          ///< Menu item value (used if control type is VCAP_CTRL_TYPE_INTEGER_MENU)
     };
@@ -126,7 +133,8 @@ typedef struct {
 ///
 /// \brief Defines a rectangle
 ///
-typedef struct {
+typedef struct
+{
     int32_t top;                ///< Top edge of rectangle
     int32_t left;               ///< Left edge of rectangle
     int32_t width;              ///< Width of rectangle
@@ -136,7 +144,8 @@ typedef struct {
 ///
 /// \brief Defines a video frame
 ///
-typedef struct {
+typedef struct
+{
     vcap_fmt_id fmt;            ///< Frame format
     vcap_size size;             ///< Size of frame
     size_t stride;              ///< Length of row in bytes

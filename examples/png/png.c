@@ -23,7 +23,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
     int index = 0;
 
     if (argc == 2)
@@ -34,12 +35,14 @@ int main(int argc, char** argv) {
     // Find first video capture device
     int ret = vcap_enum_devices(&device, index);
 
-    if (ret == VCAP_ENUM_ERROR) {
+    if (ret == VCAP_ENUM_ERROR)
+    {
         printf("%s\n", vcap_get_error());
         return -1;
     }
 
-    if (ret == VCAP_ENUM_INVALID) {
+    if (ret == VCAP_ENUM_INVALID)
+    {
         printf("Error: Unable to find a video capture device\n");
         return -1;
     }
@@ -47,7 +50,8 @@ int main(int argc, char** argv) {
     // Open device
     vcap_fg* fg = vcap_open(&device);
 
-    if (!fg) {
+    if (!fg)
+    {
         printf("%s\n", vcap_get_error());
         return -1;
     }
@@ -55,24 +59,28 @@ int main(int argc, char** argv) {
     vcap_frame* frame = NULL;
     vcap_size size = { 640, 480 };
 
-    if (vcap_set_fmt(fg, VCAP_FMT_RGB24, size) == -1) {
+    if (vcap_set_fmt(fg, VCAP_FMT_RGB24, size) == -1)
+    {
         printf("%s\n", vcap_get_error());
         goto error;
     }
 
     frame = vcap_alloc_frame(fg);
 
-    if (!frame) {
+    if (!frame)
+    {
         printf("%s\n", vcap_get_error());
         goto error;
     }
 
-    if (vcap_grab(fg, frame) == -1) {
+    if (vcap_grab(fg, frame) == -1)
+    {
         printf("%s\n", vcap_get_error());
         goto error;
     }
 
-    if (vcap_save_png(frame, "out.png") == -1) {
+    if (vcap_save_png(frame, "out.png") == -1)
+    {
         printf("%s\n", vcap_get_error());
         goto error;
     }

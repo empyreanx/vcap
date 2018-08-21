@@ -32,13 +32,15 @@
 #define VCAP_ERROR_ERRNO(fmt, ...) vcap_set_error("[%s:%d] "fmt" (%s)", __func__, __LINE__, strerror(errno), ##__VA_ARGS__)
 
 // Frame grabber
-struct vcap_fg {
+struct vcap_fg
+{
     int fd;
     vcap_device device;
 };
 
 // Format iterator
-struct vcap_fmt_itr {
+struct vcap_fmt_itr
+{
     vcap_fg* fg;
     uint32_t index;
     int result;
@@ -46,7 +48,8 @@ struct vcap_fmt_itr {
 };
 
 // Size iterator
-struct vcap_size_itr {
+struct vcap_size_itr
+{
     vcap_fg* fg;
     vcap_fmt_id fmt;
     uint32_t index;
@@ -55,7 +58,8 @@ struct vcap_size_itr {
 };
 
 // Frame rate iterator
-struct vcap_rate_itr {
+struct vcap_rate_itr
+{
     vcap_fg* fg;
     vcap_fmt_id fmt;
     vcap_size size;
@@ -65,7 +69,8 @@ struct vcap_rate_itr {
 };
 
 // Control iterator
-struct vcap_ctrl_itr {
+struct vcap_ctrl_itr
+{
     vcap_fg* fg;
     uint32_t index;
     int result;
@@ -73,7 +78,8 @@ struct vcap_ctrl_itr {
 };
 
 // Menu iterator
-struct vcap_menu_itr {
+struct vcap_menu_itr
+{
     vcap_fg* fg;
     vcap_ctrl_id ctrl;
     uint32_t index;

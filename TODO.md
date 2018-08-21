@@ -2,6 +2,7 @@ Todo:
 ---------
 
 **Version 0.2.0:**
+* Retest all examples
 * Code review
 
 **Version 0.2.1:**

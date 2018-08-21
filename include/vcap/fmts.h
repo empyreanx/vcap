@@ -26,8 +26,8 @@
 ///
 /// \brief Format IDs
 ///
-typedef enum {
-
+typedef enum
+{
     /* RGB formats */
     VCAP_FMT_RGB332,    /*  8  RGB-3-3-2     */
     VCAP_FMT_RGB444,    /* 16  xxxxrrrr ggggbbbb */

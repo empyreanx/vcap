@@ -35,11 +35,13 @@
 // Filters device list so that 'scandir' returns only video devices.
 static int video_device_filter(const struct dirent *a);
 
-const char* vcap_get_error() {
+const char* vcap_get_error()
+{
     return vcap_get_error_priv();
 }
 
-void vcap_set_alloc(vcap_malloc_func malloc_func, vcap_free_func free_func) {
+void vcap_set_alloc(vcap_malloc_func malloc_func, vcap_free_func free_func)
+{
     vcap_set_alloc_priv(malloc_func, free_func);
 }
 
@@ -49,8 +51,10 @@ void vcap_set_alloc(vcap_malloc_func malloc_func, vcap_free_func free_func) {
 // reported. A user application may choose to ignore some error cases, trading
 // a little robustness for some convenience.
 //
-int vcap_dump_info(vcap_fg* fg, FILE* file) {
-    if (!fg) {
+int vcap_dump_info(vcap_fg* fg, FILE* file)
+{
+    if (!fg)
+    {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
     }
@@ -82,12 +86,14 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
     fmt_itr = vcap_new_fmt_itr(fg);
 
     // Check for errors during format iterator allocation
-    if (!fmt_itr) {
+    if (!fmt_itr)
+    {
         VCAP_ERROR("%s", vcap_get_error());
         ret = -1; goto end;
     }
 
-    while (vcap_fmt_itr_next(fmt_itr, &fmt_desc)) {
+    while (vcap_fmt_itr_next(fmt_itr, &fmt_desc))
+    {
         fprintf(file, "------------------------------------------------\n");
         fprintf(file, "Format: %s, FourCC: %s\n", fmt_desc.name, fmt_desc.fourcc);
         fprintf(file, "Sizes:\n");
@@ -99,12 +105,14 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
         size_itr = vcap_new_size_itr(fg, fmt_desc.id);
 
         // Check for errors during frame size iterator allocation
-        if (!size_itr) {
+        if (!size_itr)
+        {
             VCAP_ERROR("%s", vcap_get_error());
             ret = -1; goto end;
         }
 
-        while (vcap_size_itr_next(size_itr, &size)) {
+        while (vcap_size_itr_next(size_itr, &size))
+        {
             fprintf(file, "   %u x %u: ", size.width, size.height);
             fprintf(file, "(Frame rates:");
 
@@ -115,17 +123,20 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
             rate_itr = vcap_new_rate_itr(fg, fmt_desc.id, size);
 
             // Check for errors during frame rate iterator allocation
-            if (!rate_itr) {
+            if (!rate_itr)
+            {
                 VCAP_ERROR("%s", vcap_get_error());
                 ret = -1; goto end;
             }
 
-            while (vcap_rate_itr_next(rate_itr, &rate)) {
+            while (vcap_rate_itr_next(rate_itr, &rate))
+            {
                 fprintf(file, " %u/%u", rate.numerator, rate.denominator);
             }
 
             // Check for errors during frame rate iteration
-            if (vcap_rate_itr_error(rate_itr)) {
+            if (vcap_rate_itr_error(rate_itr))
+            {
                 VCAP_ERROR("%s", vcap_get_error());
                 ret = -1; goto end;
             }
@@ -137,7 +148,8 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
         }
 
         // Check for errors during frame size iteration
-        if (vcap_size_itr_error(size_itr)) {
+        if (vcap_size_itr_error(size_itr))
+        {
             VCAP_ERROR("%s", vcap_get_error());
             ret = -1; goto end;
         }
@@ -147,7 +159,8 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
     }
 
     // Check for errors during format iteration
-    if (vcap_fmt_itr_error(fmt_itr)) {
+    if (vcap_fmt_itr_error(fmt_itr))
+    {
         VCAP_ERROR("%s", vcap_get_error());
         ret = -1; goto end;
     }
@@ -165,15 +178,18 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
     ctrl_itr = vcap_new_ctrl_itr(fg);
 
     // Check for errors during control iterator allocation
-    if (!ctrl_itr) {
+    if (!ctrl_itr)
+    {
         VCAP_ERROR("%s", vcap_get_error());
         ret = -1; goto end;
     }
 
-    while (vcap_ctrl_itr_next(ctrl_itr, &ctrl_desc)) {
+    while (vcap_ctrl_itr_next(ctrl_itr, &ctrl_desc))
+    {
         printf("   Name: %s, Type: %s\n", ctrl_desc.name, ctrl_desc.type_name);
 
-        if (ctrl_desc.type == VCAP_CTRL_TYPE_MENU || ctrl_desc.type == VCAP_CTRL_TYPE_INTEGER_MENU) {
+        if (ctrl_desc.type == VCAP_CTRL_TYPE_MENU || ctrl_desc.type == VCAP_CTRL_TYPE_INTEGER_MENU)
+        {
             printf("   Menu:\n");
 
             //==================================================================
@@ -183,12 +199,14 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
             vcap_menu_itr* menu_itr = vcap_new_menu_itr(fg, ctrl_desc.id);
 
             // Check for errors during menu iterator allocation
-            if (!menu_itr) {
+            if (!menu_itr)
+            {
                 VCAP_ERROR("%s", vcap_get_error());
                 ret = -1; goto end;
             }
 
-            while (vcap_menu_itr_next(menu_itr, &menu_item)) {
+            while (vcap_menu_itr_next(menu_itr, &menu_item))
+            {
                 if (ctrl_desc.type == VCAP_CTRL_TYPE_MENU)
                     printf("      %i : %s\n", menu_item.index, menu_item.name);
                 else
@@ -196,7 +214,8 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
             }
 
             // Check for errors during menu iteration
-            if (vcap_menu_itr_error(menu_itr)) {
+            if (vcap_menu_itr_error(menu_itr))
+            {
                 VCAP_ERROR("%s", vcap_get_error());
                 ret = -1; goto end;
             }
@@ -207,7 +226,8 @@ int vcap_dump_info(vcap_fg* fg, FILE* file) {
     }
 
     // Check for errors during control iteration
-    if (vcap_ctrl_itr_error(ctrl_itr)) {
+    if (vcap_ctrl_itr_error(ctrl_itr))
+    {
         VCAP_ERROR("%s", vcap_get_error());
         ret = -1; goto end;
     }
@@ -235,8 +255,10 @@ end:
     return ret;
 }
 
-int vcap_enum_devices(vcap_device* device, int index) {
-    if (!device) {
+int vcap_enum_devices(vcap_device* device, int index)
+{
+    if (!device)
+    {
         VCAP_ERROR("Parameter 'device' cannot be null");
         return VCAP_ENUM_ERROR;
     }
@@ -246,21 +268,27 @@ int vcap_enum_devices(vcap_device* device, int index) {
     struct dirent **names;
     int n = scandir("/dev", &names, video_device_filter, alphasort);
 
-    if (n < 0) {
+    if (n < 0)
+    {
         VCAP_ERROR("Failed to scan '/dev' directory");
         return VCAP_ENUM_ERROR;
     }
 
     char path[512];
 
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
+    {
         snprintf(path, sizeof(path), "/dev/%s", names[i]->d_name);
 
-        if (vcap_try_get_device(path, device) == 0) {
-            if (index == count) {
+        if (vcap_try_get_device(path, device) == 0)
+        {
+            if (index == count)
+            {
                 free(names);
                 return VCAP_ENUM_OK;
-            } else {
+            }
+            else
+            {
                 count++;
             }
         }
@@ -271,18 +299,22 @@ int vcap_enum_devices(vcap_device* device, int index) {
     return VCAP_ENUM_INVALID;
 }
 
-int vcap_get_device(const char* path, vcap_device* device) {
-    if (!path) {
+int vcap_get_device(const char* path, vcap_device* device)
+{
+    if (!path)
+    {
         VCAP_ERROR("Parameter 'path' cannot be null");
         return -1;
     }
 
-    if (!device) {
+    if (!device)
+    {
         VCAP_ERROR("Parameter 'device' cannot be null");
         return -1;
     }
 
-    if (vcap_try_get_device(path, device) == -1) {
+    if (vcap_try_get_device(path, device) == -1)
+    {
         VCAP_ERROR("Invalid device '%s'", path);
         return -1;
     }
@@ -290,8 +322,10 @@ int vcap_get_device(const char* path, vcap_device* device) {
     return 0;
 }
 
-vcap_fg* vcap_open(vcap_device* device) {
-    if (!device) {
+vcap_fg* vcap_open(vcap_device* device)
+{
+    if (!device)
+    {
         VCAP_ERROR("Parameter 'device' cannot be null");
         return NULL;
     }
@@ -302,21 +336,24 @@ vcap_fg* vcap_open(vcap_device* device) {
     vcap_fg* fg = vcap_malloc(sizeof(struct vcap_fg));
 
     // Allocate frame grabber
-    if (!fg) {
+    if (!fg)
+    {
         VCAP_ERROR_ERRNO("Ran out of memory allocating frame grabber");
         return NULL;
     }
 
     fg->fd = -1;
-    
+
     // Device must exist
-    if (stat(device->path, &st) == -1) {
+    if (stat(device->path, &st) == -1)
+    {
         VCAP_ERROR_ERRNO("Video device '%s' does not exist", device->path);
         goto error;
     }
 
     // Device must be a character device
-    if (!S_ISCHR(st.st_mode)) {
+    if (!S_ISCHR(st.st_mode))
+    {
         VCAP_ERROR_ERRNO("Video device '%s' is not a character device", device->path);
         goto error;
     }
@@ -324,7 +361,8 @@ vcap_fg* vcap_open(vcap_device* device) {
     // Open the video device
     fg->fd = v4l2_open(device->path, O_RDWR | O_NONBLOCK, 0);
 
-    if (fg->fd == -1) {
+    if (fg->fd == -1)
+    {
         VCAP_ERROR_ERRNO("Opening video device '%s' failed", device->path);
         goto error;
     }
@@ -333,13 +371,15 @@ vcap_fg* vcap_open(vcap_device* device) {
     fcntl(fg->fd, F_SETFD, FD_CLOEXEC);
 
     // Obtain device capabilities
-    if (vcap_ioctl(fg->fd, VIDIOC_QUERYCAP, &caps) == -1) {
+    if (vcap_ioctl(fg->fd, VIDIOC_QUERYCAP, &caps) == -1)
+    {
         VCAP_ERROR_ERRNO("Querying video device '%s' capabilities failed", device->path);
         goto error;
     }
 
     // Ensure video capture is supported
-    if (!(caps.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
+    if (!(caps.capabilities & V4L2_CAP_VIDEO_CAPTURE))
+    {
         VCAP_ERROR("Video device '%s' does not support video capture", device->path);
         goto error;
     }
@@ -353,7 +393,8 @@ error:
     return NULL;
 }
 
-void vcap_close(vcap_fg* fg) {
+void vcap_close(vcap_fg* fg)
+{
     if (!fg)
         return;
 
@@ -363,15 +404,18 @@ void vcap_close(vcap_fg* fg) {
     vcap_free(fg);
 }
 
-vcap_frame* vcap_alloc_frame(vcap_fg* fg) {
-    if (!fg) {
+vcap_frame* vcap_alloc_frame(vcap_fg* fg)
+{
+    if (!fg)
+    {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return NULL;
     }
 
     vcap_frame* frame = vcap_malloc(sizeof(vcap_frame));
 
-    if (!frame) {
+    if (!frame)
+    {
         VCAP_ERROR_ERRNO("Ran out of memory allocating frame");
         return NULL;
     }
@@ -381,7 +425,8 @@ vcap_frame* vcap_alloc_frame(vcap_fg* fg) {
     VCAP_CLEAR(fmt);
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (vcap_ioctl(fg->fd, VIDIOC_G_FMT, &fmt)) {
+    if (vcap_ioctl(fg->fd, VIDIOC_G_FMT, &fmt))
+    {
         VCAP_ERROR_ERRNO("Unable to get format on device '%s'", fg->device.path);
         goto error;
     }
@@ -393,7 +438,8 @@ vcap_frame* vcap_alloc_frame(vcap_fg* fg) {
     frame->length = fmt.fmt.pix.sizeimage;
     frame->data = vcap_malloc(frame->length);
 
-    if (!frame->data) {
+    if (!frame->data)
+    {
         VCAP_ERROR_ERRNO("Ran out of memory allocating frame data");
         goto error;
     }
@@ -406,7 +452,8 @@ error:
     return NULL;
 }
 
-void vcap_free_frame(vcap_frame* frame) {
+void vcap_free_frame(vcap_frame* frame)
+{
     if (!frame)
         return;
 
@@ -416,27 +463,33 @@ void vcap_free_frame(vcap_frame* frame) {
     vcap_free(frame);
 }
 
-int vcap_copy_frame(vcap_frame* dst, vcap_frame* src) {
-    if (!dst) {
+int vcap_copy_frame(vcap_frame* dst, vcap_frame* src)
+{
+    if (!dst)
+    {
         VCAP_ERROR("Parameter 'dst' cannot be null");
         return -1;
     }
 
-    if (!src) {
+    if (!src)
+    {
         VCAP_ERROR("Parameter 'src' cannot be null");
         return -1;
     }
 
-    if (!src->data || src->length == 0) {
+    if (!src->data || src->length == 0)
+    {
         VCAP_ERROR("Invalid frame 'src'");
         return -1;
     }
 
-    if (!dst->data || src->length != dst->length) {
+    if (!dst->data || src->length != dst->length)
+    {
         vcap_free(dst->data);
         dst->data = vcap_malloc(src->length);
 
-        if (!dst->data) {
+        if (!dst->data)
+        {
             VCAP_ERROR("Out of memory while copying frame");
             return -1;
         }
@@ -452,27 +505,32 @@ int vcap_copy_frame(vcap_frame* dst, vcap_frame* src) {
     return 0;
 }
 
-vcap_frame* vcap_clone_frame(vcap_frame* frame) {
-    if (!frame) {
+vcap_frame* vcap_clone_frame(vcap_frame* frame)
+{
+    if (!frame)
+    {
         VCAP_ERROR("Parameter 'frame' cannot be null");
         return NULL;
     }
 
-    if (!frame->data || frame->length == 0) {
+    if (!frame->data || frame->length == 0)
+    {
         VCAP_ERROR("Invalid frame");
         return NULL;
     }
 
     vcap_frame* clone = vcap_malloc(sizeof(vcap_frame));
 
-    if (!clone) {
+    if (!clone)
+    {
         VCAP_ERROR("Out of memory while cloning frame");
         return NULL;
     }
 
     clone->data = NULL;
 
-    if (vcap_copy_frame(clone, frame) == -1) {
+    if (vcap_copy_frame(clone, frame) == -1)
+    {
         VCAP_ERROR("%s", vcap_get_error());;
         vcap_free_frame(clone);
         return NULL;
@@ -481,13 +539,16 @@ vcap_frame* vcap_clone_frame(vcap_frame* frame) {
     return clone;
 }
 
-int vcap_grab(vcap_fg* fg, vcap_frame* frame) {
-    if (!fg) {
+int vcap_grab(vcap_fg* fg, vcap_frame* frame)
+{
+    if (!fg)
+    {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
     }
 
-    if (!frame) {
+    if (!frame)
+    {
         VCAP_ERROR("Parameter 'frame' cannot be null");
         return -1;
     }
@@ -496,8 +557,10 @@ int vcap_grab(vcap_fg* fg, vcap_frame* frame) {
     int result;
     struct timeval tv;
 
-    while (1) {
-        do {
+    while (1)
+    {
+        do
+        {
             FD_ZERO(&fds);
             FD_SET(fg->fd, &fds);
 
@@ -506,22 +569,29 @@ int vcap_grab(vcap_fg* fg, vcap_frame* frame) {
             tv.tv_usec = 0;
 
             result = select(fg->fd + 1, &fds, NULL, NULL, &tv);
-        } while (result == -1 && errno == EINTR);
+        }
+        while (result == -1 && errno == EINTR);
 
-        if (result == -1) {
+        if (result == -1)
+        {
             VCAP_ERROR("Unable to grab frame on device '%s'", fg->device.path);
             return -1;
         }
 
-        if (result == 0) {
+        if (result == 0)
+        {
             VCAP_ERROR("Unable to grab frame (timeout expired) on device '%s'", fg->device.path);
             return -1;
         }
 
-        if (v4l2_read(fg->fd, frame->data, frame->length) == -1) {
-            if (errno == EAGAIN) {
+        if (v4l2_read(fg->fd, frame->data, frame->length) == -1)
+        {
+            if (errno == EAGAIN)
+            {
                 continue;
-            } else {
+            }
+            else
+            {
                 VCAP_ERROR_ERRNO("Reading from device '%s' failed", fg->device.path);
                 return -1;
             }
@@ -531,13 +601,16 @@ int vcap_grab(vcap_fg* fg, vcap_frame* frame) {
     }
 }
 
-int vcap_get_crop_bounds(vcap_fg* fg, vcap_rect* rect) {
-    if (!fg) {
+int vcap_get_crop_bounds(vcap_fg* fg, vcap_rect* rect)
+{
+    if (!fg)
+    {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
     }
 
-    if (!rect) {
+    if (!rect)
+    {
         VCAP_ERROR("Parameter 'rect' cannot be null");
         return -1;
     }
@@ -547,8 +620,10 @@ int vcap_get_crop_bounds(vcap_fg* fg, vcap_rect* rect) {
     VCAP_CLEAR(cropcap);
     cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (vcap_ioctl(fg->fd, VIDIOC_CROPCAP, &cropcap) == -1) {
-        if (errno == ENODATA || errno == EINVAL) {
+    if (vcap_ioctl(fg->fd, VIDIOC_CROPCAP, &cropcap) == -1)
+    {
+        if (errno == ENODATA || errno == EINVAL)
+        {
             VCAP_ERROR("Cropping is not supported on device '%s'", fg->device.path);
             return -1;
         }
@@ -562,8 +637,10 @@ int vcap_get_crop_bounds(vcap_fg* fg, vcap_rect* rect) {
     return 0;
 }
 
-int vcap_reset_crop(vcap_fg* fg) {
-    if (!fg) {
+int vcap_reset_crop(vcap_fg* fg)
+{
+    if (!fg)
+    {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
     }
@@ -573,8 +650,10 @@ int vcap_reset_crop(vcap_fg* fg) {
     VCAP_CLEAR(cropcap);
     cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (vcap_ioctl(fg->fd, VIDIOC_CROPCAP, &cropcap) == -1) {
-        if (errno == ENODATA || errno == EINVAL) {
+    if (vcap_ioctl(fg->fd, VIDIOC_CROPCAP, &cropcap) == -1)
+    {
+        if (errno == ENODATA || errno == EINVAL)
+        {
             VCAP_ERROR("Cropping is not supported on device '%s'", fg->device.path);
             return -1;
         }
@@ -586,7 +665,8 @@ int vcap_reset_crop(vcap_fg* fg) {
     crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     crop.c = cropcap.defrect;
 
-    if (vcap_ioctl(fg->fd, VIDIOC_S_CROP, &crop) == -1) {
+    if (vcap_ioctl(fg->fd, VIDIOC_S_CROP, &crop) == -1)
+    {
         VCAP_ERROR_ERRNO("Unable to set crop window on device '%s'", fg->device.path);
         return -1;
     }
@@ -594,13 +674,16 @@ int vcap_reset_crop(vcap_fg* fg) {
     return 0;
 }
 
-int vcap_get_crop(vcap_fg* fg, vcap_rect* rect) {
-    if (!fg) {
+int vcap_get_crop(vcap_fg* fg, vcap_rect* rect)
+{
+    if (!fg)
+    {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
     }
 
-    if (!rect) {
+    if (!rect)
+    {
         VCAP_ERROR("Parameter 'rect' cannot be null");
         return -1;
     }
@@ -610,11 +693,14 @@ int vcap_get_crop(vcap_fg* fg, vcap_rect* rect) {
     VCAP_CLEAR(crop);
     crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (vcap_ioctl(fg->fd, VIDIOC_G_CROP, &crop) == -1) {
-        if (errno == ENODATA || errno == EINVAL) {
+    if (vcap_ioctl(fg->fd, VIDIOC_G_CROP, &crop) == -1)
+    {
+        if (errno == ENODATA || errno == EINVAL)
+        {
             VCAP_ERROR("Cropping is not supported on device '%s'", fg->device.path);
             return -1;
-        } else {
+        } else
+        {
             VCAP_ERROR_ERRNO("Unable to get crop window on device '%s'", fg->device.path);
             return -1;
         }
@@ -628,8 +714,10 @@ int vcap_get_crop(vcap_fg* fg, vcap_rect* rect) {
     return 0;
 }
 
-int vcap_set_crop(vcap_fg* fg, vcap_rect rect) {
-    if (!fg) {
+int vcap_set_crop(vcap_fg* fg, vcap_rect rect)
+{
+    if (!fg)
+    {
         VCAP_ERROR("Parameter 'fg' cannot be null");
         return -1;
     }
@@ -643,11 +731,14 @@ int vcap_set_crop(vcap_fg* fg, vcap_rect rect) {
     crop.c.width = rect.width;
     crop.c.height = rect.height;
 
-    if (vcap_ioctl(fg->fd, VIDIOC_S_CROP, &crop) == -1) {
-        if (errno == ENODATA || errno == EINVAL) {
+    if (vcap_ioctl(fg->fd, VIDIOC_S_CROP, &crop) == -1)
+    {
+        if (errno == ENODATA || errno == EINVAL)
+        {
             VCAP_ERROR("Cropping is not supported on device '%s'", fg->device.path);
             return -1;
-        } else {
+        } else
+        {
             VCAP_ERROR_ERRNO("Unable to set crop window on device '%s'", fg->device.path);
             return -1;
         }
@@ -656,7 +747,8 @@ int vcap_set_crop(vcap_fg* fg, vcap_rect rect) {
     return 0;
 }
 
-static int video_device_filter(const struct dirent *a) {
+static int video_device_filter(const struct dirent *a)
+{
     if (0 == strncmp(a->d_name, "video", 5))
         return 1;
     else

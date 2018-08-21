@@ -23,33 +23,40 @@
 #include <png.h>
 #include <stdio.h>
 
-static png_voidp malloc_func(png_structp png_ptr, png_size_t size) {
+static png_voidp malloc_func(png_structp png_ptr, png_size_t size)
+{
     return vcap_malloc(size);
 }
 
-static void free_func(png_structp png_ptr, png_voidp ptr) {
+static void free_func(png_structp png_ptr, png_voidp ptr)
+{
     return vcap_free(ptr);
 }
 
-int vcap_save_png(vcap_frame* frame, const char* path) {
-    if (!frame) {
+int vcap_save_png(vcap_frame* frame, const char* path)
+{
+    if (!frame)
+    {
         VCAP_ERROR("Parameter 'frame' cannot be null");
         return -1;
     }
 
-    if (!path) {
+    if (!path)
+    {
         VCAP_ERROR("Parameter 'path' cannot be null");
         return -1;
     }
 
-    if (frame->fmt != VCAP_FMT_RGB24) {
+    if (frame->fmt != VCAP_FMT_RGB24)
+    {
         VCAP_ERROR("Frame must contain RGB24 data");
         return -1;
     }
 
     FILE* file = fopen(path, "wb");
 
-    if (!file) {
+    if (!file)
+    {
         VCAP_ERROR("Unable to open file for writing");
         return -1;
     }
@@ -61,21 +68,24 @@ int vcap_save_png(vcap_frame* frame, const char* path) {
 
     png_ptr = png_create_write_struct_2(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL, NULL, malloc_func, free_func);
 
-    if (!png_ptr) {
+    if (!png_ptr)
+    {
         VCAP_ERROR("Could not allocate PNG write struct\n");
         ret = -1; goto end;;
     }
 
     info_ptr = png_create_info_struct(png_ptr);
 
-    if (!info_ptr) {
+    if (!info_ptr)
+    {
         VCAP_ERROR("Could not allocate info struct\n");
         ret = -1; goto end;;
     }
 
     rows = (png_bytep*)png_malloc(png_ptr, frame->size.height * sizeof(png_bytep));
 
-    if (!rows) {
+    if (!rows)
+    {
         VCAP_ERROR("Out of memory while allocating PNG rows");
         ret = -1; goto end;;
     }
@@ -83,14 +93,16 @@ int vcap_save_png(vcap_frame* frame, const char* path) {
     for (int i = 0; i < frame->size.height; i++)
         rows[i] = (png_bytep)&frame->data[i * frame->stride];
 
-    if (setjmp(png_jmpbuf(png_ptr))) {
+    if (setjmp(png_jmpbuf(png_ptr)))
+    {
         VCAP_ERROR("Unable to initialize I/O");
         ret = -1; goto end;;
     }
 
     png_init_io(png_ptr, file);
 
-    if (setjmp(png_jmpbuf(png_ptr))) {
+    if (setjmp(png_jmpbuf(png_ptr)))
+    {
         VCAP_ERROR("Writing header failed");
         ret = -1; goto end;;
     }
@@ -101,14 +113,16 @@ int vcap_save_png(vcap_frame* frame, const char* path) {
 
     png_write_info(png_ptr, info_ptr);
 
-    if (setjmp(png_jmpbuf(png_ptr))) {
+    if (setjmp(png_jmpbuf(png_ptr)))
+    {
         VCAP_ERROR("Error writing bytes");
         ret = -1; goto end;;
     }
 
     png_write_image(png_ptr, rows);
 
-    if (setjmp(png_jmpbuf(png_ptr))) {
+    if (setjmp(png_jmpbuf(png_ptr)))
+    {
         VCAP_ERROR("Writing end of file failed");
         ret = -1; goto end;;
     }

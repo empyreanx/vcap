@@ -47,7 +47,8 @@ A minimal example (without error checking) of grabbing a frame and saving it as 
 #include <vcap/vcap.h>
 #include <stdio.h>
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
     vcap_device device;
 
     // Find first device on the bus

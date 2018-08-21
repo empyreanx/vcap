@@ -25,7 +25,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct {
+typedef struct
+{
     int width;
     int height;
     SDL_Surface *screen;
@@ -36,7 +37,8 @@ sdl_context_t* sdl_init(int width, int height);
 int sdl_display(sdl_context_t* ctx, uint8_t* image);
 void sdl_cleanup(sdl_context_t* ctx);
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
     int index = 0;
 
     if (argc == 2)
@@ -47,12 +49,14 @@ int main(int argc, char** argv) {
     // Find first video capture device
     int ret = vcap_enum_devices(&device, index);
 
-    if (ret == VCAP_ENUM_ERROR) {
+    if (ret == VCAP_ENUM_ERROR)
+    {
         printf("%s\n", vcap_get_error());
         return -1;
     }
 
-    if (ret == VCAP_ENUM_INVALID) {
+    if (ret == VCAP_ENUM_INVALID)
+    {
         printf("Error: Unable to find a video capture device\n");
         return -1;
     }
@@ -60,7 +64,8 @@ int main(int argc, char** argv) {
     // Open device
     vcap_fg* fg = vcap_open(&device);
 
-    if (!fg) {
+    if (!fg)
+    {
         printf("%s\n", vcap_get_error());
         return -1;
     }
@@ -70,14 +75,16 @@ int main(int argc, char** argv) {
     vcap_size size = { 640, 480 };
     sdl_context_t* sdl_ctx = NULL;
 
-    if (vcap_set_fmt(fg, VCAP_FMT_RGB24, size) == -1) {
+    if (vcap_set_fmt(fg, VCAP_FMT_RGB24, size) == -1)
+    {
         printf("%s\n", vcap_get_error());
         goto error;
     }
 
     frame = vcap_alloc_frame(fg);
 
-    if (!frame) {
+    if (!frame)
+    {
         printf("%s\n", vcap_get_error());
         goto error;
     }
@@ -87,14 +94,15 @@ int main(int argc, char** argv) {
     if (!sdl_ctx)
         goto error;
 
-
     SDL_Event event;
 
-    while (SDL_PollEvent(&event) >= 0) {
+    while (SDL_PollEvent(&event) >= 0)
+    {
         if (event.type == SDL_QUIT)
             break;
 
-        if (vcap_grab(fg, frame) == -1) {
+        if (vcap_grab(fg, frame) == -1)
+        {
             printf("%s\n", vcap_get_error());
             goto error;
         }
@@ -128,7 +136,8 @@ error:
 /*
  * Initializes the display contexgt
  */
-sdl_context_t* sdl_init(int width, int height) {
+sdl_context_t* sdl_init(int width, int height)
+{
     atexit(SDL_Quit);
 
     sdl_context_t* ctx = malloc(sizeof(sdl_context_t));
@@ -138,7 +147,8 @@ sdl_context_t* sdl_init(int width, int height) {
 
     ctx->screen = SDL_SetVideoMode(width, height, 24, SDL_DOUBLEBUF);
 
-    if (ctx->screen == NULL) {
+    if (ctx->screen == NULL)
+    {
         printf("Unable to set video mode: %s\n", SDL_GetError());
         return NULL;
     }
@@ -160,7 +170,8 @@ sdl_context_t* sdl_init(int width, int height) {
     return ctx;
 }
 
-void sdl_cleanup(sdl_context_t* ctx) {
+void sdl_cleanup(sdl_context_t* ctx)
+{
     SDL_FreeSurface(ctx->screen);
     SDL_FreeSurface(ctx->image);
     free(ctx);
@@ -169,13 +180,15 @@ void sdl_cleanup(sdl_context_t* ctx) {
 /*
  * Displays an image using SDL
  */
-int sdl_display(sdl_context_t* ctx, uint8_t* image) {
+int sdl_display(sdl_context_t* ctx, uint8_t* image)
+{
     memcpy(ctx->image->pixels, image, 3 * ctx->width * ctx->height);
 
     /*
      * Apply the image to the display
      */
-    if (SDL_BlitSurface(ctx->image, NULL, ctx->screen, NULL) != 0) {
+    if (SDL_BlitSurface(ctx->image, NULL, ctx->screen, NULL) != 0)
+    {
         printf("SDL_BlitSurface() Failed: %s\n", SDL_GetError());
         return -1;
     }

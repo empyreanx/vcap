@@ -2,6 +2,7 @@ Todo:
 ---------
 
 **Version 0.2.0:**
+* Use stdbool
 * Retest all examples
 * Code review
 

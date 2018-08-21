@@ -47,6 +47,7 @@ extern "C" {
 #include "ctrls.h"
 #include "fmts.h"
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -112,7 +113,7 @@ typedef struct
     int32_t max;                ///< The maximum value of the control
     int32_t step;               ///< The spacing between consecutive values
     int32_t default_value;      ///< The default value of the control (set when the driver is first loaded)
-    uint8_t read_only;          ///< VCAP_TRUE if read-only and VCAP_FALSE if read/write
+    bool read_only;             ///< true if the control is permanently read-only and false if read/write
 } vcap_ctrl_desc;
 
 ///
@@ -152,9 +153,6 @@ typedef struct
     size_t length;              ///< Length of data in bytes
     uint8_t* data;              ///< Frame data
 } vcap_frame;
-
-#define VCAP_TRUE            1  ///< True
-#define VCAP_FALSE           0  ///< False
 
 #define VCAP_FMT_OK          0  ///< Format is supported
 #define VCAP_FMT_INVALID    -1  ///< Format is not supported
@@ -427,7 +425,7 @@ vcap_fmt_itr* vcap_new_fmt_itr(vcap_fg* fg);
 ///
 /// \returns 0 if there was an error or there are no more formats, and 1 otherwise
 ///
-int vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_desc* desc);
+bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_desc* desc);
 
 //------------------------------------------------------------------------------
 ///
@@ -435,9 +433,9 @@ int vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_desc* desc);
 ///
 /// \param  itr  Pointer to iterator
 ///
-/// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
+/// \returns true if there was an error or false otherwise
 ///
-int vcap_fmt_itr_error(vcap_fmt_itr* itr);
+bool vcap_fmt_itr_error(vcap_fmt_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
@@ -464,7 +462,7 @@ vcap_size_itr* vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fmt);
 ///
 /// \returns 0 if there was an error or there are no more sizes, and 1 otherwise
 ///
-int vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size);
+bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size);
 
 //------------------------------------------------------------------------------
 ///
@@ -472,9 +470,9 @@ int vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size);
 ///
 /// \param  itr  Pointer to iterator
 ///
-/// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
+/// \returns true if there was an error or false otherwise
 ///
-int vcap_size_itr_error(vcap_size_itr* itr);
+bool vcap_size_itr_error(vcap_size_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
@@ -503,7 +501,7 @@ vcap_rate_itr* vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fmt, vcap_size size);
 ///
 /// \returns 0 if there was an error or there are no more sizes, and 1 otherwise
 ///
-int vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate);
+bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate);
 
 //------------------------------------------------------------------------------
 ///
@@ -511,9 +509,9 @@ int vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate);
 ///
 /// \param  itr  Pointer to iterator
 ///
-/// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
+/// \returns true if there was an error or false otherwise
 ///
-int vcap_rate_itr_error(vcap_rate_itr* itr);
+bool vcap_rate_itr_error(vcap_rate_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
@@ -629,7 +627,7 @@ vcap_ctrl_itr* vcap_new_ctrl_itr(vcap_fg* fg);
 ///
 /// \returns 0 if there was an error or there are no more controls, and 1 otherwise
 ///
-int vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_desc* desc);
+bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_desc* desc);
 
 //------------------------------------------------------------------------------
 ///
@@ -637,9 +635,9 @@ int vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_desc* desc);
 ///
 /// \param  itr  Pointer to iterator
 ///
-/// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
+/// \returns true if there was an error or false otherwise
 ///
-int vcap_ctrl_itr_error(vcap_ctrl_itr* itr);
+bool vcap_ctrl_itr_error(vcap_ctrl_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
@@ -666,7 +664,7 @@ vcap_menu_itr* vcap_new_menu_itr(vcap_fg* fg, vcap_ctrl_id ctrl);
 ///
 /// \returns 0 if there was an error or there are no more controls, and 1 otherwise
 ///
-int vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item);
+bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item);
 
 //------------------------------------------------------------------------------
 ///
@@ -674,9 +672,9 @@ int vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item);
 ///
 /// \param  itr  Pointer to iterator
 ///
-/// \returns VCAP_TRUE if there was an error or VCAP_FALSE otherwise
+/// \returns true if there was an error or false otherwise
 ///
-int vcap_menu_itr_error(vcap_menu_itr* itr);
+bool vcap_menu_itr_error(vcap_menu_itr* itr);
 
 //------------------------------------------------------------------------------
 ///

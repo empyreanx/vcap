@@ -275,40 +275,40 @@ vcap_fmt_itr* vcap_new_fmt_itr(vcap_fg* fg)
     return itr;
 }
 
-int vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_desc* desc)
+bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_desc* desc)
 {
     if (!itr)
-        return VCAP_FALSE;
+        return false;
 
     if (!desc)
     {
         VCAP_ERROR("Parameter 'desc' cannot be null");
         itr->result = VCAP_ENUM_ERROR;
-        return VCAP_FALSE;
+        return false;
     }
 
     if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
-        return VCAP_FALSE;
+        return false;
 
     *desc = itr->desc;
 
     itr->result = enum_fmts(itr->fg, &itr->desc, ++itr->index);
 
-    return VCAP_TRUE;
+    return true;
 }
 
-int vcap_fmt_itr_error(vcap_fmt_itr* itr)
+bool vcap_fmt_itr_error(vcap_fmt_itr* itr)
 {
     if (!itr)
     {
         VCAP_ERROR("Parameter 'itr' cannot be null");
-        return VCAP_TRUE;
+        return true;
     }
 
     if (itr->result == VCAP_ENUM_ERROR)
-        return VCAP_TRUE;
+        return true;
     else
-        return VCAP_FALSE;
+        return false;
 }
 
 vcap_size_itr* vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fmt)
@@ -341,40 +341,40 @@ vcap_size_itr* vcap_new_size_itr(vcap_fg* fg, vcap_fmt_id fmt)
     return itr;
 }
 
-int vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size)
+bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size)
 {
     if (!itr)
-        return VCAP_FALSE;
+        return false;
 
     if (!size)
     {
         VCAP_ERROR("Parameter 'size' cannot be null");
         itr->result = VCAP_ENUM_ERROR;
-        return VCAP_FALSE;
+        return false;
     }
 
     if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
-        return VCAP_FALSE;
+        return false;
 
     *size = itr->size;
 
     itr->result = enum_sizes(itr->fg, itr->fmt, &itr->size, ++itr->index);
 
-    return VCAP_TRUE;
+    return true;
 }
 
-int vcap_size_itr_error(vcap_size_itr* itr)
+bool vcap_size_itr_error(vcap_size_itr* itr)
 {
     if (!itr)
     {
         VCAP_ERROR("Parameter 'itr' cannot be null");
-        return VCAP_TRUE;
+        return true;
     }
 
     if (itr->result == VCAP_ENUM_ERROR)
-        return VCAP_TRUE;
+        return true;
     else
-        return VCAP_FALSE;
+        return false;
 }
 
 vcap_rate_itr* vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fmt, vcap_size size)
@@ -408,40 +408,40 @@ vcap_rate_itr* vcap_new_rate_itr(vcap_fg* fg, vcap_fmt_id fmt, vcap_size size)
     return itr;
 }
 
-int vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
+bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
 {
     if (!itr)
-        return VCAP_FALSE;
+        return false;
 
     if (!rate)
     {
         VCAP_ERROR("Parameter 'rate' cannot be null");
         itr->result = VCAP_ENUM_ERROR;
-        return VCAP_FALSE;
+        return false;
     }
 
     if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
-        return VCAP_FALSE;
+        return false;
 
     *rate = itr->rate;
 
     itr->result = enum_rates(itr->fg, itr->fmt, itr->size, &itr->rate, ++itr->index);
 
-    return VCAP_TRUE;
+    return true;
 }
 
-int vcap_rate_itr_error(vcap_rate_itr* itr)
+bool vcap_rate_itr_error(vcap_rate_itr* itr)
 {
     if (!itr)
     {
         VCAP_ERROR("Parameter 'itr' cannot be null");
-        return VCAP_TRUE;
+        return true;
     }
 
     if (itr->result == VCAP_ENUM_ERROR)
-        return VCAP_TRUE;
+        return true;
     else
-        return VCAP_FALSE;
+        return false;
 }
 
 int vcap_get_fmt(vcap_fg* fg, vcap_fmt_id* fmt, vcap_size* size)

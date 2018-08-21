@@ -112,6 +112,12 @@ int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc)
         return VCAP_CTRL_ERROR;
     }
 
+    if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN)
+    {
+        VCAP_ERROR("Invalid control (out of range)");
+        return VCAP_CTRL_ERROR;
+    }
+
     if (!desc)
     {
         VCAP_ERROR("Parameter 'desc' cannot be null");

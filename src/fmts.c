@@ -225,13 +225,19 @@ int vcap_get_fmt_desc(vcap_fg* fg, vcap_fmt_id fmt, vcap_fmt_desc* desc)
     if (!fg)
     {
         VCAP_ERROR("Parameter 'fg' cannot be null");
-        return VCAP_ENUM_ERROR;
+        return VCAP_FMT_ERROR;
+    }
+
+    if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
+    {
+        VCAP_ERROR("Invalid format (out of range)");
+        return VCAP_FMT_ERROR;
     }
 
     if (!desc)
     {
         VCAP_ERROR("Parameter 'desc' cannot be null");
-        return VCAP_ENUM_ERROR;
+        return VCAP_FMT_ERROR;
     }
 
     int result, i = 0;

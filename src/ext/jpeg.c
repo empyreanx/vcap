@@ -80,7 +80,7 @@ int vcap_save_jpeg(vcap_frame* frame, const char* path)
     if (setjmp(jerr.jmp_buffer))
     {
         VCAP_ERROR("%s", last_error);
-        ret = -1; goto end;;
+        ret = -1; goto end;
     }
 
     cinfo.err = jpeg_std_error(&jerr.pub);

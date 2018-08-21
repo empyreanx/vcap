@@ -71,7 +71,7 @@ int vcap_save_png(vcap_frame* frame, const char* path)
     if (!png_ptr)
     {
         VCAP_ERROR("Could not allocate PNG write struct\n");
-        ret = -1; goto end;;
+        ret = -1; goto end;
     }
 
     info_ptr = png_create_info_struct(png_ptr);
@@ -79,7 +79,7 @@ int vcap_save_png(vcap_frame* frame, const char* path)
     if (!info_ptr)
     {
         VCAP_ERROR("Could not allocate info struct\n");
-        ret = -1; goto end;;
+        ret = -1; goto end;
     }
 
     rows = (png_bytep*)png_malloc(png_ptr, frame->size.height * sizeof(png_bytep));
@@ -87,7 +87,7 @@ int vcap_save_png(vcap_frame* frame, const char* path)
     if (!rows)
     {
         VCAP_ERROR("Out of memory while allocating PNG rows");
-        ret = -1; goto end;;
+        ret = -1; goto end;
     }
 
     for (int i = 0; i < frame->size.height; i++)
@@ -96,7 +96,7 @@ int vcap_save_png(vcap_frame* frame, const char* path)
     if (setjmp(png_jmpbuf(png_ptr)))
     {
         VCAP_ERROR("Unable to initialize I/O");
-        ret = -1; goto end;;
+        ret = -1; goto end;
     }
 
     png_init_io(png_ptr, file);
@@ -104,7 +104,7 @@ int vcap_save_png(vcap_frame* frame, const char* path)
     if (setjmp(png_jmpbuf(png_ptr)))
     {
         VCAP_ERROR("Writing header failed");
-        ret = -1; goto end;;
+        ret = -1; goto end;
     }
 
     png_set_IHDR(png_ptr, info_ptr, frame->size.width, frame->size.height, 8,
@@ -116,7 +116,7 @@ int vcap_save_png(vcap_frame* frame, const char* path)
     if (setjmp(png_jmpbuf(png_ptr)))
     {
         VCAP_ERROR("Error writing bytes");
-        ret = -1; goto end;;
+        ret = -1; goto end;
     }
 
     png_write_image(png_ptr, rows);
@@ -124,7 +124,7 @@ int vcap_save_png(vcap_frame* frame, const char* path)
     if (setjmp(png_jmpbuf(png_ptr)))
     {
         VCAP_ERROR("Writing end of file failed");
-        ret = -1; goto end;;
+        ret = -1; goto end;
     }
 
     png_write_end(png_ptr, NULL);

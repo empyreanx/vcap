@@ -111,9 +111,9 @@ int vcap_try_get_device(const char* path, vcap_device* device)
 
     // Decode version
     snprintf((char*)device->version_str, sizeof(device->version_str), "%u.%u.%u",
-        (caps.version >> 16) & 0xFF,
-        (caps.version >> 8) & 0xFF,
-        (caps.version & 0xFF));
+            (caps.version >> 16) & 0xFF,
+            (caps.version >> 8) & 0xFF,
+            (caps.version & 0xFF));
 
     device->version = caps.version;
 

@@ -65,12 +65,12 @@ typedef struct vcap_menu_itr vcap_menu_itr;     ///< Menu iterator
 typedef struct
 {
     char path[512];             ///< Device path
-    uint8_t driver[16];         ///< Device driver name
+    uint8_t driver[32];         ///< Device driver name
     uint8_t card[32];           ///< Video hardware info
     uint8_t bus_info[32];       ///< Bus info
     uint32_t version;           ///< Driver version
     uint8_t version_str[16];    ///< Driver version str
-} vcap_device;
+} vcap_device_info;
 
 ///
 /// \brief Pixel format description
@@ -227,21 +227,7 @@ int vcap_dump_info(vcap_fg* fg, FILE* file);
 ///          VCAP_ENUM_INVALID if the index is invalid, and
 ///          VCAP_ENUM_ERROR   if querying the device failed.
 ///
-int vcap_enum_devices(vcap_device* device, int index);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Retrieves video capture device information
-///
-/// This function retrieves video capture device information for the device at
-/// the specified path.
-///
-/// \param  path    The path of the device handle
-/// \param  device  Pointer to the struct in which to store the device info
-///
-/// \returns -1 on error and 0 otherwise
-///
-int vcap_get_device(const char* path, vcap_device* device);
+int vcap_enum_devices(unsigned index, vcap_fg* fg);
 
 //------------------------------------------------------------------------------
 ///
@@ -255,7 +241,7 @@ int vcap_get_device(const char* path, vcap_device* device);
 ///
 /// \returns NULL on error and a pointer to a frame grabber otherwise
 ///
-vcap_fg* vcap_open(vcap_device* device);
+int vcap_open(const char* path, vcap_fg* fg);
 
 //------------------------------------------------------------------------------
 ///
@@ -265,7 +251,21 @@ vcap_fg* vcap_open(vcap_device* device);
 ///
 /// \param  fg  Pointer to the frame grabber
 ///
-void vcap_close(vcap_fg* fg);
+void vcap_close(const vcap_fg* fg);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Retrieves video capture device information
+///
+/// This function retrieves video capture device information for the device at
+/// the specified path.
+///
+/// \param  path    The path of the device handle
+/// \param  device  Pointer to the struct in which to store the device info
+///
+/// \returns -1 on error and 0 otherwise
+///
+void vcap_get_device_info(const vcap_fg* fg, vcap_device_info* info);
 
 //------------------------------------------------------------------------------
 ///

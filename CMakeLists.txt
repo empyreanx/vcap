@@ -97,6 +97,7 @@ endif()
 # Add library
 set(LIBRARY_OUTPUT_PATH lib)
 add_library(vcap SHARED ${SOURCE_FILES})
+target_link_libraries(vcap ${LIBRARIES})
 
 # Add examples
 add_subdirectory(examples)

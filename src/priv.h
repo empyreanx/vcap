@@ -35,7 +35,8 @@
 struct vcap_fg
 {
     int fd;
-    vcap_device device;
+    char path[512];
+    struct v4l2_capability caps;
 };
 
 // Format iterator
@@ -101,9 +102,6 @@ void vcap_set_alloc_priv(vcap_malloc_func malloc_func, vcap_free_func free_func)
 
 // Declare malloc function
 void* vcap_malloc(size_t size);
-
-// Tries to open a device. If successful it retrieves the device info.
-int vcap_try_get_device(const char* path, vcap_device* device);
 
 // FOURCC character code to string
 void vcap_fourcc_string(uint32_t code, uint8_t* str);

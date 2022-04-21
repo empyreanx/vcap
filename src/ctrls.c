@@ -137,7 +137,7 @@ int vcap_get_ctrl_desc(vcap_fg* fg, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc)
         }
         else
         {
-            VCAP_ERROR_ERRNO("Unable to read control descriptor on device '%s'", fg->device.path);
+            VCAP_ERROR_ERRNO("Unable to read control descriptor on device '%s'", fg->path);
             return VCAP_CTRL_ERROR;
         }
     }
@@ -197,7 +197,7 @@ int vcap_ctrl_status(vcap_fg* fg, vcap_ctrl_id ctrl)
         }
         else
         {
-            VCAP_ERROR_ERRNO("Unable to check control status on device '%s'", fg->device.path);
+            VCAP_ERROR_ERRNO("Unable to check control status on device '%s'", fg->path);
             return VCAP_CTRL_ERROR;
         }
     }
@@ -366,7 +366,7 @@ int vcap_get_ctrl(vcap_fg* fg, vcap_ctrl_id ctrl, int32_t* value)
 
     if (vcap_ioctl(fg->fd, VIDIOC_G_CTRL, &gctrl) == -1)
     {
-        VCAP_ERROR_ERRNO("Could not get control (%d) value on device '%s'", ctrl, fg->device.path);
+        VCAP_ERROR_ERRNO("Could not get control (%d) value on device '%s'", ctrl, fg->path);
         return -1;
     }
 
@@ -397,7 +397,7 @@ int vcap_set_ctrl(vcap_fg* fg, vcap_ctrl_id ctrl, int32_t value)
 
     if (vcap_ioctl(fg->fd, VIDIOC_S_CTRL, &sctrl) == -1)
     {
-        VCAP_ERROR_ERRNO("Could not set control (%d) value on device '%s'", ctrl, fg->device.path);
+        VCAP_ERROR_ERRNO("Could not set control (%d) value on device '%s'", ctrl, fg->path);
         return -1;
     }
 
@@ -541,7 +541,7 @@ int enum_menu(vcap_fg* fg, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t ind
         }
         else
         {
-            VCAP_ERROR_ERRNO("Unable to enumerate menu on device '%s'", fg->device.path);
+            VCAP_ERROR_ERRNO("Unable to enumerate menu on device '%s'", fg->path);
             return VCAP_ENUM_ERROR;
         }
     }

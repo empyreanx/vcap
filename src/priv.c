@@ -68,68 +68,6 @@ void vcap_set_error(const char* fmt, ...)
     strncpy(error_msg, error_tmp, sizeof(error_msg));
 }
 
-int vcap_try_get_device(const char* path, vcap_device* device)
-{
-    struct stat st;
-    struct v4l2_capability caps;
-
-    int fd = -1;
-
-    // Device must exist
-    if (stat(path, &st) == -1)
-        goto error;
-
-    // Device must be a character device
-    if (!S_ISCHR(st.st_mode))
-        goto error;
-
-    // Open the video device
-    fd = v4l2_open(path, O_RDONLY | O_NONBLOCK, 0);
-
-    if (fd == -1)
-        goto error;
-
-    // Get the device capabilities
-    if (vcap_ioctl(fd, VIDIOC_QUERYCAP, &caps) == -1)
-        goto error;
-
-    // Ensure video capture is supported
-    if (!(caps.capabilities & V4L2_CAP_VIDEO_CAPTURE))
-        goto error;
-
-    // Copy device information
-    strncpy((char*)device->path, (char*)path, sizeof(device->path));
-
-    assert(sizeof(device->driver) == sizeof(caps.driver));
-    memcpy(device->driver, caps.driver, sizeof(device->driver));
-
-    assert(sizeof(device->card) == sizeof(caps.card));
-    memcpy(device->card, caps.card, sizeof(device->card));
-
-    assert(sizeof(device->bus_info) == sizeof(caps.bus_info));
-    memcpy(device->bus_info, caps.bus_info, sizeof(device->bus_info));
-
-    // Decode version
-    snprintf((char*)device->version_str, sizeof(device->version_str), "%u.%u.%u",
-            (caps.version >> 16) & 0xFF,
-            (caps.version >> 8) & 0xFF,
-            (caps.version & 0xFF));
-
-    device->version = caps.version;
-
-    // Close device
-    v4l2_close(fd);
-
-    return 0;
-
-error:
-    // If the device was opened, make sure it is closed.
-    if (fd != -1)
-        v4l2_close(fd);
-
-    return -1;
-}
-
 void vcap_fourcc_string(uint32_t code, uint8_t* str)
 {
     str[0] = (code >> 0) & 0xFF;

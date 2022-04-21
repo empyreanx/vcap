@@ -477,7 +477,7 @@ int vcap_get_fmt(vcap_fg* fg, vcap_fmt_id* fmt, vcap_size* size)
 
     if (vcap_ioctl(fg->fd, VIDIOC_G_FMT, &gfmt))
     {
-        VCAP_ERROR_ERRNO("Unable to get format on device '%s'", fg->device.path);
+        VCAP_ERROR_ERRNO("Unable to get format on device '%s'", fg->path);
         return -1;
     }
 
@@ -513,7 +513,7 @@ int vcap_set_fmt(vcap_fg* fg, vcap_fmt_id fmt, vcap_size size)
 
     if (vcap_ioctl(fg->fd, VIDIOC_S_FMT, &sfmt) == -1)
     {
-        VCAP_ERROR_ERRNO("Unable to set format on device '%s'", fg->device.path);
+        VCAP_ERROR_ERRNO("Unable to set format on device '%s'", fg->path);
         return -1;
     }
 
@@ -539,7 +539,7 @@ int vcap_get_rate(vcap_fg* fg, vcap_rate* rate)
 
     if (vcap_ioctl(fg->fd, VIDIOC_G_PARM, &parm) == -1)
     {
-        VCAP_ERROR_ERRNO("Unable to get frame rate on device '%s'", fg->device.path);
+        VCAP_ERROR_ERRNO("Unable to get frame rate on device '%s'", fg->path);
         return -1;
     }
 
@@ -569,7 +569,7 @@ int vcap_set_rate(vcap_fg* fg, vcap_rate rate)
 
     if(vcap_ioctl(fg->fd, VIDIOC_S_PARM, &parm) == -1)
     {
-        VCAP_ERROR_ERRNO("Unable to set framerate on device %s", fg->device.path);
+        VCAP_ERROR_ERRNO("Unable to set framerate on device %s", fg->path);
         return -1;
     }
 
@@ -592,7 +592,7 @@ static int enum_fmts(vcap_fg* fg, vcap_fmt_desc* desc, uint32_t index)
         }
         else
         {
-            VCAP_ERROR_ERRNO("Unable to enumerate formats on device '%s'", fg->device.path);
+            VCAP_ERROR_ERRNO("Unable to enumerate formats on device '%s'", fg->path);
             return VCAP_ENUM_ERROR;
         }
     }
@@ -625,7 +625,7 @@ static int enum_sizes(vcap_fg* fg, vcap_fmt_id fmt, vcap_size* size, uint32_t in
             return VCAP_ENUM_INVALID;
         } else
         {
-            VCAP_ERROR_ERRNO("Unable to enumerate sizes on device '%s'", fg->device.path);
+            VCAP_ERROR_ERRNO("Unable to enumerate sizes on device '%s'", fg->path);
             return VCAP_ENUM_ERROR;
         }
     }
@@ -658,7 +658,7 @@ static int enum_rates(vcap_fg* fg, vcap_fmt_id fmt, vcap_size size, vcap_rate* r
         }
         else
         {
-            VCAP_ERROR_ERRNO("Unable to enumerate frame rates on device '%s'", fg->device.path);
+            VCAP_ERROR_ERRNO("Unable to enumerate frame rates on device '%s'", fg->path);
             return VCAP_ENUM_ERROR;
         }
     }

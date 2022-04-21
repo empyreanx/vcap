@@ -275,7 +275,7 @@ int vcap_enum_devices(unsigned index, vcap_fg* fg)
     {
         snprintf(path, sizeof(path), "/dev/%s", names[i]->d_name);
 
-        if (vcap_open(path, fg) == 0)
+        if (0 == vcap_open(path, fg))
         {
             if (index == count)
             {
@@ -284,6 +284,7 @@ int vcap_enum_devices(unsigned index, vcap_fg* fg)
             }
             else
             {
+                vcap_close(fg);
                 count++;
             }
         }
@@ -344,7 +345,7 @@ int vcap_open(const char* path, vcap_fg* fg)
     }
 
     // Copy path
-    strncpy(fg->path, path, sizeof(fg->path));
+    vcap_strcpy(fg->path, path, sizeof(fg->path));
 
     // Copy capabilities
     fg->caps = caps;
@@ -354,7 +355,8 @@ int vcap_open(const char* path, vcap_fg* fg)
 
 void vcap_close(const vcap_fg* fg)
 {
-    v4l2_close(fg->fd);
+    if (fg->fd >= 0)
+        v4l2_close(fg->fd);
 }
 
 void vcap_get_device_info(const vcap_fg* fg, vcap_device_info* info)
@@ -365,10 +367,10 @@ void vcap_get_device_info(const vcap_fg* fg, vcap_device_info* info)
     struct v4l2_capability caps = fg->caps;
 
     // Copy device information
-    strncpy(info->path, fg->path, sizeof(info->path));
-    strncpy((char*)info->driver, (char*)caps.driver, sizeof(info->driver));
-    strncpy((char*)info->card, (char*)caps.card, sizeof(info->card));
-    strncpy((char*)info->bus_info, (char*)caps.bus_info, sizeof(info->bus_info));
+    vcap_strcpy(info->path, fg->path, sizeof(info->path));
+    vcap_strcpy((char*)info->driver, (char*)caps.driver, sizeof(info->driver));
+    vcap_strcpy((char*)info->card, (char*)caps.card, sizeof(info->card));
+    vcap_strcpy((char*)info->bus_info, (char*)caps.bus_info, sizeof(info->bus_info));
     info->version = caps.version;
 
     // Decode version

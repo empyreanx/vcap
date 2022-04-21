@@ -37,6 +37,11 @@ static char error_tmp[1024];
 static vcap_malloc_func malloc_func_ptr = malloc;
 static vcap_free_func free_func_ptr = free;
 
+void vcap_strcpy(char* dst, const char* src, size_t size)
+{
+    snprintf(dst, size, "%s", src);
+}
+
 const char* vcap_get_error_priv()
 {
     return error_msg;

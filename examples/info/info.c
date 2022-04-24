@@ -48,14 +48,13 @@ int main(int argc, char** argv)
     }
 
     // Open device
-    vcap_open(device.path, &fg);
+    ret = vcap_open(device.path, &fg);
 
-    // FIXME: Check return code
-    /*if (!fg)
+    if (ret == -1)
     {
         printf("%s\n", vcap_get_error());
         return -1;
-    }*/
+    }
 
     // Dump info
     if (vcap_dump_info(&fg, stdout) == -1)

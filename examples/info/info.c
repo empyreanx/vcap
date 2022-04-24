@@ -30,10 +30,10 @@ int main(int argc, char** argv)
     if (argc == 2)
         index = atoi(argv[1]);
 
-    vcap_device device;
+    vcap_device_info device = { 0 };
+    vcap_fg fg = { 0 };
 
-    // Find first video capture device
-    int ret = vcap_enum_devices(&device, index);
+    int ret = vcap_enum_devices(index, &device);
 
     if (ret == VCAP_ENUM_ERROR)
     {
@@ -48,20 +48,21 @@ int main(int argc, char** argv)
     }
 
     // Open device
-    vcap_fg* fg = vcap_open(&device);
+    vcap_open(device.path, &fg);
 
-    if (!fg)
+    // FIXME: Check return code
+    /*if (!fg)
     {
         printf("%s\n", vcap_get_error());
         return -1;
-    }
+    }*/
 
     // Dump info
-    if (vcap_dump_info(fg, stdout) == -1)
+    if (vcap_dump_info(&fg, stdout) == -1)
         printf("%s\n", vcap_get_error());
 
     // Close device
-    vcap_close(fg);
+    vcap_close(&fg);
 
     return 0;
 }

@@ -52,12 +52,18 @@ extern "C" {
 #include <stdint.h>
 #include <stdio.h>
 
-typedef struct vcap_fg vcap_fg;                 ///< Frame grabber
 typedef struct vcap_fmt_itr vcap_fmt_itr;       ///< Format iterator
 typedef struct vcap_size_itr vcap_size_itr;     ///< Size iterator
 typedef struct vcap_rate_itr vcap_rate_itr;     ///< Frame rate iterator
 typedef struct vcap_ctrl_itr vcap_ctrl_itr;     ///< Control iterator
 typedef struct vcap_menu_itr vcap_menu_itr;     ///< Menu iterator
+
+typedef struct
+{
+    int fd;
+    char path[512];
+    struct v4l2_capability caps;
+} vcap_fg;
 
 ///
 /// \brief Video capture device infomation
@@ -227,7 +233,7 @@ int vcap_dump_info(vcap_fg* fg, FILE* file);
 ///          VCAP_ENUM_INVALID if the index is invalid, and
 ///          VCAP_ENUM_ERROR   if querying the device failed.
 ///
-int vcap_enum_devices(unsigned index, vcap_fg* fg);
+int vcap_enum_devices(unsigned index, vcap_device_info* info);
 
 //------------------------------------------------------------------------------
 ///
@@ -728,60 +734,6 @@ int vcap_reset_ctrl(vcap_fg* fg, vcap_ctrl_id ctrl);
 /// \returns -1 on error and 0 otherwise
 ///
 int vcap_reset_all_ctrls(vcap_fg* fg);
-
-#ifdef VCAP_SUPPORT_JSON
-//------------------------------------------------------------------------------
-///
-/// \brief  Exports device settings to a JSON file (requires Jansson)
-///
-/// Exports all video capture device settings, including format and controls
-/// to a JSON file.
-///
-/// \param  fg    Pointer to the frame grabber
-/// \param  path  The path of the JSON file
-///
-/// \returns -1 on error and 0 otherwise
-///
-int vcap_export_settings(vcap_fg* fg, const char* path);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Imports device settings from a JSON file (requires Jansson)
-///
-/// Imports all video capture device settings, including format and controls
-/// from a JSON file.
-///
-/// \param  fg    Pointer to the frame grabber
-/// \param  path  The path of the JSON file
-///
-/// \returns -1 on error and 0 otherwise
-///
-int vcap_import_settings(vcap_fg* fg, const char* path);
-#endif // VCAP_SUPPORT_JSON
-
-#ifdef VCAP_SUPPORT_PNG
-//------------------------------------------------------------------------------
-///
-/// \brief  Saves a frame to a PNG file (requires libpng)
-///
-/// \param  frame  Pointer to the frame
-///
-/// \returns -1 on error and 0 otherwise
-///
-int vcap_save_png(vcap_frame* frame, const char* path);
-#endif // VCAP_SUPPORT_PNG
-
-#ifdef VCAP_SUPPORT_JPEG
-//------------------------------------------------------------------------------
-///
-/// \brief  Saves a frame to a JPEG file (requires libjpeg)
-///
-/// \param  frame  Pointer to the frame
-///
-/// \returns -1 on error and 0 otherwise
-///
-int vcap_save_jpeg(vcap_frame* frame, const char* path);
-#endif // VCAP_SUPPORT_JPEG
 
 #ifdef __cplusplus
 }

@@ -34,13 +34,16 @@ endif()
 add_definitions(-Wall -std=c99 -D_GNU_SOURCE)
 
 # Add souce files
-file(GLOB BASE_FILES
+file(GLOB SOURCE_FILES
     include/vcap/*.h
     src/*.h
     src/*.c
 )
 
-set(SOURCE_FILES ${BASE_FILES})
+set(LIBRARY_OUTPUT_PATH lib)
+
+# Add V4L2 library
+add_library(vcap SHARED ${SOURCE_FILES})
 
 # Find V4L2
 find_package(V4L2 REQUIRED)
@@ -49,55 +52,8 @@ if(NOT V4L2_FOUND)
     message(FATAL_ERROR "V4L2 not found!")
 endif()
 
-include_directories(${V4L2_INCLUDE_DIR})
-set(LIBRARIES ${V4L2_LIBRARIES})
-
-# Find Jansson
-if(SUPPORT_JSON)
-    find_package(Jansson)
-
-    if(NOT JANSSON_FOUND)
-        message(WARNING "Unable to find Jansson: disabling JSON support")
-    else()
-        add_definitions(-DVCAP_SUPPORT_JSON)
-        include_directories(JANSSON_INCLUDE_DIRS)
-        list(APPEND SOURCE_FILES "src/ext/json.c")
-        list(APPEND LIBRARIES ${JANSSON_LIBRARY})
-    endif()
-endif()
-
-# Find libpng
-if(SUPPORT_PNG)
-    find_package(PNG)
-
-    if(NOT PNG_FOUND)
-        message(WARNING "Unable to find libpng: disabling PNG support")
-    else()
-        add_definitions(-DVCAP_SUPPORT_PNG)
-        include_directories(PNG_INCLUDE_DIRS)
-        list(APPEND SOURCE_FILES "src/ext/png.c")
-        list(APPEND LIBRARIES ${PNG_LIBRARY})
-    endif()
-endif()
-
-# Find libjpeg
-if(SUPPORT_JPEG)
-    find_package(JPEG)
-
-    if(NOT JPEG_FOUND)
-        message(WARNING "Unable to find libjpeg: disabling JPEG support")
-    else()
-        add_definitions(-DVCAP_SUPPORT_JPEG)
-        include_directories(JPEG_INCLUDE_DIR)
-        list(APPEND SOURCE_FILES "src/ext/jpeg.c")
-        list(APPEND LIBRARIES ${JPEG_LIBRARIES})
-    endif()
-endif()
-
-# Add library
-set(LIBRARY_OUTPUT_PATH lib)
-add_library(vcap SHARED ${SOURCE_FILES})
-target_link_libraries(vcap ${LIBRARIES})
+target_link_libraries(vcap ${V4L2_LIBRARIES})
+target_include_directories(vcap PUBLIC ${V4L2_INCLUDE_DIR})
 
 # Add examples
 add_subdirectory(examples)

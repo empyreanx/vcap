@@ -256,7 +256,7 @@ end:
     return ret;
 }
 
-int vcap_enum_devices(unsigned index, vcap_fg* fg)
+int vcap_enum_devices(unsigned index, vcap_device_info* info)
 {
     int count = 0;
 
@@ -275,16 +275,20 @@ int vcap_enum_devices(unsigned index, vcap_fg* fg)
     {
         snprintf(path, sizeof(path), "/dev/%s", names[i]->d_name);
 
-        if (0 == vcap_open(path, fg))
+        vcap_fg fg;
+
+        if (0 == vcap_open(path, &fg))
         {
             if (index == count)
             {
+                vcap_get_device_info(&fg, info);
                 free(names);
+                vcap_close(&fg);
                 return VCAP_ENUM_OK;
             }
             else
             {
-                vcap_close(fg);
+                vcap_close(&fg);
                 count++;
             }
         }

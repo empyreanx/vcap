@@ -34,12 +34,7 @@
 void vcap_strcpy(char* dst, const char* src, size_t size);
 
 // Frame grabber
-struct vcap_fg
-{
-    int fd;
-    char path[512];
-    struct v4l2_capability caps;
-};
+
 
 // Format iterator
 struct vcap_fmt_itr

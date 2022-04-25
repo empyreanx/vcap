@@ -526,12 +526,17 @@ int enum_menu(vcap_fg* fg, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t ind
         return VCAP_ENUM_ERROR;
     }
 
+    if (index + desc.min > desc.min + desc.max)
+    {
+        return VCAP_ENUM_INVALID;
+    }
+
     // Query menu
     struct v4l2_querymenu qmenu;
 
     VCAP_CLEAR(qmenu);
     qmenu.id = ctrl_map[ctrl];
-    qmenu.index = index;
+    qmenu.index = desc.min + index;
 
     if (vcap_ioctl(fg->fd, VIDIOC_QUERYMENU, &qmenu) == -1)
     {

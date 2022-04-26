@@ -329,6 +329,8 @@ int vcap_copy_frame(vcap_frame* dst, vcap_frame* src);
 ///
 vcap_frame* vcap_clone_frame(vcap_frame* frame);
 
+int vcap_update_frame(vcap_vd* vd, vcap_frame* frame);
+
 //------------------------------------------------------------------------------
 ///
 /// \brief  Grabs a grabs a frame

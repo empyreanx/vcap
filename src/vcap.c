@@ -526,6 +526,28 @@ int vcap_grab(vcap_vd* vd, vcap_frame* frame)
     assert(vd);
     assert(frame);
 
+    struct v4l2_format fmt;
+
+    VCAP_CLEAR(fmt);
+    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+    if (vcap_ioctl(vd->fd, VIDIOC_G_FMT, &fmt))
+    {
+        VCAP_ERROR_ERRNO("Unable to get format on device '%s'", vd->path);
+        return -1;
+    }
+
+    int length = frame->length;
+
+    frame->fmt = vcap_convert_fmt_id(fmt.fmt.pix.pixelformat);
+    frame->size.width = fmt.fmt.pix.width;
+    frame->size.height = fmt.fmt.pix.height;
+    frame->stride = fmt.fmt.pix.bytesperline;
+    frame->length = fmt.fmt.pix.sizeimage;
+
+    if (length != frame->length)
+        frame->data = realloc(frame->data, frame->length);
+
     while (true)
     {
         if (v4l2_read(vd->fd, frame->data, frame->length) == -1)

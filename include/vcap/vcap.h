@@ -340,7 +340,7 @@ vcap_frame* vcap_clone_frame(vcap_frame* frame);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_grab(vcap_vd* vd, vcap_frame* frame);
+int vcap_grab(vcap_vd* vd, vcap_frame* frame); // FIXME: Should reinitialize frame?
 
 //------------------------------------------------------------------------------
 ///

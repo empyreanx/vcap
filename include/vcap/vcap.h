@@ -255,7 +255,7 @@ int vcap_enum_devices(unsigned index, vcap_device_info* info);
 ///
 /// \returns NULL on error and a pointer to a frame grabber otherwise
 ///
-int vcap_open(const char* path, int buffer_count, vcap_vd* vd);
+int vcap_open(const char* path, vcap_vd* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -265,8 +265,9 @@ int vcap_open(const char* path, int buffer_count, vcap_vd* vd);
 ///
 /// \param  vd  Pointer to the frame grabber
 ///
-void vcap_close(const vcap_vd* vd);
+int vcap_close(vcap_vd* vd);
 
+int vcap_init_stream(vcap_vd* vd, int buffer_count);
 int vcap_start_stream(const vcap_vd* vd);
 int vcap_stop_stream(const vcap_vd* vd);
 

@@ -281,7 +281,7 @@ int vcap_enum_devices(unsigned index, vcap_device_info* info)
 
         vcap_vd vd;
 
-        if (0 == vcap_open(path, false, &vd))
+        if (0 == vcap_open(path, &vd))
         {
             if (index == count)
             {
@@ -303,7 +303,7 @@ int vcap_enum_devices(unsigned index, vcap_device_info* info)
     return VCAP_ENUM_INVALID;
 }
 
-int vcap_open(const char* path, int buffer_count, vcap_vd* vd)
+int vcap_open(const char* path, vcap_vd* vd)
 {
     struct stat st;
     struct v4l2_capability caps;
@@ -366,36 +366,55 @@ int vcap_open(const char* path, int buffer_count, vcap_vd* vd)
     // Copy capabilities
     vd->caps = caps;
 
-    // Start streaming
-    if (buffer_count > 0)
-    {
-        if (-1 == vcap_request_buffers(vd, buffer_count))
-            return -1;
+    // Must be set to avoid bad things
+    vd->buffer_count = 0;
 
-        if (-1 == vcap_map_buffers(vd))
-            return -1;
+    return 0;
+}
+
+int vcap_close(vcap_vd* vd)
+{
+    if (vd->buffer_count > 0)
+    {
+        return vcap_unmap_buffers(vd);
+    }
+
+    if (vd->fd >= 0)
+        v4l2_close(vd->fd);
+
+    return 0;
+}
+
+int vcap_init_stream(vcap_vd* vd, int buffer_count)
+{
+    if (-1 == vcap_request_buffers(vd, buffer_count))
+        return -1;
+
+    if (-1 == vcap_map_buffers(vd))
+        return -1;
+
+    return 0;
+}
+
+int vcap_start_stream(const vcap_vd* vd)
+{
+    if (vd->buffer_count > 0)
+    {
+        int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        vcap_ioctl(vd->fd, VIDIOC_STREAMON, &type);
     }
 
     return 0;
 }
 
-void vcap_close(const vcap_vd* vd)
-{
-    if (vd->fd >= 0)
-        v4l2_close(vd->fd);
-}
-
-int vcap_start_stream(const vcap_vd* vd)
-{
-    int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    vcap_ioctl(vd->fd, VIDIOC_STREAMON, &type);
-    return 0;
-}
-
 int vcap_stop_stream(const vcap_vd* vd)
 {
-    int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    vcap_ioctl(vd->fd, VIDIOC_STREAMOFF, &type);
+    if (vd->buffer_count > 0)
+    {
+        int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        vcap_ioctl(vd->fd, VIDIOC_STREAMOFF, &type);
+    }
+
     return 0;
 }
 
@@ -565,11 +584,33 @@ int vcap_update_frame(vcap_vd* vd, vcap_frame* frame)
     return 0;
 }
 
-int vcap_grab(vcap_vd* vd, vcap_frame* frame)
+int vcap_grab_mmap(vcap_vd* vd, vcap_frame* frame)
 {
-    assert(vd);
-    assert(frame);
+    struct v4l2_buffer buf;
 
+	//dequeue buffer
+    VCAP_CLEAR(buf);
+    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    buf.memory = V4L2_MEMORY_MMAP;
+
+    if (-1 == vcap_ioctl(vd->fd, VIDIOC_DQBUF, &buf))
+    {
+        VCAP_ERROR_ERRNO("Could not dequeue buffer on %s", vd->path);
+        return -1;
+    }
+
+    memcpy(frame->data, vd->buffers[buf.index].data, frame->length);
+
+    if (-1 == vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf)) {
+        VCAP_ERROR_ERRNO("Could not requeue buffer on %s", vd->path);
+        return -1;
+    }
+
+    return 0;
+}
+
+int vcap_grab_read(vcap_vd* vd, vcap_frame* frame)
+{
     while (true)
     {
         if (v4l2_read(vd->fd, frame->data, frame->length) == -1)
@@ -587,6 +628,17 @@ int vcap_grab(vcap_vd* vd, vcap_frame* frame)
 
         return 0; // Break out of loop
     }
+}
+
+int vcap_grab(vcap_vd* vd, vcap_frame* frame)
+{
+    assert(vd);
+    assert(frame);
+
+    if (vd->buffer_count > 0)
+        return vcap_grab_mmap(vd, frame);
+
+    return vcap_grab_read(vd, frame);
 }
 
 int vcap_get_crop_bounds(vcap_vd* vd, vcap_rect* rect)
@@ -788,6 +840,8 @@ static int vcap_map_buffers(vcap_vd* vd)
             return -1;
         }
     }
+
+    sleep(2);
 
     return 0;
 }

@@ -48,7 +48,7 @@ int main(int argc, char** argv)
     }
 
     // Open device
-    ret = vcap_open(device.path, false, &vd);
+    ret = vcap_open(device.path, &vd);
 
     if (ret == -1)
     {

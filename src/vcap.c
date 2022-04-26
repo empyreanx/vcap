@@ -330,7 +330,7 @@ int vcap_open(const char* path, vcap_fg* fg)
     }
 
     // Ensure child processes should't inherit the video device
-    fcntl(fg->fd, F_SETFD, FD_CLOEXEC);
+    //fcntl(fg->fd, F_SETFD, FD_CLOEXEC);
 
     // Obtain device capabilities
     if (vcap_ioctl(fg->fd, VIDIOC_QUERYCAP, &caps) == -1)
@@ -348,6 +348,14 @@ int vcap_open(const char* path, vcap_fg* fg)
         return -1;
     }
 
+    // Ensure video capture is supported
+    if (!(caps.capabilities & V4L2_CAP_STREAMING))
+    {
+        VCAP_ERROR("Video device %s does not support streaming", path);
+        vcap_close(fg);
+        return -1;
+    }
+
     // Copy path
     vcap_strcpy(fg->path, path, sizeof(fg->path));
 
@@ -361,6 +369,20 @@ void vcap_close(const vcap_fg* fg)
 {
     if (fg->fd >= 0)
         v4l2_close(fg->fd);
+}
+
+int vcap_start_stream(const vcap_fg* fg)
+{
+    int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    vcap_ioctl(fg->fd, VIDIOC_STREAMON, &type);
+    return 0;
+}
+
+int vcap_stop_stream(const vcap_fg* fg)
+{
+    int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    vcap_ioctl(fg->fd, VIDIOC_STREAMOFF, &type);
+    return 0;
 }
 
 void vcap_get_device_info(const vcap_fg* fg, vcap_device_info* info)
@@ -439,127 +461,13 @@ void vcap_free_frame(vcap_frame* frame)
     vcap_free(frame);
 }
 
-int vcap_copy_frame(vcap_frame* dst, vcap_frame* src)
-{
-    if (!dst)
-    {
-        VCAP_ERROR("Parameter 'dst' cannot be null");
-        return -1;
-    }
-
-    if (!src)
-    {
-        VCAP_ERROR("Parameter 'src' cannot be null");
-        return -1;
-    }
-
-    if (!src->data || src->length == 0)
-    {
-        VCAP_ERROR("Invalid frame 'src'");
-        return -1;
-    }
-
-    if (!dst->data || src->length != dst->length)
-    {
-        vcap_free(dst->data);
-        dst->data = vcap_malloc(src->length);
-
-        if (!dst->data)
-        {
-            VCAP_ERROR("Out of memory while copying frame");
-            return -1;
-        }
-    }
-
-    dst->fmt = src->fmt;
-    dst->size = src->size;
-    dst->stride = src->stride;
-    dst->length = src->length;
-
-    memcpy(dst->data, src->data, dst->length);
-
-    return 0;
-}
-
-vcap_frame* vcap_clone_frame(vcap_frame* frame)
-{
-    if (!frame)
-    {
-        VCAP_ERROR("Parameter 'frame' cannot be null");
-        return NULL;
-    }
-
-    if (!frame->data || frame->length == 0)
-    {
-        VCAP_ERROR("Invalid frame");
-        return NULL;
-    }
-
-    vcap_frame* clone = vcap_malloc(sizeof(vcap_frame));
-
-    if (!clone)
-    {
-        VCAP_ERROR("Out of memory while cloning frame");
-        return NULL;
-    }
-
-    clone->data = NULL;
-
-    if (vcap_copy_frame(clone, frame) == -1)
-    {
-        VCAP_ERROR("%s", vcap_get_error());;
-        vcap_free_frame(clone);
-        return NULL;
-    }
-
-    return clone;
-}
-
 int vcap_grab(vcap_fg* fg, vcap_frame* frame)
 {
-    if (!fg)
+    assert(fg);
+    assert(frame);
+
+    while (true)
     {
-        VCAP_ERROR("Parameter 'fg' cannot be null");
-        return -1;
-    }
-
-    if (!frame)
-    {
-        VCAP_ERROR("Parameter 'frame' cannot be null");
-        return -1;
-    }
-
-    fd_set fds;
-    int result;
-    struct timeval tv;
-
-    while (1)
-    {
-        do
-        {
-            FD_ZERO(&fds);
-            FD_SET(fg->fd, &fds);
-
-            // Timeout
-            tv.tv_sec = 5;
-            tv.tv_usec = 0;
-
-            result = select(fg->fd + 1, &fds, NULL, NULL, &tv);
-        }
-        while (result == -1 && errno == EINTR);
-
-        if (result == -1)
-        {
-            VCAP_ERROR("Unable to grab frame on device '%s'", fg->path);
-            return -1;
-        }
-
-        if (result == 0)
-        {
-            VCAP_ERROR("Unable to grab frame (timeout expired) on device '%s'", fg->path);
-            return -1;
-        }
-
         if (v4l2_read(fg->fd, frame->data, frame->length) == -1)
         {
             if (errno == EAGAIN)
@@ -568,7 +476,7 @@ int vcap_grab(vcap_fg* fg, vcap_frame* frame)
             }
             else
             {
-                VCAP_ERROR_ERRNO("Reading from device '%s' failed", fg->path);
+                VCAP_ERROR_ERRNO("Reading from device %s failed", fg->path);
                 return -1;
             }
         }

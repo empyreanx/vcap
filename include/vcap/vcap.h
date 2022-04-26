@@ -259,6 +259,9 @@ int vcap_open(const char* path, vcap_fg* fg);
 ///
 void vcap_close(const vcap_fg* fg);
 
+int vcap_start_stream(const vcap_fg* fg);
+int vcap_stop_stream(const vcap_fg* fg);
+
 //------------------------------------------------------------------------------
 ///
 /// \brief  Retrieves video capture device information
@@ -297,34 +300,6 @@ vcap_frame* vcap_alloc_frame(vcap_fg* fg);
 /// \param  frame  Pointer to the frame struct
 ///
 void vcap_free_frame(vcap_frame* frame);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Copies a frame
-///
-/// Copies a frame without using dynamic memory allocation. Both frames should
-/// have been allocated with 'vcap_alloc_frame'. This function is is essentially
-/// a wrapper around 'memcpy' that provides some additional sanity checks.
-///
-/// \param  dst  Pointer to the destination frame
-/// \param  src  Pointer to the source frame
-///
-/// \returns -1 on error or 0 otherwise
-///
-int vcap_copy_frame(vcap_frame* dst, vcap_frame* src);
-
-//------------------------------------------------------------------------------
-///
-/// \brief   Clones a frame
-///
-/// Allocates a new frame and copies into it the contents of the specified
-/// frame. The resulting frame should be deallocated using 'vcap_free_frame'.
-///
-/// \param  frame  Pointer to the frame to copy
-///
-/// \returns The cloned frame
-///
-vcap_frame* vcap_clone_frame(vcap_frame* frame);
 
 //------------------------------------------------------------------------------
 ///

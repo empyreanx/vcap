@@ -426,7 +426,8 @@ vcap_frame* vcap_alloc_frame(vcap_vd* vd)
     if (vcap_ioctl(vd->fd, VIDIOC_G_FMT, &fmt))
     {
         VCAP_ERROR_ERRNO("Unable to get format on device '%s'", vd->path);
-        goto error;
+        vcap_free(frame);
+        return NULL;
     }
 
     frame->fmt = vcap_convert_fmt_id(fmt.fmt.pix.pixelformat);
@@ -439,15 +440,11 @@ vcap_frame* vcap_alloc_frame(vcap_vd* vd)
     if (!frame->data)
     {
         VCAP_ERROR_ERRNO("Ran out of memory allocating frame data");
-        goto error;
+        vcap_free(frame);
+        return NULL;
     }
 
     return frame;
-
-error:
-
-    vcap_free(frame);
-    return NULL;
 }
 
 void vcap_free_frame(vcap_frame* frame)
@@ -459,6 +456,69 @@ void vcap_free_frame(vcap_frame* frame)
         vcap_free(frame->data);
 
     vcap_free(frame);
+}
+
+int vcap_copy_frame(vcap_frame* dst, vcap_frame* src)
+{
+    assert(dst);
+    assert(src);
+
+    if (!src->data || src->length == 0)
+    {
+        VCAP_ERROR("Invalid frame 'src'");
+        return -1;
+    }
+
+    if (!dst->data || src->length != dst->length)
+    {
+        vcap_free(dst->data);
+        dst->data = vcap_malloc(src->length);
+
+        if (!dst->data)
+        {
+            VCAP_ERROR("Out of memory while copying frame");
+            return -1;
+        }
+    }
+
+    dst->fmt = src->fmt;
+    dst->size = src->size;
+    dst->stride = src->stride;
+    dst->length = src->length;
+
+    memcpy(dst->data, src->data, dst->length);
+
+    return 0;
+}
+
+vcap_frame* vcap_clone_frame(vcap_frame* frame)
+{
+    assert(frame);
+
+    if (!frame->data || frame->length == 0)
+    {
+        VCAP_ERROR("Invalid frame");
+        return NULL;
+    }
+
+    vcap_frame* clone = vcap_malloc(sizeof(vcap_frame));
+
+    if (!clone)
+    {
+        VCAP_ERROR("Out of memory while cloning frame");
+        return NULL;
+    }
+
+    clone->data = NULL;
+
+    if (vcap_copy_frame(clone, frame) == -1)
+    {
+        VCAP_ERROR("%s", vcap_get_error());;
+        vcap_free_frame(clone);
+        return NULL;
+    }
+
+    return clone;
 }
 
 int vcap_grab(vcap_vd* vd, vcap_frame* frame)

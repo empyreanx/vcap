@@ -60,8 +60,16 @@ typedef struct vcap_menu_itr vcap_menu_itr;     ///< Menu iterator
 
 typedef struct
 {
+    size_t size;
+    void* data;
+} vcap_buffer;
+
+typedef struct
+{
     int fd;
     char path[512];
+    int buffer_count;
+    vcap_buffer* buffers;
     struct v4l2_capability caps;
 } vcap_vd;
 
@@ -247,7 +255,7 @@ int vcap_enum_devices(unsigned index, vcap_device_info* info);
 ///
 /// \returns NULL on error and a pointer to a frame grabber otherwise
 ///
-int vcap_open(const char* path, vcap_vd* vd);
+int vcap_open(const char* path, int buffer_count, vcap_vd* vd);
 
 //------------------------------------------------------------------------------
 ///

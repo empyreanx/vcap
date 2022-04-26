@@ -33,6 +33,10 @@
 #include <sys/stat.h>
 
 // Filters device list so that 'scandir' returns only video devices.
+static int vcap_request_buffers(vcap_vd* vd, int buffer_count);
+static int vcap_map_buffers(vcap_vd* vd);
+static int vcap_unmap_buffers(vcap_vd* vd);
+
 static int video_device_filter(const struct dirent *a);
 
 const char* vcap_get_error()
@@ -277,7 +281,7 @@ int vcap_enum_devices(unsigned index, vcap_device_info* info)
 
         vcap_vd vd;
 
-        if (0 == vcap_open(path, &vd))
+        if (0 == vcap_open(path, false, &vd))
         {
             if (index == count)
             {
@@ -299,7 +303,7 @@ int vcap_enum_devices(unsigned index, vcap_device_info* info)
     return VCAP_ENUM_INVALID;
 }
 
-int vcap_open(const char* path, vcap_vd* vd)
+int vcap_open(const char* path, int buffer_count, vcap_vd* vd)
 {
     struct stat st;
     struct v4l2_capability caps;
@@ -361,6 +365,16 @@ int vcap_open(const char* path, vcap_vd* vd)
 
     // Copy capabilities
     vd->caps = caps;
+
+    // Start streaming
+    if (buffer_count > 0)
+    {
+        if (-1 == vcap_request_buffers(vd, buffer_count))
+            return -1;
+
+        if (-1 == vcap_map_buffers(vd))
+            return -1;
+    }
 
     return 0;
 }
@@ -546,7 +560,7 @@ int vcap_update_frame(vcap_vd* vd, vcap_frame* frame)
     frame->length = fmt.fmt.pix.sizeimage;
 
     if (length != frame->length)
-        frame->data = realloc(frame->data, frame->length);
+        frame->data = realloc(frame->data, frame->length); // vcap_realloc
 
     return 0;
 }
@@ -555,28 +569,6 @@ int vcap_grab(vcap_vd* vd, vcap_frame* frame)
 {
     assert(vd);
     assert(frame);
-
-    /*struct v4l2_format fmt;
-
-    VCAP_CLEAR(fmt);
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-    if (vcap_ioctl(vd->fd, VIDIOC_G_FMT, &fmt))
-    {
-        VCAP_ERROR_ERRNO("Unable to get format on device '%s'", vd->path);
-        return -1;
-    }
-
-    int length = frame->length;
-
-    frame->fmt = vcap_convert_fmt_id(fmt.fmt.pix.pixelformat);
-    frame->size.width = fmt.fmt.pix.width;
-    frame->size.height = fmt.fmt.pix.height;
-    frame->stride = fmt.fmt.pix.bytesperline;
-    frame->length = fmt.fmt.pix.sizeimage;
-
-    if (length != frame->length)
-        frame->data = realloc(frame->data, frame->length);*/
 
     while (true)
     {
@@ -736,6 +728,77 @@ int vcap_set_crop(vcap_vd* vd, vcap_rect rect)
         } else
         {
             VCAP_ERROR_ERRNO("Unable to set crop window on device '%s'", vd->path);
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+static int vcap_request_buffers(vcap_vd* vd, int buffer_count)
+{
+    struct v4l2_requestbuffers req;
+
+    VCAP_CLEAR(req);
+    req.count = buffer_count;
+    req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    req.memory = V4L2_MEMORY_MMAP;
+
+	if (-1 == vcap_ioctl(vd->fd, VIDIOC_REQBUFS, &req))
+	{
+    	VCAP_ERROR_ERRNO("Unable to request buffers on %s", vd->path);
+		return -1;
+    }
+
+    if (0 == req.count)
+    {
+        VCAP_ERROR("Invalid buffer count on %s", vd->path);
+        return -1;
+    }
+
+    vd->buffer_count = req.count;
+    vd->buffers = vcap_malloc(req.count * sizeof(vcap_buffer));
+
+    return 0;
+}
+
+static int vcap_map_buffers(vcap_vd* vd)
+{
+    for (int i = 0; i < vd->buffer_count; i++)
+    {
+        struct v4l2_buffer buf;
+
+        VCAP_CLEAR(buf);
+        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.memory = V4L2_MEMORY_MMAP;
+        buf.index = i;
+
+        if (-1 == vcap_ioctl(vd->fd, VIDIOC_QUERYBUF, &buf))
+        {
+            VCAP_ERROR_ERRNO("Unable to query buffers on %s", vd->path);
+            return -1;
+        }
+
+        vd->buffers[i].size = buf.length;
+        vd->buffers[i].data = v4l2_mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, vd->fd, buf.m.offset);
+
+        if (MAP_FAILED == vd->buffers[i].data)
+        {
+            VCAP_ERROR("MMAP failed on %s", vd->path);
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+static int vcap_unmap_buffers(vcap_vd* vd)
+{
+    for (int i = 0; i < vd->buffer_count; i++)
+    {
+        if (-1 == v4l2_munmap(vd->buffers[i].data, vd->buffers[i].size))
+        {
+            VCAP_ERROR_ERRNO("Unmapping buffers failed on %s", vd->path);
             return -1;
         }
     }

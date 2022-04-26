@@ -36,6 +36,7 @@
 static int vcap_request_buffers(vcap_vd* vd, int buffer_count);
 static int vcap_map_buffers(vcap_vd* vd);
 static int vcap_unmap_buffers(vcap_vd* vd);
+static int vcap_queue_buffers(vcap_vd* vd);
 
 static int video_device_filter(const struct dirent *a);
 
@@ -376,7 +377,7 @@ int vcap_close(vcap_vd* vd)
 {
     if (vd->buffer_count > 0)
     {
-        return vcap_unmap_buffers(vd);
+        vcap_unmap_buffers(vd);
     }
 
     if (vd->fd >= 0)
@@ -393,6 +394,9 @@ int vcap_init_stream(vcap_vd* vd, int buffer_count)
     if (-1 == vcap_map_buffers(vd))
         return -1;
 
+    if (-1 == vcap_queue_buffers(vd))
+        return -1;
+
     return 0;
 }
 
@@ -400,7 +404,7 @@ int vcap_start_stream(const vcap_vd* vd)
 {
     if (vd->buffer_count > 0)
     {
-        int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         vcap_ioctl(vd->fd, VIDIOC_STREAMON, &type);
     }
 
@@ -411,7 +415,7 @@ int vcap_stop_stream(const vcap_vd* vd)
 {
     if (vd->buffer_count > 0)
     {
-        int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         vcap_ioctl(vd->fd, VIDIOC_STREAMOFF, &type);
     }
 
@@ -498,7 +502,7 @@ int vcap_copy_frame(vcap_frame* dst, vcap_frame* src)
 
     if (!src->data || src->length == 0)
     {
-        VCAP_ERROR("Invalid frame 'src'");
+        VCAP_ERROR("Invalid source frame");
         return -1;
     }
 
@@ -858,6 +862,27 @@ static int vcap_unmap_buffers(vcap_vd* vd)
     }
 
     return 0;
+}
+
+static int vcap_queue_buffers(vcap_vd* vd)
+{
+    for (int i = 0; i < vd->buffer_count; i++)
+    {
+        struct v4l2_buffer buf;
+
+        VCAP_CLEAR(buf);
+        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.memory = V4L2_MEMORY_MMAP;
+        buf.index = i;
+
+        if (-1 == vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf))
+        {
+            VCAP_ERROR_ERRNO("Unable to queue buffers on device %s", vd->path);
+            return -1;
+        }
+	}
+
+	return 0;
 }
 
 static int video_device_filter(const struct dirent *a)

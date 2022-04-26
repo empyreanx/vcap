@@ -31,7 +31,7 @@ int main(int argc, char** argv)
         index = atoi(argv[1]);
 
     vcap_device_info device = { 0 };
-    vcap_fg fg = { 0 };
+    vcap_vd vd = { 0 };
 
     int ret = vcap_enum_devices(index, &device);
 
@@ -48,7 +48,7 @@ int main(int argc, char** argv)
     }
 
     // Open device
-    ret = vcap_open(device.path, &fg);
+    ret = vcap_open(device.path, &vd);
 
     if (ret == -1)
     {
@@ -57,11 +57,11 @@ int main(int argc, char** argv)
     }
 
     // Dump info
-    if (vcap_dump_info(&fg, stdout) == -1)
+    if (vcap_dump_info(&vd, stdout) == -1)
         printf("%s\n", vcap_get_error());
 
     // Close device
-    vcap_close(&fg);
+    vcap_close(&vd);
 
     return 0;
 }

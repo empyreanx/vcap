@@ -261,6 +261,67 @@ end:
     return ret;
 }
 
+int vcap_query_caps(const char* path, struct v4l2_capability* caps)
+{
+    assert(path);
+    assert(caps);
+
+    struct stat st;
+    int fd = -1;
+
+    // Device must exist
+    if (-1 == stat(path, &st))
+       return -1;
+
+    // Device must be a character device
+    if (!S_ISCHR(st.st_mode))
+        return -1;
+
+    // Open the video device
+    fd = v4l2_open(path, O_RDWR | O_NONBLOCK, 0);
+
+    if (-1 == fd)
+        return -1;
+
+    // Obtain device capabilities
+    if (-1 == vcap_ioctl(fd, VIDIOC_QUERYCAP, caps))
+    {
+        //VCAP_ERROR_ERRNO("Querying video device %s capabilities failed", path);
+        v4l2_close(fd);
+        return -1;
+    }
+
+    // Ensure video capture is supported
+    if (!(caps->capabilities & V4L2_CAP_VIDEO_CAPTURE))
+    {
+        //VCAP_ERROR("Video device %s does not support video capture", path);
+        v4l2_close(fd);
+        return -1;
+    }
+
+    v4l2_close(fd);
+
+    return 0;
+}
+
+void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_device_info* info)
+{
+    assert(info);
+
+    // Copy device information
+    vcap_strcpy(info->path, path, sizeof(info->path));
+    vcap_strcpy((char*)info->driver, (char*)caps.driver, sizeof(info->driver));
+    vcap_strcpy((char*)info->card, (char*)caps.card, sizeof(info->card));
+    vcap_strcpy((char*)info->bus_info, (char*)caps.bus_info, sizeof(info->bus_info));
+    info->version = caps.version;
+
+    // Decode version
+    snprintf((char*)info->version_str, sizeof(info->version_str), "%u.%u.%u",
+            (caps.version >> 16) & 0xFF,
+            (caps.version >> 8) & 0xFF,
+            (caps.version & 0xFF));
+}
+
 int vcap_enum_devices(unsigned index, vcap_device_info* info)
 {
     int count = 0;
@@ -280,20 +341,18 @@ int vcap_enum_devices(unsigned index, vcap_device_info* info)
     {
         snprintf(path, sizeof(path), "/dev/%s", names[i]->d_name);
 
-        vcap_vd vd;
+        struct v4l2_capability caps;
 
-        if (0 == vcap_open(path, &vd))
+        if (0 == vcap_query_caps(path, &caps))
         {
             if (index == count)
             {
-                vcap_get_device_info(&vd, info);
+                vcap_caps_to_info(path, caps, info);
                 free(names);
-                vcap_close(&vd);
                 return VCAP_ENUM_OK;
             }
             else
             {
-                vcap_close(&vd);
                 count++;
             }
         }
@@ -335,7 +394,7 @@ int vcap_open(const char* path, vcap_vd* vd)
     }
 
     // Ensure child processes should't inherit the video device
-    //fcntl(vd->fd, F_SETFD, FD_CLOEXEC);
+    fcntl(vd->fd, F_SETFD, FD_CLOEXEC);
 
     // Obtain device capabilities
     if (vcap_ioctl(vd->fd, VIDIOC_QUERYCAP, &caps) == -1)
@@ -451,20 +510,7 @@ void vcap_get_device_info(const vcap_vd* vd, vcap_device_info* info)
     assert(vd);
     assert(info);
 
-    struct v4l2_capability caps = vd->caps;
-
-    // Copy device information
-    vcap_strcpy(info->path, vd->path, sizeof(info->path));
-    vcap_strcpy((char*)info->driver, (char*)caps.driver, sizeof(info->driver));
-    vcap_strcpy((char*)info->card, (char*)caps.card, sizeof(info->card));
-    vcap_strcpy((char*)info->bus_info, (char*)caps.bus_info, sizeof(info->bus_info));
-    info->version = caps.version;
-
-    // Decode version
-    snprintf((char*)info->version_str, sizeof(info->version_str), "%u.%u.%u",
-            (caps.version >> 16) & 0xFF,
-            (caps.version >> 8) & 0xFF,
-            (caps.version & 0xFF));
+    vcap_caps_to_info(vd->path, vd->caps, info);
 }
 
 vcap_frame* vcap_alloc_frame(vcap_vd* vd)

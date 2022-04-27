@@ -29,6 +29,8 @@ endif()
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     add_definitions(-O2)
+else()
+    add_definitions(-g)
 endif()
 
 add_definitions(-Wall -std=c99 -D_GNU_SOURCE)

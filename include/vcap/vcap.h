@@ -68,6 +68,8 @@ typedef struct
 {
     int fd;
     char path[512];
+    bool open;
+    bool streaming;
     int buffer_count;
     vcap_buffer* buffers;
     struct v4l2_capability caps;
@@ -186,6 +188,8 @@ typedef struct
 typedef void* (*vcap_malloc_func)(size_t size); ///< Custom malloc function type
 typedef void (*vcap_free_func)(void* ptr);      ///< Custom free function type
 
+
+
 //------------------------------------------------------------------------------
 ///
 /// \brief  Set a custom 'malloc' and 'free' function
@@ -243,6 +247,9 @@ int vcap_dump_info(vcap_vd* vd, FILE* file);
 ///
 int vcap_enum_devices(unsigned index, vcap_device_info* info);
 
+vcap_vd* vcap_create_device(const char* path, int buffer_count);
+void vcap_destroy_device(vcap_vd* vd);
+
 //------------------------------------------------------------------------------
 ///
 /// \brief  Opens a video capture device
@@ -255,7 +262,7 @@ int vcap_enum_devices(unsigned index, vcap_device_info* info);
 ///
 /// \returns NULL on error and a pointer to a frame grabber otherwise
 ///
-int vcap_open(const char* path, vcap_vd* vd);
+int vcap_open(vcap_vd* vd);
 
 //------------------------------------------------------------------------------
 ///

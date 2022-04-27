@@ -363,43 +363,68 @@ int vcap_enum_devices(unsigned index, vcap_device_info* info)
     return VCAP_ENUM_INVALID;
 }
 
-int vcap_open(const char* path, vcap_vd* vd)
+vcap_vd* vcap_create_device(const char* path, int buffer_count)
 {
+    vcap_vd* vd = vcap_malloc(sizeof(vcap_vd));
+    memset(vd, 0, sizeof(vcap_vd));
+
+    vd->fd = -1;
+    vd->buffer_count = buffer_count;
+
+    vcap_strcpy(vd->path, path, sizeof(vd->path));
+
+    return vd;
+}
+
+void vcap_destroy_device(vcap_vd* vd)
+{
+    vcap_close(vd);
+    vcap_free(vd);
+}
+
+int vcap_open(vcap_vd* vd)
+{
+    assert(vd);
+
+    if (vd->open)
+    {
+        VCAP_ERROR("Device %s is already open", vd->path);
+        return -1;
+    }
+
     struct stat st;
     struct v4l2_capability caps;
 
-    vd->fd = -1;
-
     // Device must exist
-    if (stat(path, &st) == -1)
+    if (-1 == stat(vd->path, &st))
     {
-        VCAP_ERROR_ERRNO("Video device %s does not exist", path);
+        VCAP_ERROR_ERRNO("Video device %s does not exist", vd->path);
         return -1;
     }
 
     // Device must be a character device
     if (!S_ISCHR(st.st_mode))
     {
-        VCAP_ERROR_ERRNO("Video device %s is not a character device", path);
+        VCAP_ERROR_ERRNO("Video device %s is not a character device", vd->path);
         return -1;
     }
 
     // Open the video device
-    vd->fd = v4l2_open(path, O_RDWR | O_NONBLOCK, 0);
+    vd->fd = v4l2_open(vd->path, O_RDWR | O_NONBLOCK, 0);
 
     if (-1 == vd->fd)
     {
-        VCAP_ERROR_ERRNO("Opening video device %s failed", path);
+        VCAP_ERROR_ERRNO("Opening video device %s failed", vd->path);
         return -1;
     }
 
-    // Ensure child processes should't inherit the video device
+    // Ensure child processes dont't inherit the video device
     fcntl(vd->fd, F_SETFD, FD_CLOEXEC);
 
     // Obtain device capabilities
-    if (vcap_ioctl(vd->fd, VIDIOC_QUERYCAP, &caps) == -1)
+    if (-1 == vcap_ioctl(vd->fd, VIDIOC_QUERYCAP, &caps))
     {
-        VCAP_ERROR_ERRNO("Querying video device %s capabilities failed", path);
+        VCAP_ERROR_ERRNO("Querying video device %s capabilities failed", vd->path);
         vcap_close(vd);
         return -1;
     }
@@ -407,7 +432,7 @@ int vcap_open(const char* path, vcap_vd* vd)
     // Ensure video capture is supported
     if (!(caps.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
-        VCAP_ERROR("Video device %s does not support video capture", path);
+        VCAP_ERROR("Video device %s does not support video capture", vd->path);
         vcap_close(vd);
         return -1;
     }
@@ -415,25 +440,30 @@ int vcap_open(const char* path, vcap_vd* vd)
     // Ensure video capture is supported
     if (!(caps.capabilities & V4L2_CAP_STREAMING))
     {
-        VCAP_ERROR("Video device %s does not support streaming", path);
+        VCAP_ERROR("Video device %s does not support streaming", vd->path);
         vcap_close(vd);
         return -1;
     }
-
-    // Copy path
-    vcap_strcpy(vd->path, path, sizeof(vd->path));
 
     // Copy capabilities
     vd->caps = caps;
 
     // Must be set to 0 to avoid bad things
-    vd->buffer_count = 0;
+    //vd->buffer_count = 0;
+
+    vd->open = true;
 
     return 0;
 }
 
 int vcap_close(vcap_vd* vd)
 {
+    if (!vd->open)
+    {
+        VCAP_ERROR("Unable to close %s. Device is not open", vd->path);
+        return -1;
+    }
+
     if (vd->buffer_count > 0)
     {
         vcap_unmap_buffers(vd);

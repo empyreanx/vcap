@@ -491,17 +491,19 @@ int vcap_get_fmt(vcap_vd* vd, vcap_fmt_id* fmt, vcap_size* size)
 
 int vcap_set_fmt(vcap_vd* vd, vcap_fmt_id fmt, vcap_size size)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return -1;
-    }
+    assert(vd);
 
     if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
     {
         VCAP_ERROR("Invalid format (out of range)");
         return -1;
     }
+
+    if (-1 == vcap_stop_stream(vd))
+        return -1;
+
+    if (-1 == vcap_shutdown_stream(vd))
+        return -1;
 
     struct v4l2_format sfmt;
 
@@ -511,11 +513,17 @@ int vcap_set_fmt(vcap_vd* vd, vcap_fmt_id fmt, vcap_size size)
     sfmt.fmt.pix.pixelformat = fmt_map[fmt];
     sfmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
 
-    if (vcap_ioctl(vd->fd, VIDIOC_S_FMT, &sfmt) == -1)
+    if (-1 == vcap_ioctl(vd->fd, VIDIOC_S_FMT, &sfmt))
     {
-        VCAP_ERROR_ERRNO("Unable to set format on device '%s'", vd->path);
+        VCAP_ERROR_ERRNO("Unable to set format on %s", vd->path);
         return -1;
     }
+
+    if (-1 == vcap_init_stream(vd, vd->buffer_count))
+        return -1;
+
+    if (-1 == vcap_start_stream(vd))
+        return -1;
 
     return 0;
 }

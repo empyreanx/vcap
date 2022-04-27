@@ -268,6 +268,7 @@ int vcap_open(const char* path, vcap_vd* vd);
 int vcap_close(vcap_vd* vd);
 
 int vcap_init_stream(vcap_vd* vd, int buffer_count);
+int vcap_shutdown_stream(vcap_vd* vd);
 int vcap_start_stream(const vcap_vd* vd);
 int vcap_stop_stream(const vcap_vd* vd);
 

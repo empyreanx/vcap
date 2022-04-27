@@ -38,7 +38,7 @@ static int vcap_map_buffers(vcap_vd* vd);
 static int vcap_unmap_buffers(vcap_vd* vd);
 static int vcap_queue_buffers(vcap_vd* vd);
 
-static int video_device_filter(const struct dirent *a);
+static int vcap_video_device_filter(const struct dirent *a);
 
 const char* vcap_get_error()
 {
@@ -266,7 +266,7 @@ int vcap_enum_devices(unsigned index, vcap_device_info* info)
     int count = 0;
 
     struct dirent **names;
-    int n = scandir("/dev", &names, video_device_filter, alphasort);
+    int n = scandir("/dev", &names, vcap_video_device_filter, alphasort);
 
     if (n < 0)
     {
@@ -367,7 +367,7 @@ int vcap_open(const char* path, vcap_vd* vd)
     // Copy capabilities
     vd->caps = caps;
 
-    // Must be set to avoid bad things
+    // Must be set to 0 to avoid bad things
     vd->buffer_count = 0;
 
     return 0;
@@ -388,14 +388,27 @@ int vcap_close(vcap_vd* vd)
 
 int vcap_init_stream(vcap_vd* vd, int buffer_count)
 {
-    if (-1 == vcap_request_buffers(vd, buffer_count))
-        return -1;
+    if (buffer_count > 0)
+    {
+        if (-1 == vcap_request_buffers(vd, buffer_count))
+            return -1;
 
-    if (-1 == vcap_map_buffers(vd))
-        return -1;
+        if (-1 == vcap_map_buffers(vd))
+            return -1;
 
-    if (-1 == vcap_queue_buffers(vd))
-        return -1;
+        if (-1 == vcap_queue_buffers(vd))
+            return -1;
+    }
+
+    return 0;
+}
+
+int vcap_shutdown_stream(vcap_vd* vd)
+{
+    if (vd->buffer_count > 0)
+    {
+        return vcap_unmap_buffers(vd);
+    }
 
     return 0;
 }
@@ -405,7 +418,12 @@ int vcap_start_stream(const vcap_vd* vd)
     if (vd->buffer_count > 0)
     {
     	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        vcap_ioctl(vd->fd, VIDIOC_STREAMON, &type);
+
+        if (-1 == vcap_ioctl(vd->fd, VIDIOC_STREAMON, &type))
+        {
+            VCAP_ERROR_ERRNO("Unable to start stream on %s", vd->path);
+            return -1;
+        }
     }
 
     return 0;
@@ -416,7 +434,12 @@ int vcap_stop_stream(const vcap_vd* vd)
     if (vd->buffer_count > 0)
     {
     	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        vcap_ioctl(vd->fd, VIDIOC_STREAMOFF, &type);
+
+        if (-1 == vcap_ioctl(vd->fd, VIDIOC_STREAMOFF, &type))
+        {
+            VCAP_ERROR_ERRNO("Unable to stop stream on %s", vd->path);
+            return -1;
+        }
     }
 
     return 0;
@@ -845,8 +868,6 @@ static int vcap_map_buffers(vcap_vd* vd)
         }
     }
 
-    sleep(2);
-
     return 0;
 }
 
@@ -885,7 +906,7 @@ static int vcap_queue_buffers(vcap_vd* vd)
 	return 0;
 }
 
-static int video_device_filter(const struct dirent *a)
+static int vcap_video_device_filter(const struct dirent *a)
 {
     if (0 == strncmp(a->d_name, "video", 5))
         return 1;

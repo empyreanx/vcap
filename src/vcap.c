@@ -407,7 +407,8 @@ int vcap_shutdown_stream(vcap_vd* vd)
 {
     if (vd->buffer_count > 0)
     {
-        return vcap_unmap_buffers(vd);
+        if (-1 == vcap_unmap_buffers(vd))
+            return -1;
     }
 
     return 0;
@@ -881,6 +882,9 @@ static int vcap_unmap_buffers(vcap_vd* vd)
             return -1;
         }
     }
+
+    vcap_free(vd->buffers);
+    vd->buffer_count = 0;
 
     return 0;
 }

@@ -425,7 +425,7 @@ int vcap_open(vcap_vd* vd)
     if (-1 == vcap_ioctl(vd->fd, VIDIOC_QUERYCAP, &caps))
     {
         VCAP_ERROR_ERRNO("Querying video device %s capabilities failed", vd->path);
-        vcap_close(vd);
+        v4l2_close(vd->fd);
         return -1;
     }
 
@@ -433,16 +433,30 @@ int vcap_open(vcap_vd* vd)
     if (!(caps.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
         VCAP_ERROR("Video device %s does not support video capture", vd->path);
-        vcap_close(vd);
+        v4l2_close(vd->fd);
         return -1;
     }
 
-    // Ensure video capture is supported
-    if (!(caps.capabilities & V4L2_CAP_STREAMING))
+    // Check I/O capabilities
+    if (vd->buffer_count > 0)
     {
-        VCAP_ERROR("Video device %s does not support streaming", vd->path);
-        vcap_close(vd);
-        return -1;
+        // Ensure streaming is supported
+        if (!(caps.capabilities & V4L2_CAP_STREAMING))
+        {
+            VCAP_ERROR("Video device %s does not support streaming", vd->path);
+            v4l2_close(vd->fd);
+            return -1;
+        }
+    }
+    else
+    {
+        // Ensure video capture is supported
+        if (!(caps.capabilities & V4L2_CAP_READWRITE))
+        {
+            VCAP_ERROR("Video device %s does not support read/write", vd->path);
+            v4l2_close(vd->fd);
+            return -1;
+        }
     }
 
     // Copy capabilities
@@ -460,7 +474,7 @@ int vcap_close(vcap_vd* vd)
 {
     if (!vd->open)
     {
-        VCAP_ERROR("Unable to close %s. Device is not open", vd->path);
+        VCAP_ERROR("Unable to close %s, device is not open", vd->path);
         return -1;
     }
 

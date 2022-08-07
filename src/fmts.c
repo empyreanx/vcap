@@ -499,10 +499,13 @@ int vcap_set_fmt(vcap_vd* vd, vcap_fmt_id fmt, vcap_size size)
         return -1;
     }
 
-    if (-1 == vcap_stop_stream(vd))
+    /*if (-1 == vcap_stop_stream(vd))
+        return -1;*/
+
+    if (-1 == vcap_close(vd))
         return -1;
 
-    if (-1 == vcap_shutdown_stream(vd))
+    if (-1 == vcap_open(vd))
         return -1;
 
     struct v4l2_format sfmt;
@@ -519,8 +522,8 @@ int vcap_set_fmt(vcap_vd* vd, vcap_fmt_id fmt, vcap_size size)
         return -1;
     }
 
-    if (-1 == vcap_init_stream(vd, vd->buffer_count))
-        return -1;
+    //if (-1 == vcap_init_stream(vd))
+    //    return -1;
 
     if (-1 == vcap_start_stream(vd))
         return -1;

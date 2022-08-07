@@ -370,6 +370,7 @@ vcap_vd* vcap_create_device(const char* path, int buffer_count)
 
     vd->fd = -1;
     vd->buffer_count = buffer_count;
+    vd->streaming = false;
 
     vcap_strcpy(vd->path, path, sizeof(vd->path));
 
@@ -450,7 +451,7 @@ int vcap_open(vcap_vd* vd)
     }
     else
     {
-        // Ensure video capture is supported
+        // Ensure read is supported
         if (!(caps.capabilities & V4L2_CAP_READWRITE))
         {
             VCAP_ERROR("Video device %s does not support read/write", vd->path);
@@ -459,11 +460,10 @@ int vcap_open(vcap_vd* vd)
         }
     }
 
+    //vd->fd = v4l2_fd_open(vd->fd, 0);
+
     // Copy capabilities
     vd->caps = caps;
-
-    // Must be set to 0 to avoid bad things
-    //vd->buffer_count = 0;
 
     vd->open = true;
 
@@ -480,20 +480,23 @@ int vcap_close(vcap_vd* vd)
 
     if (vd->buffer_count > 0)
     {
-        vcap_unmap_buffers(vd);
+        //vcap_unmap_buffers(vd);
+        vcap_stop_stream(vd);
     }
 
     if (vd->fd >= 0)
         v4l2_close(vd->fd);
 
+    vd->open = false;
+
     return 0;
 }
 
-int vcap_init_stream(vcap_vd* vd, int buffer_count)
+int vcap_init_stream(vcap_vd* vd)
 {
-    if (buffer_count > 0)
+    if (vd->buffer_count > 0)
     {
-        if (-1 == vcap_request_buffers(vd, buffer_count))
+        if (-1 == vcap_request_buffers(vd, vd->buffer_count))
             return -1;
 
         if (-1 == vcap_map_buffers(vd))
@@ -517,10 +520,13 @@ int vcap_shutdown_stream(vcap_vd* vd)
     return 0;
 }
 
-int vcap_start_stream(const vcap_vd* vd)
+int vcap_start_stream(vcap_vd* vd)
 {
-    if (vd->buffer_count > 0)
+    if (vd->buffer_count > 0 && !vd->streaming)
     {
+        if (-1 == vcap_init_stream(vd))
+            return -1;
+
     	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
         if (-1 == vcap_ioctl(vd->fd, VIDIOC_STREAMON, &type))
@@ -528,14 +534,16 @@ int vcap_start_stream(const vcap_vd* vd)
             VCAP_ERROR_ERRNO("Unable to start stream on %s", vd->path);
             return -1;
         }
+
+        vd->streaming = true;
     }
 
     return 0;
 }
 
-int vcap_stop_stream(const vcap_vd* vd)
+int vcap_stop_stream(vcap_vd* vd)
 {
-    if (vd->buffer_count > 0)
+    if (vd->buffer_count > 0 && vd->streaming)
     {
     	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
@@ -544,6 +552,11 @@ int vcap_stop_stream(const vcap_vd* vd)
             VCAP_ERROR_ERRNO("Unable to stop stream on %s", vd->path);
             return -1;
         }
+
+        if (-1 == vcap_shutdown_stream(vd))
+            return -1;
+
+        vd->streaming = false;
     }
 
     return 0;

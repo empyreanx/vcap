@@ -32,12 +32,14 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-// Filters device list so that 'scandir' returns only video devices.
-static int vcap_request_buffers(vcap_vd* vd, int buffer_count);
-static int vcap_map_buffers(vcap_vd* vd);
-static int vcap_unmap_buffers(vcap_vd* vd);
-static int vcap_queue_buffers(vcap_vd* vd);
+static int vcap_request_buffers(vcap_dev* vd, int buffer_count);
+static int vcap_init_stream(vcap_dev* vd);
+static int vcap_shutdown_stream(vcap_dev* vd);
+static int vcap_map_buffers(vcap_dev* vd);
+static int vcap_unmap_buffers(vcap_dev* vd);
+static int vcap_queue_buffers(vcap_dev* vd);
 
+// Filters device list so that 'scandir' returns only video devices.
 static int vcap_video_device_filter(const struct dirent *a);
 
 const char* vcap_get_error()
@@ -56,7 +58,7 @@ void vcap_set_alloc(vcap_malloc_func malloc_func, vcap_free_func free_func)
 // reported. A user application may choose to ignore some error cases, trading
 // a little robustness for some convenience.
 //
-int vcap_dump_info(vcap_vd* vd, FILE* file)
+int vcap_dump_info(vcap_dev* vd, FILE* file)
 {
     if (!vd)
     {
@@ -72,7 +74,7 @@ int vcap_dump_info(vcap_vd* vd, FILE* file)
     vcap_ctrl_itr* ctrl_itr = NULL;
     vcap_menu_itr* menu_itr = NULL;
 
-    vcap_device_info info = { 0 };
+    vcap_dev_info info = { 0 };
     vcap_get_device_info(vd, &info);
 
     //==========================================================================
@@ -304,7 +306,7 @@ int vcap_query_caps(const char* path, struct v4l2_capability* caps)
     return 0;
 }
 
-void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_device_info* info)
+void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_dev_info* info)
 {
     assert(info);
 
@@ -322,7 +324,7 @@ void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap
             (caps.version & 0xFF));
 }
 
-int vcap_enum_devices(unsigned index, vcap_device_info* info)
+int vcap_enum_devices(unsigned index, vcap_dev_info* info)
 {
     int count = 0;
 
@@ -363,10 +365,10 @@ int vcap_enum_devices(unsigned index, vcap_device_info* info)
     return VCAP_ENUM_INVALID;
 }
 
-vcap_vd* vcap_create_device(const char* path, int buffer_count)
+vcap_dev* vcap_create_device(const char* path, int buffer_count)
 {
-    vcap_vd* vd = vcap_malloc(sizeof(vcap_vd));
-    memset(vd, 0, sizeof(vcap_vd));
+    vcap_dev* vd = vcap_malloc(sizeof(vcap_dev));
+    memset(vd, 0, sizeof(vcap_dev));
 
     vd->fd = -1;
     vd->buffer_count = buffer_count;
@@ -377,17 +379,17 @@ vcap_vd* vcap_create_device(const char* path, int buffer_count)
     return vd;
 }
 
-void vcap_destroy_device(vcap_vd* vd)
+void vcap_destroy_device(vcap_dev* vd)
 {
     vcap_close(vd);
     vcap_free(vd);
 }
 
-int vcap_open(vcap_vd* vd)
+int vcap_open(vcap_dev* vd)
 {
     assert(vd);
 
-    if (vd->open)
+    if (vcap_is_open(vd))
     {
         VCAP_ERROR("Device %s is already open", vd->path);
         return -1;
@@ -460,19 +462,18 @@ int vcap_open(vcap_vd* vd)
         }
     }
 
-    //vd->fd = v4l2_fd_open(vd->fd, 0);
+    //vd->fd = v4l2_fd_open(vd->fd, 0); //TODO
 
     // Copy capabilities
     vd->caps = caps;
-
     vd->open = true;
 
     return 0;
 }
 
-int vcap_close(vcap_vd* vd)
+int vcap_close(vcap_dev* vd)
 {
-    if (!vd->open)
+    if (!vcap_is_open(vd))
     {
         VCAP_ERROR("Unable to close %s, device is not open", vd->path);
         return -1;
@@ -480,8 +481,8 @@ int vcap_close(vcap_vd* vd)
 
     if (vd->buffer_count > 0)
     {
-        //vcap_unmap_buffers(vd);
-        vcap_stop_stream(vd);
+        if (vcap_is_streaming(vd) && -1 == vcap_stop_stream(vd))
+            return -1;
     }
 
     if (vd->fd >= 0)
@@ -492,37 +493,15 @@ int vcap_close(vcap_vd* vd)
     return 0;
 }
 
-int vcap_init_stream(vcap_vd* vd)
+int vcap_start_stream(vcap_dev* vd)
 {
-    if (vd->buffer_count > 0)
+    if (vcap_is_streaming(vd))
     {
-        if (-1 == vcap_request_buffers(vd, vd->buffer_count))
-            return -1;
-
-        if (-1 == vcap_map_buffers(vd))
-            return -1;
-
-        if (-1 == vcap_queue_buffers(vd))
-            return -1;
+        VCAP_ERROR("Unable to start stream on %s, device is already streaming", vd->path);
+        return -1;
     }
 
-    return 0;
-}
-
-int vcap_shutdown_stream(vcap_vd* vd)
-{
     if (vd->buffer_count > 0)
-    {
-        if (-1 == vcap_unmap_buffers(vd))
-            return -1;
-    }
-
-    return 0;
-}
-
-int vcap_start_stream(vcap_vd* vd)
-{
-    if (vd->buffer_count > 0 && !vd->streaming)
     {
         if (-1 == vcap_init_stream(vd))
             return -1;
@@ -541,9 +520,15 @@ int vcap_start_stream(vcap_vd* vd)
     return 0;
 }
 
-int vcap_stop_stream(vcap_vd* vd)
+int vcap_stop_stream(vcap_dev* vd)
 {
-    if (vd->buffer_count > 0 && vd->streaming)
+    if (!vcap_is_streaming(vd))
+    {
+        VCAP_ERROR("Unable to close stream on %s, device is not streaming", vd->path);
+        return -1;
+    }
+
+    if (vd->buffer_count > 0)
     {
     	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
@@ -562,7 +547,17 @@ int vcap_stop_stream(vcap_vd* vd)
     return 0;
 }
 
-void vcap_get_device_info(const vcap_vd* vd, vcap_device_info* info)
+bool vcap_is_open(vcap_dev* vd)
+{
+    return vd->open;
+}
+
+bool vcap_is_streaming(vcap_dev* vd)
+{
+    return vd->streaming;
+}
+
+void vcap_get_device_info(const vcap_dev* vd, vcap_dev_info* info)
 {
     assert(vd);
     assert(info);
@@ -570,7 +565,7 @@ void vcap_get_device_info(const vcap_vd* vd, vcap_device_info* info)
     vcap_caps_to_info(vd->path, vd->caps, info);
 }
 
-vcap_frame* vcap_alloc_frame(vcap_vd* vd)
+vcap_frame* vcap_alloc_frame(vcap_dev* vd)
 {
     assert(vd);
 
@@ -685,7 +680,7 @@ vcap_frame* vcap_clone_frame(vcap_frame* frame)
     return clone;
 }
 
-int vcap_update_frame(vcap_vd* vd, vcap_frame* frame)
+int vcap_update_frame(vcap_dev* vd, vcap_frame* frame)
 {
     assert(vd);
     assert(frame);
@@ -715,7 +710,7 @@ int vcap_update_frame(vcap_vd* vd, vcap_frame* frame)
     return 0;
 }
 
-int vcap_grab_mmap(vcap_vd* vd, vcap_frame* frame)
+int vcap_grab_mmap(vcap_dev* vd, vcap_frame* frame)
 {
     struct v4l2_buffer buf;
 
@@ -740,7 +735,7 @@ int vcap_grab_mmap(vcap_vd* vd, vcap_frame* frame)
     return 0;
 }
 
-int vcap_grab_read(vcap_vd* vd, vcap_frame* frame)
+int vcap_grab_read(vcap_dev* vd, vcap_frame* frame)
 {
     while (true)
     {
@@ -761,18 +756,18 @@ int vcap_grab_read(vcap_vd* vd, vcap_frame* frame)
     }
 }
 
-int vcap_grab(vcap_vd* vd, vcap_frame* frame)
+int vcap_grab(vcap_dev* vd, vcap_frame* frame)
 {
     assert(vd);
     assert(frame);
 
-    if (vd->buffer_count > 0)
+    if (vd->buffer_count > 0) //TODO errors
         return vcap_grab_mmap(vd, frame);
 
     return vcap_grab_read(vd, frame);
 }
 
-int vcap_get_crop_bounds(vcap_vd* vd, vcap_rect* rect)
+int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
 {
     if (!vd)
     {
@@ -808,7 +803,7 @@ int vcap_get_crop_bounds(vcap_vd* vd, vcap_rect* rect)
     return 0;
 }
 
-int vcap_reset_crop(vcap_vd* vd)
+int vcap_reset_crop(vcap_dev* vd)
 {
     if (!vd)
     {
@@ -845,7 +840,7 @@ int vcap_reset_crop(vcap_vd* vd)
     return 0;
 }
 
-int vcap_get_crop(vcap_vd* vd, vcap_rect* rect)
+int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
 {
     if (!vd)
     {
@@ -885,7 +880,7 @@ int vcap_get_crop(vcap_vd* vd, vcap_rect* rect)
     return 0;
 }
 
-int vcap_set_crop(vcap_vd* vd, vcap_rect rect)
+int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
 {
     if (!vd)
     {
@@ -918,7 +913,7 @@ int vcap_set_crop(vcap_vd* vd, vcap_rect rect)
     return 0;
 }
 
-static int vcap_request_buffers(vcap_vd* vd, int buffer_count)
+static int vcap_request_buffers(vcap_dev* vd, int buffer_count)
 {
     struct v4l2_requestbuffers req;
 
@@ -945,7 +940,35 @@ static int vcap_request_buffers(vcap_vd* vd, int buffer_count)
     return 0;
 }
 
-static int vcap_map_buffers(vcap_vd* vd)
+static int vcap_init_stream(vcap_dev* vd)
+{
+    if (vd->buffer_count > 0)
+    {
+        if (-1 == vcap_request_buffers(vd, vd->buffer_count))
+            return -1;
+
+        if (-1 == vcap_map_buffers(vd))
+            return -1;
+
+        if (-1 == vcap_queue_buffers(vd))
+            return -1;
+    }
+
+    return 0;
+}
+
+static int vcap_shutdown_stream(vcap_dev* vd)
+{
+    if (vd->buffer_count > 0)
+    {
+        if (-1 == vcap_unmap_buffers(vd))
+            return -1;
+    }
+
+    return 0;
+}
+
+static int vcap_map_buffers(vcap_dev* vd)
 {
     for (int i = 0; i < vd->buffer_count; i++)
     {
@@ -975,7 +998,7 @@ static int vcap_map_buffers(vcap_vd* vd)
     return 0;
 }
 
-static int vcap_unmap_buffers(vcap_vd* vd)
+static int vcap_unmap_buffers(vcap_dev* vd)
 {
     for (int i = 0; i < vd->buffer_count; i++)
     {
@@ -992,7 +1015,7 @@ static int vcap_unmap_buffers(vcap_vd* vd)
     return 0;
 }
 
-static int vcap_queue_buffers(vcap_vd* vd)
+static int vcap_queue_buffers(vcap_dev* vd)
 {
     for (int i = 0; i < vd->buffer_count; i++)
     {

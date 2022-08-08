@@ -39,7 +39,7 @@ void vcap_strcpy(char* dst, const char* src, size_t size);
 // Format iterator
 struct vcap_fmt_itr
 {
-    vcap_vd* vd;
+    vcap_dev* vd;
     uint32_t index;
     int result;
     vcap_fmt_desc desc;
@@ -48,7 +48,7 @@ struct vcap_fmt_itr
 // Size iterator
 struct vcap_size_itr
 {
-    vcap_vd* vd;
+    vcap_dev* vd;
     vcap_fmt_id fmt;
     uint32_t index;
     int result;
@@ -58,7 +58,7 @@ struct vcap_size_itr
 // Frame rate iterator
 struct vcap_rate_itr
 {
-    vcap_vd* vd;
+    vcap_dev* vd;
     vcap_fmt_id fmt;
     vcap_size size;
     uint32_t index;
@@ -69,7 +69,7 @@ struct vcap_rate_itr
 // Control iterator
 struct vcap_ctrl_itr
 {
-    vcap_vd* vd;
+    vcap_dev* vd;
     uint32_t index;
     int result;
     vcap_ctrl_desc desc;
@@ -78,7 +78,7 @@ struct vcap_ctrl_itr
 // Menu iterator
 struct vcap_menu_itr
 {
-    vcap_vd* vd;
+    vcap_dev* vd;
     vcap_ctrl_id ctrl;
     uint32_t index;
     int result;

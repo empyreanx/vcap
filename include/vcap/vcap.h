@@ -73,7 +73,7 @@ typedef struct
     int buffer_count;
     vcap_buffer* buffers;
     struct v4l2_capability caps;
-} vcap_vd;
+} vcap_dev;
 
 ///
 /// \brief Video capture device infomation
@@ -86,7 +86,7 @@ typedef struct
     uint8_t bus_info[32];       ///< Bus info
     uint32_t version;           ///< Driver version
     uint8_t version_str[16];    ///< Driver version str
-} vcap_device_info;
+} vcap_dev_info;
 
 ///
 /// \brief Pixel format description
@@ -228,7 +228,7 @@ const char* vcap_get_error();
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_dump_info(vcap_vd* vd, FILE* file);
+int vcap_dump_info(vcap_dev* vd, FILE* file);
 
 //------------------------------------------------------------------------------
 ///
@@ -245,10 +245,10 @@ int vcap_dump_info(vcap_vd* vd, FILE* file);
 ///          VCAP_ENUM_INVALID if the index is invalid, and
 ///          VCAP_ENUM_ERROR   if querying the device failed.
 ///
-int vcap_enum_devices(unsigned index, vcap_device_info* info);
+int vcap_enum_devices(unsigned index, vcap_dev_info* info);
 
-vcap_vd* vcap_create_device(const char* path, int buffer_count);
-void vcap_destroy_device(vcap_vd* vd);
+vcap_dev* vcap_create_device(const char* path, int buffer_count);
+void vcap_destroy_device(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -262,7 +262,7 @@ void vcap_destroy_device(vcap_vd* vd);
 ///
 /// \returns NULL on error and a pointer to a frame grabber otherwise
 ///
-int vcap_open(vcap_vd* vd);
+int vcap_open(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -272,12 +272,13 @@ int vcap_open(vcap_vd* vd);
 ///
 /// \param  vd  Pointer to the frame grabber
 ///
-int vcap_close(vcap_vd* vd);
+int vcap_close(vcap_dev* vd);
 
-int vcap_init_stream(vcap_vd* vd);
-int vcap_shutdown_stream(vcap_vd* vd);
-int vcap_start_stream(vcap_vd* vd);
-int vcap_stop_stream(vcap_vd* vd);
+int vcap_start_stream(vcap_dev* vd);
+int vcap_stop_stream(vcap_dev* vd);
+
+bool vcap_is_open(vcap_dev* vd);
+bool vcap_is_streaming(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -291,7 +292,7 @@ int vcap_stop_stream(vcap_vd* vd);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-void vcap_get_device_info(const vcap_vd* vd, vcap_device_info* info);
+void vcap_get_device_info(const vcap_dev* vd, vcap_dev_info* info);
 
 //------------------------------------------------------------------------------
 ///
@@ -306,7 +307,7 @@ void vcap_get_device_info(const vcap_vd* vd, vcap_device_info* info);
 ///
 /// \returns NULL on error and a pointer to the video frame otherwise
 ///
-vcap_frame* vcap_alloc_frame(vcap_vd* vd);
+vcap_frame* vcap_alloc_frame(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -346,7 +347,7 @@ int vcap_copy_frame(vcap_frame* dst, vcap_frame* src);
 ///
 vcap_frame* vcap_clone_frame(vcap_frame* frame);
 
-int vcap_update_frame(vcap_vd* vd, vcap_frame* frame);
+int vcap_update_frame(vcap_dev* vd, vcap_frame* frame);
 
 //------------------------------------------------------------------------------
 ///
@@ -359,7 +360,7 @@ int vcap_update_frame(vcap_vd* vd, vcap_frame* frame);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_grab(vcap_vd* vd, vcap_frame* frame); // FIXME: Should reinitialize frame?
+int vcap_grab(vcap_dev* vd, vcap_frame* frame); // FIXME: Should reinitialize frame?
 
 //------------------------------------------------------------------------------
 ///
@@ -373,7 +374,7 @@ int vcap_grab(vcap_vd* vd, vcap_frame* frame); // FIXME: Should reinitialize fra
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_get_crop_bounds(vcap_vd* vd, vcap_rect* rect);
+int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect);
 
 //------------------------------------------------------------------------------
 ///
@@ -385,7 +386,7 @@ int vcap_get_crop_bounds(vcap_vd* vd, vcap_rect* rect);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_reset_crop(vcap_vd* vd);
+int vcap_reset_crop(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -399,7 +400,7 @@ int vcap_reset_crop(vcap_vd* vd);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_get_crop(vcap_vd* vd, vcap_rect* rect);
+int vcap_get_crop(vcap_dev* vd, vcap_rect* rect);
 
 //------------------------------------------------------------------------------
 ///
@@ -412,7 +413,7 @@ int vcap_get_crop(vcap_vd* vd, vcap_rect* rect);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_set_crop(vcap_vd* vd, vcap_rect rect);
+int vcap_set_crop(vcap_dev* vd, vcap_rect rect);
 
 //------------------------------------------------------------------------------
 ///
@@ -428,7 +429,7 @@ int vcap_set_crop(vcap_vd* vd, vcap_rect rect);
 ///          VCAP_FMT_INVALID if the format ID is invalid
 ///          VCAP_FMT_ERROR   if getting the format descriptor failed
 ///
-int vcap_get_fmt_desc(vcap_vd* vd, vcap_fmt_id fmt, vcap_fmt_desc* desc);
+int vcap_get_fmt_desc(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_desc* desc);
 
 //------------------------------------------------------------------------------
 ///
@@ -440,7 +441,7 @@ int vcap_get_fmt_desc(vcap_vd* vd, vcap_fmt_id fmt, vcap_fmt_desc* desc);
 ///
 /// \returns An initialized 'vcap_fmt_itr' struct
 ///
-vcap_fmt_itr* vcap_new_fmt_itr(vcap_vd* vd);
+vcap_fmt_itr* vcap_new_fmt_itr(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -477,7 +478,7 @@ bool vcap_fmt_itr_error(vcap_fmt_itr* itr);
 ///
 /// \returns An initialized 'vcap_size_itr' struct
 ///
-vcap_size_itr* vcap_new_size_itr(vcap_vd* vd, vcap_fmt_id fmt);
+vcap_size_itr* vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt);
 
 //------------------------------------------------------------------------------
 ///
@@ -516,7 +517,7 @@ bool vcap_size_itr_error(vcap_size_itr* itr);
 ///
 /// \returns An initialized 'vcap_rate_itr' struct
 ///
-vcap_rate_itr* vcap_new_rate_itr(vcap_vd* vd, vcap_fmt_id fmt, vcap_size size);
+vcap_rate_itr* vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
 
 //------------------------------------------------------------------------------
 ///
@@ -554,7 +555,7 @@ bool vcap_rate_itr_error(vcap_rate_itr* itr);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_get_fmt(vcap_vd* vd, vcap_fmt_id* fmt, vcap_size* size);
+int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size);
 
 //------------------------------------------------------------------------------
 ///
@@ -569,7 +570,7 @@ int vcap_get_fmt(vcap_vd* vd, vcap_fmt_id* fmt, vcap_size* size);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_set_fmt(vcap_vd* vd, vcap_fmt_id fmt, vcap_size size);
+int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
 
 //------------------------------------------------------------------------------
 ///
@@ -582,7 +583,7 @@ int vcap_set_fmt(vcap_vd* vd, vcap_fmt_id fmt, vcap_size size);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_get_rate(vcap_vd* vd, vcap_rate* rate);
+int vcap_get_rate(vcap_dev* vd, vcap_rate* rate);
 
 //------------------------------------------------------------------------------
 ///
@@ -595,7 +596,7 @@ int vcap_get_rate(vcap_vd* vd, vcap_rate* rate);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_set_rate(vcap_vd* vd, vcap_rate rate);
+int vcap_set_rate(vcap_dev* vd, vcap_rate rate);
 
 //------------------------------------------------------------------------------
 ///
@@ -612,7 +613,7 @@ int vcap_set_rate(vcap_vd* vd, vcap_rate rate);
 ///          VCAP_CTRL_INVALID  if the control ID is invalid, and
 ///          VCAP_CTRL_ERROR    if getting the control descriptor failed
 ///
-int vcap_get_ctrl_desc(vcap_vd* vd, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc);
+int vcap_get_ctrl_desc(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc);
 
 //------------------------------------------------------------------------------
 ///
@@ -629,7 +630,7 @@ int vcap_get_ctrl_desc(vcap_vd* vd, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc);
 ///          VCAP_CTRL_INVALID   if the control ID is invalid, and
 ///          VCAP_CTRL_ERROR     if getting the control descriptor failed
 ///
-int vcap_ctrl_status(vcap_vd* vd, vcap_ctrl_id ctrl);
+int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl);
 
 //------------------------------------------------------------------------------
 ///
@@ -642,7 +643,7 @@ int vcap_ctrl_status(vcap_vd* vd, vcap_ctrl_id ctrl);
 ///
 /// \returns An initialized 'vcap_ctrl_itr' struct
 ///
-vcap_ctrl_itr* vcap_new_ctrl_itr(vcap_vd* vd);
+vcap_ctrl_itr* vcap_new_ctrl_itr(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -679,7 +680,7 @@ bool vcap_ctrl_itr_error(vcap_ctrl_itr* itr);
 ///
 /// \returns An initialized 'vcap_menu_itr' struct
 ///
-vcap_menu_itr* vcap_new_menu_itr(vcap_vd* vd, vcap_ctrl_id ctrl);
+vcap_menu_itr* vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl);
 
 //------------------------------------------------------------------------------
 ///
@@ -716,7 +717,7 @@ bool vcap_menu_itr_error(vcap_menu_itr* itr);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_get_ctrl(vcap_vd* vd, vcap_ctrl_id ctrl, int32_t* value);
+int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value);
 
 //------------------------------------------------------------------------------
 ///
@@ -730,7 +731,7 @@ int vcap_get_ctrl(vcap_vd* vd, vcap_ctrl_id ctrl, int32_t* value);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_set_ctrl(vcap_vd* vd, vcap_ctrl_id ctrl, int32_t value);
+int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value);
 
 //------------------------------------------------------------------------------
 ///
@@ -743,7 +744,7 @@ int vcap_set_ctrl(vcap_vd* vd, vcap_ctrl_id ctrl, int32_t value);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_reset_ctrl(vcap_vd* vd, vcap_ctrl_id ctrl);
+int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl);
 
 //------------------------------------------------------------------------------
 ///
@@ -755,7 +756,7 @@ int vcap_reset_ctrl(vcap_vd* vd, vcap_ctrl_id ctrl);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_reset_all_ctrls(vcap_vd* vd);
+int vcap_reset_all_ctrls(vcap_dev* vd);
 
 #ifdef __cplusplus
 }

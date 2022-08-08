@@ -98,13 +98,13 @@ static char* type_name_map[] = {
     "Unknown"
 };
 
-static int enum_ctrls(vcap_vd* vd, vcap_ctrl_desc* desc, uint32_t index);
-static int enum_menu(vcap_vd* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index);
+static int enum_ctrls(vcap_dev* vd, vcap_ctrl_desc* desc, uint32_t index);
+static int enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index);
 
 static vcap_ctrl_id convert_ctrl_id(uint32_t id);
 static vcap_ctrl_type convert_ctrl_type(uint32_t type);
 
-int vcap_get_ctrl_desc(vcap_vd* vd, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc)
+int vcap_get_ctrl_desc(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc)
 {
     if (!vd)
     {
@@ -176,7 +176,7 @@ int vcap_get_ctrl_desc(vcap_vd* vd, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc)
     return VCAP_CTRL_OK;
 }
 
-int vcap_ctrl_status(vcap_vd* vd, vcap_ctrl_id ctrl)
+int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
     if (!vd)
     {
@@ -214,7 +214,7 @@ int vcap_ctrl_status(vcap_vd* vd, vcap_ctrl_id ctrl)
     return VCAP_CTRL_OK;
 }
 
-vcap_ctrl_itr* vcap_new_ctrl_itr(vcap_vd* vd)
+vcap_ctrl_itr* vcap_new_ctrl_itr(vcap_dev* vd)
 {
     if (!vd)
     {
@@ -273,7 +273,7 @@ bool vcap_ctrl_itr_error(vcap_ctrl_itr* itr)
         return false;
 }
 
-vcap_menu_itr* vcap_new_menu_itr(vcap_vd* vd, vcap_ctrl_id ctrl)
+vcap_menu_itr* vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
     if (!vd)
     {
@@ -339,7 +339,7 @@ bool vcap_menu_itr_error(vcap_menu_itr* itr)
         return false;
 }
 
-int vcap_get_ctrl(vcap_vd* vd, vcap_ctrl_id ctrl, int32_t* value)
+int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
 {
     if (!vd)
     {
@@ -375,7 +375,7 @@ int vcap_get_ctrl(vcap_vd* vd, vcap_ctrl_id ctrl, int32_t* value)
     return 0;
 }
 
-int vcap_set_ctrl(vcap_vd* vd, vcap_ctrl_id ctrl, int32_t value)
+int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
 {
     if (!vd)
     {
@@ -404,7 +404,7 @@ int vcap_set_ctrl(vcap_vd* vd, vcap_ctrl_id ctrl, int32_t value)
     return 0;
 }
 
-int vcap_reset_ctrl(vcap_vd* vd, vcap_ctrl_id ctrl)
+int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
     if (!vd)
     {
@@ -446,7 +446,7 @@ int vcap_reset_ctrl(vcap_vd* vd, vcap_ctrl_id ctrl)
     return 0;
 }
 
-int vcap_reset_all_ctrls(vcap_vd* vd)
+int vcap_reset_all_ctrls(vcap_dev* vd)
 {
     if (!vd)
     {
@@ -469,7 +469,7 @@ int vcap_reset_all_ctrls(vcap_vd* vd)
     return 0;
 }
 
-int enum_ctrls(vcap_vd* vd, vcap_ctrl_desc* desc, uint32_t index)
+int enum_ctrls(vcap_dev* vd, vcap_ctrl_desc* desc, uint32_t index)
 {
     int count = 0;
 
@@ -496,7 +496,7 @@ int enum_ctrls(vcap_vd* vd, vcap_ctrl_desc* desc, uint32_t index)
     return VCAP_ENUM_INVALID;
 }
 
-int enum_menu(vcap_vd* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index)
+int enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index)
 {
     // Check if supported and a menu
     vcap_ctrl_desc desc;

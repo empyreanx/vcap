@@ -216,11 +216,11 @@ static uint32_t fmt_map[] = {
     V4L2_PIX_FMT_IPU3_SRGGB10*/
 };
 
-static int enum_fmts(vcap_vd* vd, vcap_fmt_desc* desc, uint32_t index);
-static int enum_sizes(vcap_vd* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index);
-static int enum_rates(vcap_vd* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index);
+static int enum_fmts(vcap_dev* vd, vcap_fmt_desc* desc, uint32_t index);
+static int enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index);
+static int enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index);
 
-int vcap_get_fmt_desc(vcap_vd* vd, vcap_fmt_id fmt, vcap_fmt_desc* desc)
+int vcap_get_fmt_desc(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_desc* desc)
 {
     if (!vd)
     {
@@ -258,7 +258,7 @@ int vcap_get_fmt_desc(vcap_vd* vd, vcap_fmt_id fmt, vcap_fmt_desc* desc)
     return VCAP_FMT_INVALID;
 }
 
-vcap_fmt_itr* vcap_new_fmt_itr(vcap_vd* vd)
+vcap_fmt_itr* vcap_new_fmt_itr(vcap_dev* vd)
 {
     if (!vd)
     {
@@ -317,7 +317,7 @@ bool vcap_fmt_itr_error(vcap_fmt_itr* itr)
         return false;
 }
 
-vcap_size_itr* vcap_new_size_itr(vcap_vd* vd, vcap_fmt_id fmt)
+vcap_size_itr* vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
 {
     if (!vd)
     {
@@ -383,7 +383,7 @@ bool vcap_size_itr_error(vcap_size_itr* itr)
         return false;
 }
 
-vcap_rate_itr* vcap_new_rate_itr(vcap_vd* vd, vcap_fmt_id fmt, vcap_size size)
+vcap_rate_itr* vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 {
     if (!vd)
     {
@@ -450,7 +450,7 @@ bool vcap_rate_itr_error(vcap_rate_itr* itr)
         return false;
 }
 
-int vcap_get_fmt(vcap_vd* vd, vcap_fmt_id* fmt, vcap_size* size)
+int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
 {
     if (!vd)
     {
@@ -489,7 +489,7 @@ int vcap_get_fmt(vcap_vd* vd, vcap_fmt_id* fmt, vcap_size* size)
     return 0;
 }
 
-int vcap_set_fmt(vcap_vd* vd, vcap_fmt_id fmt, vcap_size size)
+int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 {
     assert(vd);
 
@@ -499,10 +499,9 @@ int vcap_set_fmt(vcap_vd* vd, vcap_fmt_id fmt, vcap_size size)
         return -1;
     }
 
-    /*if (-1 == vcap_stop_stream(vd))
-        return -1;*/
+    bool streaming = vcap_is_streaming(vd);
 
-    if (-1 == vcap_close(vd))
+    if (vcap_is_open(vd) && -1 == vcap_close(vd))
         return -1;
 
     if (-1 == vcap_open(vd))
@@ -522,16 +521,13 @@ int vcap_set_fmt(vcap_vd* vd, vcap_fmt_id fmt, vcap_size size)
         return -1;
     }
 
-    //if (-1 == vcap_init_stream(vd))
-    //    return -1;
-
-    if (-1 == vcap_start_stream(vd))
+    if (streaming && -1 == vcap_start_stream(vd))
         return -1;
 
     return 0;
 }
 
-int vcap_get_rate(vcap_vd* vd, vcap_rate* rate)
+int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
 {
     if (!vd)
     {
@@ -562,7 +558,7 @@ int vcap_get_rate(vcap_vd* vd, vcap_rate* rate)
     return 0;
 }
 
-int vcap_set_rate(vcap_vd* vd, vcap_rate rate)
+int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
 {
     if (!vd)
     {
@@ -587,7 +583,7 @@ int vcap_set_rate(vcap_vd* vd, vcap_rate rate)
     return 0;
 }
 
-static int enum_fmts(vcap_vd* vd, vcap_fmt_desc* desc, uint32_t index)
+static int enum_fmts(vcap_dev* vd, vcap_fmt_desc* desc, uint32_t index)
 {
     struct v4l2_fmtdesc fmtd;
 
@@ -621,7 +617,7 @@ static int enum_fmts(vcap_vd* vd, vcap_fmt_desc* desc, uint32_t index)
     return VCAP_ENUM_OK;
 }
 
-static int enum_sizes(vcap_vd* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index)
+static int enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index)
 {
     struct v4l2_frmsizeenum fenum;
 
@@ -651,7 +647,7 @@ static int enum_sizes(vcap_vd* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t in
     return VCAP_ENUM_OK;
 }
 
-static int enum_rates(vcap_vd* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index)
+static int enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index)
 {
     struct v4l2_frmivalenum frenum;
 

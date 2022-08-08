@@ -30,7 +30,7 @@ int main(int argc, char** argv)
     if (argc == 2)
         index = atoi(argv[1]);
 
-    vcap_device_info info = { 0 };
+    vcap_dev_info info = { 0 };
 
     int ret = vcap_enum_devices(index, &info);
 
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    vcap_vd* vd = vcap_create_device(info.path, 0);
+    vcap_dev* vd = vcap_create_device(info.path, 0);
 
     // Open device
     ret = vcap_open(vd);

@@ -365,7 +365,7 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info)
     return VCAP_ENUM_INVALID;
 }
 
-vcap_dev* vcap_create_device(const char* path, int buffer_count)
+vcap_dev* vcap_create_device(const char* path, bool decoding, int buffer_count)
 {
     vcap_dev* vd = vcap_malloc(sizeof(vcap_dev));
     memset(vd, 0, sizeof(vcap_dev));
@@ -373,6 +373,7 @@ vcap_dev* vcap_create_device(const char* path, int buffer_count)
     vd->fd = -1;
     vd->buffer_count = buffer_count;
     vd->streaming = false;
+    vd->decoding = decoding;
 
     vcap_strcpy(vd->path, path, sizeof(vd->path));
 
@@ -462,7 +463,10 @@ int vcap_open(vcap_dev* vd)
         }
     }
 
-    //vd->fd = v4l2_fd_open(vd->fd, 0); //TODO
+    if (vd->decoding)
+        vd->fd = v4l2_fd_open(vd->fd, 0);
+    else
+        vd->fd = v4l2_fd_open(vd->fd, V4L2_DISABLE_CONVERSION);
 
     // Copy capabilities
     vd->caps = caps;

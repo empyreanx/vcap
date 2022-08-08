@@ -46,7 +46,7 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    vcap_dev* vd = vcap_create_device(info.path, 0);
+    vcap_dev* vd = vcap_create_device(info.path, false, 0);
 
     // Open device
     ret = vcap_open(vd);

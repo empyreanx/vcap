@@ -70,6 +70,7 @@ typedef struct
     char path[512];
     bool open;
     bool streaming;
+    bool decoding;
     int buffer_count;
     vcap_buffer* buffers;
     struct v4l2_capability caps;
@@ -247,7 +248,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file);
 ///
 int vcap_enum_devices(unsigned index, vcap_dev_info* info);
 
-vcap_dev* vcap_create_device(const char* path, int buffer_count);
+vcap_dev* vcap_create_device(const char* path, bool decoding, int buffer_count);
 void vcap_destroy_device(vcap_dev* vd);
 
 //------------------------------------------------------------------------------

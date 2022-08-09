@@ -52,10 +52,6 @@ extern "C" {
 #include <stdint.h>
 #include <stdio.h>
 
-typedef struct vcap_fmt_itr vcap_fmt_itr;       ///< Format iterator
-typedef struct vcap_size_itr vcap_size_itr;     ///< Size iterator
-typedef struct vcap_rate_itr vcap_rate_itr;     ///< Frame rate iterator
-
 typedef struct
 {
     size_t size;
@@ -175,6 +171,35 @@ typedef struct
     int result;
     vcap_menu_item item;
 } vcap_menu_itr;
+
+typedef struct
+{
+    vcap_dev* vd;
+    uint32_t index;
+    int result;
+    vcap_fmt_info info;
+} vcap_fmt_itr;
+
+// Size iterator
+typedef struct
+{
+    vcap_dev* vd;
+    vcap_fmt_id fmt;
+    uint32_t index;
+    int result;
+    vcap_size size;
+} vcap_size_itr;
+
+// Frame rate iterator
+typedef struct
+{
+    vcap_dev* vd;
+    vcap_fmt_id fmt;
+    vcap_size size;
+    uint32_t index;
+    int result;
+    vcap_rate rate;
+} vcap_rate_itr;
 
 #define VCAP_FMT_OK          0  ///< Format is supported
 #define VCAP_FMT_INVALID    -1  ///< Format is not supported
@@ -394,7 +419,7 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* desc);
 ///
 /// \returns An initialized 'vcap_fmt_itr' struct
 ///
-vcap_fmt_itr* vcap_new_fmt_itr(vcap_dev* vd);
+vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -431,7 +456,7 @@ bool vcap_fmt_itr_error(vcap_fmt_itr* itr);
 ///
 /// \returns An initialized 'vcap_size_itr' struct
 ///
-vcap_size_itr* vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt);
+vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt);
 
 //------------------------------------------------------------------------------
 ///
@@ -470,7 +495,7 @@ bool vcap_size_itr_error(vcap_size_itr* itr);
 ///
 /// \returns An initialized 'vcap_rate_itr' struct
 ///
-vcap_rate_itr* vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
+vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
 
 //------------------------------------------------------------------------------
 ///

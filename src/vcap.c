@@ -68,9 +68,9 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
 
     int ret = 0;
 
-    vcap_fmt_itr* fmt_itr = NULL;
-    vcap_size_itr* size_itr = NULL;
-    vcap_rate_itr* rate_itr = NULL;
+    vcap_fmt_itr fmt_itr = { 0 };
+    vcap_size_itr size_itr = { 0 };
+    vcap_rate_itr rate_itr = { 0 };
     vcap_ctrl_itr ctrl_itr = { 0 };
     vcap_menu_itr menu_itr = { 0 };
 
@@ -94,13 +94,13 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     fmt_itr = vcap_new_fmt_itr(vd);
 
     // Check for errors during format iterator allocation
-    if (!fmt_itr)
+/*    if (!fmt_itr)
     {
         VCAP_ERROR("%s", vcap_get_error());
         ret = -1; goto end;
     }
-
-    while (vcap_fmt_itr_next(fmt_itr, &fmt_info))
+*/
+    while (vcap_fmt_itr_next(&fmt_itr, &fmt_info))
     {
         fprintf(file, "------------------------------------------------\n");
         fprintf(file, "Format: %s, FourCC: %s\n", fmt_info.name, fmt_info.fourcc);
@@ -113,13 +113,13 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
         size_itr = vcap_new_size_itr(vd, fmt_info.id);
 
         // Check for errors during frame size iterator allocation
-        if (!size_itr)
+        /*if (!size_itr)
         {
             VCAP_ERROR("%s", vcap_get_error());
             ret = -1; goto end;
-        }
+        }*/
 
-        while (vcap_size_itr_next(size_itr, &size))
+        while (vcap_size_itr_next(&size_itr, &size))
         {
             fprintf(file, "   %u x %u: ", size.width, size.height);
             fprintf(file, "(Frame rates:");
@@ -131,51 +131,42 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             rate_itr = vcap_new_rate_itr(vd, fmt_info.id, size);
 
             // Check for errors during frame rate iterator allocation
-            if (!rate_itr)
+/*            if (!rate_itr)
             {
                 VCAP_ERROR("%s", vcap_get_error());
                 ret = -1; goto end;
             }
-
-            while (vcap_rate_itr_next(rate_itr, &rate))
+*/
+            while (vcap_rate_itr_next(&rate_itr, &rate))
             {
                 fprintf(file, " %u/%u", rate.numerator, rate.denominator);
             }
 
             // Check for errors during frame rate iteration
-            if (vcap_rate_itr_error(rate_itr))
+/*            if (vcap_rate_itr_error(rate_itr))
             {
                 VCAP_ERROR("%s", vcap_get_error());
                 ret = -1; goto end;
-            }
-
-            vcap_free(rate_itr);
-            rate_itr = NULL;
+            }*/
 
             fprintf(file, ")\n");
         }
 
         // Check for errors during frame size iteration
-        if (vcap_size_itr_error(size_itr))
+        /*if (vcap_size_itr_error(&size_itr))
         {
             VCAP_ERROR("%s", vcap_get_error());
             ret = -1; goto end;
-        }
-
-        vcap_free(size_itr);
-        size_itr = NULL;
+        }*/
     }
 
     // Check for errors during format iteration
-    if (vcap_fmt_itr_error(fmt_itr))
+/*    if (vcap_fmt_itr_error(&fmt_itr))
     {
         VCAP_ERROR("%s", vcap_get_error());
         ret = -1; goto end;
     }
-
-    vcap_free(fmt_itr);
-    fmt_itr = NULL;
-
+*/
     //==========================================================================
     // Enumerate controls
     //==========================================================================
@@ -242,17 +233,6 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
 
     vcap_free(ctrl_itr);
     ctrl_itr = NULL;*/
-
-end:
-
-    if (fmt_itr)
-        vcap_free(fmt_itr);
-
-    if (size_itr)
-        vcap_free(size_itr);
-
-    if (rate_itr)
-        vcap_free(rate_itr);
 
     return ret;
 }

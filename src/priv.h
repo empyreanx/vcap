@@ -34,6 +34,7 @@
 void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size);
 void vcap_strcpy(char* dst, const char* src, size_t size);
 
+/*
 // Format iterator
 struct vcap_fmt_itr
 {
@@ -63,6 +64,7 @@ struct vcap_rate_itr
     int result;
     vcap_rate rate;
 };
+*/
 
 /*
 // Control iterator

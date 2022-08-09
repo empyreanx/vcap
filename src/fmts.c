@@ -258,25 +258,26 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
     return VCAP_FMT_INVALID;
 }
 
-vcap_fmt_itr* vcap_new_fmt_itr(vcap_dev* vd)
+vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
 {
-    if (!vd)
+    /*if (!vd)
     {
         VCAP_ERROR("Parameter 'vd' cannot be null");
         return NULL;
-    }
+    }*/
 
-    vcap_fmt_itr* itr = vcap_malloc(sizeof(vcap_fmt_itr));
+/*    vcap_fmt_itr* itr = vcap_malloc(sizeof(vcap_fmt_itr));
 
     if (!itr)
     {
         VCAP_ERROR_ERRNO("Out of memory allocating fmt iterator");
         return NULL;
     }
-
-    itr->vd = vd;
-    itr->index = 0;
-    itr->result = enum_fmts(vd, &itr->info, 0);
+*/
+    vcap_fmt_itr itr = { 0 };
+    itr.vd = vd;
+    itr.index = 0;
+    itr.result = enum_fmts(vd, &itr.info, 0);
 
     return itr;
 }
@@ -317,9 +318,9 @@ bool vcap_fmt_itr_error(vcap_fmt_itr* itr)
         return false;
 }
 
-vcap_size_itr* vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
+vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
 {
-    if (!vd)
+/*    if (!vd)
     {
         VCAP_ERROR("Parameter 'vd' cannot be null");
         return NULL;
@@ -337,12 +338,14 @@ vcap_size_itr* vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
     {
         VCAP_ERROR_ERRNO("Out of memory allocating size iterator");
         return NULL;
-    }
+    }*/
 
-    itr->vd = vd;
-    itr->fmt = fmt;
-    itr->index = 0;
-    itr->result = enum_sizes(vd, fmt, &itr->size, 0);
+
+    vcap_size_itr itr;
+    itr.vd = vd;
+    itr.fmt = fmt;
+    itr.index = 0;
+    itr.result = enum_sizes(vd, fmt, &itr.size, 0);
 
     return itr;
 }
@@ -383,9 +386,9 @@ bool vcap_size_itr_error(vcap_size_itr* itr)
         return false;
 }
 
-vcap_rate_itr* vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
+vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 {
-    if (!vd)
+/*    if (!vd)
     {
         VCAP_ERROR("Parameter 'vd' cannot be null");
         return NULL;
@@ -403,13 +406,14 @@ vcap_rate_itr* vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     {
         VCAP_ERROR_ERRNO("Out of memory allocating rate iterator");
         return NULL;
-    }
+    }*/
 
-    itr->vd = vd;
-    itr->fmt = fmt;
-    itr->size = size;
-    itr->index = 0;
-    itr->result = enum_rates(vd, fmt, size, &itr->rate, 0);
+    vcap_rate_itr itr;
+    itr.vd = vd;
+    itr.fmt = fmt;
+    itr.size = size;
+    itr.index = 0;
+    itr.result = enum_rates(vd, fmt, size, &itr.rate, 0);
 
     return itr;
 }

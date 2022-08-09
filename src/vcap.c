@@ -569,16 +569,12 @@ void vcap_get_device_info(const vcap_dev* vd, vcap_dev_info* info)
     vcap_caps_to_info(vd->path, vd->caps, info);
 }
 
-vcap_frame* vcap_alloc_frame(vcap_dev* vd)
+size_t vcap_get_buffer_size(vcap_dev* vd)
 {
-    assert(vd);
-
-    vcap_frame* frame = vcap_malloc(sizeof(vcap_frame));
-
-    if (!frame)
+    if (!vd)
     {
-        VCAP_ERROR_ERRNO("Ran out of memory allocating frame");
-        return NULL;
+        VCAP_ERROR("Parameter can't be null");
+        return 0;
     }
 
     struct v4l2_format fmt;
@@ -588,133 +584,14 @@ vcap_frame* vcap_alloc_frame(vcap_dev* vd)
 
     if (vcap_ioctl(vd->fd, VIDIOC_G_FMT, &fmt))
     {
-        VCAP_ERROR_ERRNO("Unable to get format on device '%s'", vd->path);
-        vcap_free(frame);
-        return NULL;
+        VCAP_ERROR_ERRNO("Unable to get format on device %s", vd->path);
+        return 0;
     }
 
-    frame->fmt = vcap_convert_fmt_id(fmt.fmt.pix.pixelformat);
-    frame->size.width = fmt.fmt.pix.width;
-    frame->size.height = fmt.fmt.pix.height;
-    frame->stride = fmt.fmt.pix.bytesperline;
-    frame->length = fmt.fmt.pix.sizeimage;
-    frame->data = vcap_malloc(frame->length);
-
-    if (!frame->data)
-    {
-        VCAP_ERROR_ERRNO("Ran out of memory allocating frame data");
-        vcap_free(frame);
-        return NULL;
-    }
-
-    return frame;
+    return fmt.fmt.pix.sizeimage;
 }
 
-void vcap_free_frame(vcap_frame* frame)
-{
-    if (!frame)
-        return;
-
-    if (frame->data)
-        vcap_free(frame->data);
-
-    vcap_free(frame);
-}
-
-int vcap_copy_frame(vcap_frame* dst, vcap_frame* src)
-{
-    assert(dst);
-    assert(src);
-
-    if (!src->data || src->length == 0)
-    {
-        VCAP_ERROR("Invalid source frame");
-        return -1;
-    }
-
-    if (!dst->data || src->length != dst->length)
-    {
-        vcap_free(dst->data);
-        dst->data = vcap_malloc(src->length);
-
-        if (!dst->data)
-        {
-            VCAP_ERROR("Out of memory while copying frame");
-            return -1;
-        }
-    }
-
-    dst->fmt = src->fmt;
-    dst->size = src->size;
-    dst->stride = src->stride;
-    dst->length = src->length;
-
-    memcpy(dst->data, src->data, dst->length);
-
-    return 0;
-}
-
-vcap_frame* vcap_clone_frame(vcap_frame* frame)
-{
-    assert(frame);
-
-    if (!frame->data || frame->length == 0)
-    {
-        VCAP_ERROR("Invalid frame");
-        return NULL;
-    }
-
-    vcap_frame* clone = vcap_malloc(sizeof(vcap_frame));
-
-    if (!clone)
-    {
-        VCAP_ERROR("Out of memory while cloning frame");
-        return NULL;
-    }
-
-    clone->data = NULL;
-
-    if (vcap_copy_frame(clone, frame) == -1)
-    {
-        VCAP_ERROR("%s", vcap_get_error());;
-        vcap_free_frame(clone);
-        return NULL;
-    }
-
-    return clone;
-}
-
-int vcap_update_frame(vcap_dev* vd, vcap_frame* frame)
-{
-    assert(vd);
-    assert(frame);
-
-    struct v4l2_format fmt;
-
-    VCAP_CLEAR(fmt);
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-    if (vcap_ioctl(vd->fd, VIDIOC_G_FMT, &fmt))
-    {
-        VCAP_ERROR_ERRNO("Unable to get format on device '%s'", vd->path);
-        return -1;
-    }
-
-    int length = frame->length;
-
-    frame->fmt = vcap_convert_fmt_id(fmt.fmt.pix.pixelformat);
-    frame->size.width = fmt.fmt.pix.width;
-    frame->size.height = fmt.fmt.pix.height;
-    frame->stride = fmt.fmt.pix.bytesperline;
-    frame->length = fmt.fmt.pix.sizeimage;
-
-    if (length != frame->length)
-        frame->data = realloc(frame->data, frame->length); // vcap_realloc
-
-    return 0;
-}
-
-int vcap_grab_mmap(vcap_dev* vd, vcap_frame* frame)
+int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 {
     struct v4l2_buffer buf;
 
@@ -729,7 +606,7 @@ int vcap_grab_mmap(vcap_dev* vd, vcap_frame* frame)
         return -1;
     }
 
-    memcpy(frame->data, vd->buffers[buf.index].data, frame->length);
+    memcpy(buffer, vd->buffers[buf.index].data, buffer_size);
 
     if (-1 == vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf)) {
         VCAP_ERROR_ERRNO("Could not requeue buffer on %s", vd->path);
@@ -739,11 +616,11 @@ int vcap_grab_mmap(vcap_dev* vd, vcap_frame* frame)
     return 0;
 }
 
-int vcap_grab_read(vcap_dev* vd, vcap_frame* frame)
+int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 {
     while (true)
     {
-        if (v4l2_read(vd->fd, frame->data, frame->length) == -1)
+        if (v4l2_read(vd->fd, buffer, buffer_size) == -1)
         {
             if (errno == EAGAIN)
             {
@@ -760,15 +637,15 @@ int vcap_grab_read(vcap_dev* vd, vcap_frame* frame)
     }
 }
 
-int vcap_grab(vcap_dev* vd, vcap_frame* frame)
+int vcap_grab(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 {
     assert(vd);
     assert(frame);
 
     if (vd->buffer_count > 0) //TODO errors
-        return vcap_grab_mmap(vd, frame);
+        return vcap_grab_mmap(vd, buffer_size, buffer);
 
-    return vcap_grab_read(vd, frame);
+    return vcap_grab_read(vd, buffer_size, buffer);
 }
 
 int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)

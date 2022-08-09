@@ -295,60 +295,7 @@ bool vcap_is_streaming(vcap_dev* vd);
 ///
 void vcap_get_device_info(const vcap_dev* vd, vcap_dev_info* info);
 
-//------------------------------------------------------------------------------
-///
-/// \brief  Allocates a video frame
-///
-/// Allocates a video frame used for capturing. The frame is used (and reused)
-/// when reading data from the video capture device. If the format or frame size
-/// is altered the frame should be deallocated and a new one allocated since the
-/// size of the buffer will have changed.
-///
-/// \param  vd  Pointer to the frame grabber
-///
-/// \returns NULL on error and a pointer to the video frame otherwise
-///
-vcap_frame* vcap_alloc_frame(vcap_dev* vd);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Deallocates all resources held by 'frame'
-///
-/// Deallocates the frame data and the frame.
-///
-/// \param  frame  Pointer to the frame struct
-///
-void vcap_free_frame(vcap_frame* frame);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Copies a frame
-///
-/// Copies a frame without using dynamic memory allocation. Both frames should
-/// have been allocated with 'vcap_alloc_frame'. This function is is essentially
-/// a wrapper around 'memcpy' that provides some additional sanity checks.
-///
-/// \param  dst  Pointer to the destination frame
-/// \param  src  Pointer to the source frame
-///
-/// \returns -1 on error or 0 otherwise
-///
-int vcap_copy_frame(vcap_frame* dst, vcap_frame* src);
-
-//------------------------------------------------------------------------------
-///
-/// \brief   Clones a frame
-///
-/// Allocates a new frame and copies into it the contents of the specified
-/// frame. The resulting frame should be deallocated using 'vcap_free_frame'.
-///
-/// \param  frame  Pointer to the frame to copy
-///
-/// \returns The cloned frame
-///
-vcap_frame* vcap_clone_frame(vcap_frame* frame);
-
-int vcap_update_frame(vcap_dev* vd, vcap_frame* frame);
+size_t vcap_get_buffer_size(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -361,7 +308,7 @@ int vcap_update_frame(vcap_dev* vd, vcap_frame* frame);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_grab(vcap_dev* vd, vcap_frame* frame); // FIXME: Should reinitialize frame?
+int vcap_grab(vcap_dev* vd, size_t buffer_size, uint8_t* buffer);
 
 //------------------------------------------------------------------------------
 ///
@@ -572,8 +519,6 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size);
 /// \returns -1 on error and 0 otherwise
 ///
 int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
-
-// size_t vcap_get_buffer_size(vcap_dev* vd)
 
 //------------------------------------------------------------------------------
 ///

@@ -106,21 +106,17 @@ static vcap_ctrl_type convert_ctrl_type(uint32_t type);
 
 int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return VCAP_CTRL_ERROR;
-    }
+    assert(vd);
 
     if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN)
     {
-        VCAP_ERROR("Invalid control (out of range)");
+        vcap_set_error(vd, "Invalid control (out of range)");
         return VCAP_CTRL_ERROR;
     }
 
     if (!info)
     {
-        VCAP_ERROR("Parameter 'info' cannot be null");
+        vcap_set_error(vd, "Parameter can't be null");
         return VCAP_CTRL_ERROR;
     }
 
@@ -137,7 +133,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
         }
         else
         {
-            VCAP_ERROR_ERRNO("Unable to read control descriptor on device '%s'", vd->path);
+            vcap_set_error_errno(vd, "Unable to read control descriptor on device %s", vd->path);
             return VCAP_CTRL_ERROR;
         }
     }
@@ -177,11 +173,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
 
 int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return VCAP_CTRL_ERROR;
-    }
+    assert(vd);
 
     struct v4l2_queryctrl qctrl;
 
@@ -196,7 +188,7 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
         }
         else
         {
-            VCAP_ERROR_ERRNO("Unable to check control status on device '%s'", vd->path);
+            vcap_set_error_errno(vd, "Unable to check control status on device %s", vd->path);
             return VCAP_CTRL_ERROR;
         }
     }
@@ -215,27 +207,23 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
 
 vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd)
 {
+    assert(vd);
+
     vcap_ctrl_itr itr = { 0 };
     itr.vd = vd;
     itr.index = 0;
-
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter can't be null");
-        itr.result = VCAP_ENUM_ERROR;
-    } else
-    {
-        itr.result = enum_ctrls(vd, &itr.info, 0);
-    }
+    itr.result = enum_ctrls(vd, &itr.info, 0);
 
     return itr;
 }
 
 bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info)
 {
-    if (!itr || !info)
+    assert(itr);
+
+    if (!info)
     {
-        VCAP_ERROR("Parameter can't be null");
+        vcap_set_error(itr->vd, "Parameter can't be null");
         itr->result = VCAP_ENUM_ERROR;
         return false;
     }
@@ -252,30 +240,22 @@ bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info)
 
 bool vcap_ctrl_itr_error(vcap_ctrl_itr* itr)
 {
-    if (!itr)
-    {
-        VCAP_ERROR("Parameter can't be null");
-        return true;
-    }
-
+    assert(itr);
     return (itr->result == VCAP_ENUM_ERROR);
 }
 
 vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
+    assert(vd);
+
     vcap_menu_itr itr = { 0 };
     itr.vd = vd;
     itr.ctrl = ctrl;
     itr.index = 0;
 
-    if (!vd)
+    if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN)
     {
-        VCAP_ERROR("Parameter can't be null");
-        itr.result = VCAP_ENUM_ERROR;
-    }
-    else if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN)
-    {
-        VCAP_ERROR("Invalid control (out of range)");
+        vcap_set_error(vd, "Invalid control (out of range)");
         itr.result = VCAP_ENUM_ERROR;
     }
     else
@@ -288,9 +268,11 @@ vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
 
 bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
 {
-    if (!itr || !item)
+    assert(itr);
+
+    if (!item)
     {
-        VCAP_ERROR("Parameter can't be null");
+        vcap_set_error(itr->vd, "Parameter can't be null");
         itr->result = VCAP_ENUM_ERROR;
         return false;
     }
@@ -307,32 +289,23 @@ bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
 
 bool vcap_menu_itr_error(vcap_menu_itr* itr)
 {
-    if (!itr)
-    {
-        VCAP_ERROR("Parameter 'itr' cannot be null");
-        return true;
-    }
-
+    assert(itr);
     return (itr->result == VCAP_ENUM_ERROR);
 }
 
 int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return -1;
-    }
+    assert(vd);
 
     if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN)
     {
-        VCAP_ERROR("Invalid control (out of range)");
+        vcap_set_error(vd, "Invalid control (out of range)");
         return -1;
     }
 
     if (!value)
     {
-        VCAP_ERROR("Parameter 'value' cannot be null");
+        vcap_set_error(vd, "Parameter can't be null");
         return -1;
     }
 
@@ -343,7 +316,7 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
 
     if (vcap_ioctl(vd->fd, VIDIOC_G_CTRL, &gctrl) == -1)
     {
-        VCAP_ERROR_ERRNO("Could not get control (%d) value on device '%s'", ctrl, vd->path);
+        vcap_set_error_errno(vd, "Could not get control (%d) value on device %s", ctrl, vd->path);
         return -1;
     }
 
@@ -354,15 +327,11 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
 
 int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return -1;
-    }
+    assert(vd);
 
     if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN)
     {
-        VCAP_ERROR("Invalid control (out of range)");
+        vcap_set_error(vd, "Invalid control (out of range)");
         return -1;
     }
 
@@ -374,7 +343,7 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
 
     if (vcap_ioctl(vd->fd, VIDIOC_S_CTRL, &sctrl) == -1)
     {
-        VCAP_ERROR_ERRNO("Could not set control (%d) value on device '%s'", ctrl, vd->path);
+        vcap_set_error_errno(vd, "Could not set control (%d) value on device %s", ctrl, vd->path);
         return -1;
     }
 
@@ -383,15 +352,11 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
 
 int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return -1;
-    }
+    assert(vd);
 
     if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN)
     {
-        VCAP_ERROR("Invalid control (out of range)");
+        vcap_set_error(vd, "Invalid control (out of range)");
         return -1;
     }
 
@@ -400,24 +365,18 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
     int result = vcap_get_ctrl_info(vd, ctrl, &info);
 
     if (result == VCAP_CTRL_ERROR)
-    {
-        VCAP_ERROR("%s", vcap_get_error());;
         return -1;
-    }
 
     if (result == VCAP_CTRL_INVALID)
     {
-        VCAP_ERROR("Invalid control");
+        vcap_set_error(vd, "Invalid control");
         return -1;
     }
 
     if (result == VCAP_CTRL_OK)
     {
         if (vcap_set_ctrl(vd, ctrl, info.default_value) == -1)
-        {
-            VCAP_ERROR("%s", vcap_get_error());;
             return -1;
-        }
     }
 
     return 0;
@@ -425,11 +384,7 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
 
 int vcap_reset_all_ctrls(vcap_dev* vd)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return -1;
-    }
+    assert(vd);
 
     for (int ctrl = 0; ctrl < VCAP_CTRL_UNKNOWN; ctrl++)
     {
@@ -437,10 +392,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
             continue;
 
         if (vcap_reset_ctrl(vd, ctrl) == -1)
-        {
-            VCAP_ERROR("%s", vcap_get_error());;
             return -1;
-        }
     }
 
     return 0;
@@ -448,6 +400,9 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
 
 int enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
 {
+    assert(vd);
+    assert(info);
+
     int count = 0;
 
     for (int ctrl = 0; ctrl < VCAP_CTRL_UNKNOWN; ctrl++)
@@ -475,6 +430,9 @@ int enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
 
 int enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index)
 {
+    assert(vd);
+    assert(item);
+
     // Check if supported and a menu
     vcap_ctrl_info info;
 
@@ -485,7 +443,7 @@ int enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t in
 
     if (result == VCAP_CTRL_INVALID)
     {
-        VCAP_ERROR("Can't enumerate menu of an invalid control");
+        vcap_set_error(vd, "Can't enumerate menu of an invalid control");
         return VCAP_ENUM_ERROR;
     }
 
@@ -493,13 +451,13 @@ int enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t in
 
     if (info.read_only)
     {
-        VCAP_ERROR("Can't enumerate menu of a read-only control");
+        vcap_set_error(vd, "Can't enumerate menu of a read-only control");
         return VCAP_ENUM_ERROR;
     }
 
     if (info.type != VCAP_CTRL_TYPE_MENU && info.type != VCAP_CTRL_TYPE_INTEGER_MENU)
     {
-        VCAP_ERROR("Control is not a menu");
+        vcap_set_error(vd, "Control is not a menu");
         return VCAP_ENUM_ERROR;
     }
 
@@ -523,7 +481,7 @@ int enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t in
         }
         else
         {
-            VCAP_ERROR_ERRNO("Unable to enumerate menu on device '%s'", vd->path);
+            vcap_set_error_errno(vd, "Unable to enumerate menu on device '%s'", vd->path);
             return VCAP_ENUM_ERROR;
         }
     }

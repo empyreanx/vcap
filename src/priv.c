@@ -32,7 +32,7 @@
 #include <sys/stat.h>
 
 static char error_msg[1024];
-static char error_tmp[1024];
+//static char error_tmp[1024];*/
 
 static vcap_malloc_func malloc_func_ptr = malloc;
 static vcap_free_func free_func_ptr = free;
@@ -47,9 +47,14 @@ void vcap_strcpy(char* dst, const char* src, size_t size)
     snprintf(dst, size, "%s", src);
 }
 
-const char* vcap_get_error_priv()
+/*const char* vcap_get_error_priv()
 {
     return error_msg;
+}*/
+
+const char* vcap_get_error(vcap_dev* vd)
+{
+    return vd->err_msg;
 }
 
 void vcap_set_alloc_priv(vcap_malloc_func malloc_func, vcap_free_func free_func)
@@ -68,14 +73,17 @@ void vcap_free(void* ptr)
     free_func_ptr(ptr);
 }
 
-void vcap_set_error(const char* fmt, ...)
+void vcap_set_global_error(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    vsnprintf(error_tmp, sizeof(error_tmp), fmt, args);
+    vsnprintf(error_msg, sizeof(error_msg), fmt, args);
     va_end(args);
+}
 
-    strncpy(error_msg, error_tmp, sizeof(error_msg));
+const char* vcap_get_global_error()
+{
+    return error_msg;
 }
 
 void vcap_fourcc_string(uint32_t code, uint8_t* str)

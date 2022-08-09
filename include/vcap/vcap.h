@@ -62,6 +62,7 @@ typedef struct
 {
     int fd;
     char path[512];
+    char err_msg[1024];
     bool open;
     bool streaming;
     bool decoding;
@@ -323,7 +324,7 @@ bool vcap_is_streaming(vcap_dev* vd);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-void vcap_get_device_info(const vcap_dev* vd, vcap_dev_info* info);
+int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info);
 
 size_t vcap_get_buffer_size(vcap_dev* vd);
 

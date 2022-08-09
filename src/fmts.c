@@ -222,21 +222,17 @@ static int enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* 
 
 int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return VCAP_FMT_ERROR;
-    }
+    assert(vd);
 
     if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
     {
-        VCAP_ERROR("Invalid format (out of range)");
+        vcap_set_error(vd, "Invalid format (out of range)");
         return VCAP_FMT_ERROR;
     }
 
     if (!info)
     {
-        VCAP_ERROR("Parameter 'info' cannot be null");
+        vcap_set_error(vd, "Parameter 'info' cannot be null");
         return VCAP_FMT_ERROR;
     }
 
@@ -266,7 +262,7 @@ vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
 
     if (!vd)
     {
-        VCAP_ERROR("Parameter can't be null");
+        vcap_set_error(vd, "Parameter can't be null");
         itr.result = VCAP_ENUM_ERROR;
     }
     else
@@ -279,9 +275,11 @@ vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
 
 bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info)
 {
-    if (!itr || !info)
+    assert(itr);
+
+    if (!info)
     {
-        VCAP_ERROR("Parameter can't be null");
+        vcap_set_error(itr->vd, "Parameter can't be null");
         itr->result = VCAP_ENUM_ERROR;
         return false;
     }
@@ -298,30 +296,22 @@ bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info)
 
 bool vcap_fmt_itr_error(vcap_fmt_itr* itr)
 {
-    if (!itr)
-    {
-        VCAP_ERROR("Parameter can't be null");
-        return true;
-    }
-
+    assert(itr);
     return (VCAP_ENUM_ERROR == itr->result);
 }
 
 vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
 {
+    assert(vd);
+
     vcap_size_itr itr;
     itr.vd = vd;
     itr.fmt = fmt;
     itr.index = 0;
 
-    if (!vd)
+    if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
     {
-        VCAP_ERROR("Parameter can't be null");
-        itr.result = VCAP_ENUM_ERROR;
-    }
-    else if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
-    {
-        VCAP_ERROR("Invalid format (out of range)");
+        vcap_set_error(vd, "Invalid format (out of range");
         itr.result = VCAP_ENUM_ERROR;
     }
     else
@@ -334,12 +324,11 @@ vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
 
 bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size)
 {
-    if (!itr)
-        return false;
+    assert(itr);
 
     if (!size)
     {
-        VCAP_ERROR("Parameter 'size' cannot be null");
+        vcap_set_error(itr->vd, "Parameter can't be null");
         itr->result = VCAP_ENUM_ERROR;
         return false;
     }
@@ -356,17 +345,14 @@ bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size)
 
 bool vcap_size_itr_error(vcap_size_itr* itr)
 {
-    if (!itr)
-    {
-        VCAP_ERROR("Parameter 'itr' cannot be null");
-        return true;
-    }
-
+    assert(itr);
     return (itr->result == VCAP_ENUM_ERROR);
 }
 
 vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 {
+    assert(vd);
+
     vcap_rate_itr itr;
     itr.vd = vd;
     itr.fmt = fmt;
@@ -374,14 +360,9 @@ vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     itr.index = 0;
     itr.result = enum_rates(vd, fmt, size, &itr.rate, 0);
 
-    if (!vd)
+    if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
     {
-        VCAP_ERROR("Parameter can't be null");
-        itr.result = VCAP_ENUM_ERROR;
-    }
-    else if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
-    {
-        VCAP_ERROR("Invalid format (out of range)");
+        vcap_set_error(vd, "Invalid format (out of range)");
         itr.result = VCAP_ENUM_ERROR;
     }
     else
@@ -394,12 +375,11 @@ vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 
 bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
 {
-    if (!itr)
-        return false;
+    assert(itr);
 
     if (!rate)
     {
-        VCAP_ERROR("Parameter 'rate' cannot be null");
+        vcap_set_error(itr->vd, "Parameter can't be null");
         itr->result = VCAP_ENUM_ERROR;
         return false;
     }
@@ -416,32 +396,17 @@ bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
 
 bool vcap_rate_itr_error(vcap_rate_itr* itr)
 {
-    if (!itr)
-    {
-        VCAP_ERROR("Parameter 'itr' cannot be null");
-        return true;
-    }
-
+    assert(itr);
     return (itr->result == VCAP_ENUM_ERROR);
 }
 
 int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return -1;
-    }
+    assert(vd);
 
-    if (!fmt)
+    if (!fmt || !size)
     {
-        VCAP_ERROR("Parameter 'fmt' cannot be null");
-        return -1;
-    }
-
-    if (!size)
-    {
-        VCAP_ERROR("Parameter 'size' cannot be null");
+        vcap_set_error(vd, "Parameter can't be null");
         return -1;
     }
 
@@ -452,7 +417,7 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
 
     if (vcap_ioctl(vd->fd, VIDIOC_G_FMT, &gfmt))
     {
-        VCAP_ERROR_ERRNO("Unable to get format on device '%s'", vd->path);
+        vcap_set_error_errno(vd, "Unable to get format on device %s", vd->path);
         return -1;
     }
 
@@ -470,7 +435,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 
     if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
     {
-        VCAP_ERROR("Invalid format (out of range)");
+        vcap_set_error(vd, "Invalid format (out of range)");
         return -1;
     }
 
@@ -492,7 +457,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 
     if (-1 == vcap_ioctl(vd->fd, VIDIOC_S_FMT, &sfmt))
     {
-        VCAP_ERROR_ERRNO("Unable to set format on %s", vd->path);
+        vcap_set_error_errno(vd, "Unable to set format on %s", vd->path);
         return -1;
     }
 
@@ -504,15 +469,11 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 
 int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return -1;
-    }
+    assert(vd);
 
     if (!rate)
     {
-        VCAP_ERROR("Parameter 'rate' cannot be null");
+        vcap_set_error(vd, "Parameter can't be null");
         return -1;
     }
 
@@ -521,7 +482,7 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
 
     if (vcap_ioctl(vd->fd, VIDIOC_G_PARM, &parm) == -1)
     {
-        VCAP_ERROR_ERRNO("Unable to get frame rate on device '%s'", vd->path);
+        vcap_set_error_errno(vd, "Unable to get frame rate on device %s", vd->path);
         return -1;
     }
 
@@ -535,11 +496,7 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
 
 int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return -1;
-    }
+    assert(vd);
 
     struct v4l2_streamparm parm;
 
@@ -551,7 +508,7 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
 
     if(vcap_ioctl(vd->fd, VIDIOC_S_PARM, &parm) == -1)
     {
-        VCAP_ERROR_ERRNO("Unable to set framerate on device %s", vd->path);
+        vcap_set_error_errno(vd, "Unable to set framerate on device %s", vd->path);
         return -1;
     }
 
@@ -574,7 +531,7 @@ static int enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
         }
         else
         {
-            VCAP_ERROR_ERRNO("Unable to enumerate formats on device '%s'", vd->path);
+            vcap_set_error_errno(vd, "Unable to enumerate formats on device %s", vd->path);
             return VCAP_ENUM_ERROR;
         }
     }
@@ -592,6 +549,8 @@ static int enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
 
 static int enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index)
 {
+    assert(vd);
+
     struct v4l2_frmsizeenum fenum;
 
     VCAP_CLEAR(fenum);
@@ -605,7 +564,7 @@ static int enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t i
             return VCAP_ENUM_INVALID;
         } else
         {
-            VCAP_ERROR_ERRNO("Unable to enumerate sizes on device '%s'", vd->path);
+            vcap_set_error_errno(vd, "Unable to enumerate sizes on device '%s'", vd->path);
             return VCAP_ENUM_ERROR;
         }
     }
@@ -622,6 +581,8 @@ static int enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t i
 
 static int enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index)
 {
+    assert(vd);
+
     struct v4l2_frmivalenum frenum;
 
     VCAP_CLEAR(frenum);
@@ -638,7 +599,7 @@ static int enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* 
         }
         else
         {
-            VCAP_ERROR_ERRNO("Unable to enumerate frame rates on device '%s'", vd->path);
+            vcap_set_error_errno(vd, "Unable to enumerate frame rates on device %s", vd->path);
             return VCAP_ENUM_ERROR;
         }
     }

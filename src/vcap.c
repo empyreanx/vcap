@@ -42,10 +42,10 @@ static int vcap_queue_buffers(vcap_dev* vd);
 // Filters device list so that 'scandir' returns only video devices.
 static int vcap_video_device_filter(const struct dirent *a);
 
-const char* vcap_get_error()
+/*const char* vcap_get_error()
 {
     return vcap_get_error_priv();
-}
+}*/
 
 void vcap_set_alloc(vcap_malloc_func malloc_func, vcap_free_func free_func)
 {
@@ -60,13 +60,7 @@ void vcap_set_alloc(vcap_malloc_func malloc_func, vcap_free_func free_func)
 //
 int vcap_dump_info(vcap_dev* vd, FILE* file)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return -1;
-    }
-
-    int ret = 0;
+    assert(vd);
 
     vcap_dev_info info = { 0 };
     vcap_get_device_info(vd, &info);
@@ -171,7 +165,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     if (vcap_ctrl_itr_error(&ctrl_itr))
         return -1;
 
-    return ret;
+    return 0;
 }
 
 int vcap_query_caps(const char* path, struct v4l2_capability* caps)
@@ -244,7 +238,7 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info)
 
     if (n < 0)
     {
-        VCAP_ERROR("Failed to scan '/dev' directory");
+        //VCAP_ERROR("Failed to scan '/dev' directory");
         return VCAP_ENUM_ERROR;
     }
 
@@ -293,7 +287,9 @@ vcap_dev* vcap_create_device(const char* path, bool decoding, int buffer_count)
 
 void vcap_destroy_device(vcap_dev* vd)
 {
-    vcap_close(vd);
+    if (vcap_is_open(vd))
+        vcap_close(vd);
+
     vcap_free(vd);
 }
 
@@ -303,7 +299,7 @@ int vcap_open(vcap_dev* vd)
 
     if (vcap_is_open(vd))
     {
-        VCAP_ERROR("Device %s is already open", vd->path);
+        vcap_set_error(vd, "Device %s is already open", vd->path);
         return -1;
     }
 
@@ -313,14 +309,14 @@ int vcap_open(vcap_dev* vd)
     // Device must exist
     if (-1 == stat(vd->path, &st))
     {
-        VCAP_ERROR_ERRNO("Video device %s does not exist", vd->path);
+        vcap_set_error_errno(vd, "Video device %s does not exist", vd->path);
         return -1;
     }
 
     // Device must be a character device
     if (!S_ISCHR(st.st_mode))
     {
-        VCAP_ERROR_ERRNO("Video device %s is not a character device", vd->path);
+        vcap_set_error_errno(vd, "Video device %s is not a character device", vd->path);
         return -1;
     }
 
@@ -329,7 +325,7 @@ int vcap_open(vcap_dev* vd)
 
     if (-1 == vd->fd)
     {
-        VCAP_ERROR_ERRNO("Opening video device %s failed", vd->path);
+        vcap_set_error_errno(vd, "Opening video device %s failed", vd->path);
         return -1;
     }
 
@@ -339,7 +335,7 @@ int vcap_open(vcap_dev* vd)
     // Obtain device capabilities
     if (-1 == vcap_ioctl(vd->fd, VIDIOC_QUERYCAP, &caps))
     {
-        VCAP_ERROR_ERRNO("Querying video device %s capabilities failed", vd->path);
+        vcap_set_error_errno(vd, "Querying video device %s capabilities failed", vd->path);
         v4l2_close(vd->fd);
         return -1;
     }
@@ -347,7 +343,7 @@ int vcap_open(vcap_dev* vd)
     // Ensure video capture is supported
     if (!(caps.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
-        VCAP_ERROR("Video device %s does not support video capture", vd->path);
+        vcap_set_error(vd, "Video device %s does not support video capture", vd->path);
         v4l2_close(vd->fd);
         return -1;
     }
@@ -358,7 +354,7 @@ int vcap_open(vcap_dev* vd)
         // Ensure streaming is supported
         if (!(caps.capabilities & V4L2_CAP_STREAMING))
         {
-            VCAP_ERROR("Video device %s does not support streaming", vd->path);
+            vcap_set_error(vd, "Video device %s does not support streaming", vd->path);
             v4l2_close(vd->fd);
             return -1;
         }
@@ -368,7 +364,7 @@ int vcap_open(vcap_dev* vd)
         // Ensure read is supported
         if (!(caps.capabilities & V4L2_CAP_READWRITE))
         {
-            VCAP_ERROR("Video device %s does not support read/write", vd->path);
+            vcap_set_error(vd, "Video device %s does not support read/write", vd->path);
             v4l2_close(vd->fd);
             return -1;
         }
@@ -388,9 +384,11 @@ int vcap_open(vcap_dev* vd)
 
 int vcap_close(vcap_dev* vd)
 {
+    assert(vd);
+
     if (!vcap_is_open(vd))
     {
-        VCAP_ERROR("Unable to close %s, device is not open", vd->path);
+        vcap_set_error(vd, "Unable to close %s, device is not open", vd->path);
         return -1;
     }
 
@@ -410,9 +408,11 @@ int vcap_close(vcap_dev* vd)
 
 int vcap_start_stream(vcap_dev* vd)
 {
+    assert(vd);
+
     if (vcap_is_streaming(vd))
     {
-        VCAP_ERROR("Unable to start stream on %s, device is already streaming", vd->path);
+        vcap_set_error(vd, "Unable to start stream on %s, device is already streaming", vd->path);
         return -1;
     }
 
@@ -425,7 +425,7 @@ int vcap_start_stream(vcap_dev* vd)
 
         if (-1 == vcap_ioctl(vd->fd, VIDIOC_STREAMON, &type))
         {
-            VCAP_ERROR_ERRNO("Unable to start stream on %s", vd->path);
+            vcap_set_error_errno(vd, "Unable to start stream on %s", vd->path);
             return -1;
         }
 
@@ -437,9 +437,11 @@ int vcap_start_stream(vcap_dev* vd)
 
 int vcap_stop_stream(vcap_dev* vd)
 {
+    assert(vd);
+
     if (!vcap_is_streaming(vd))
     {
-        VCAP_ERROR("Unable to close stream on %s, device is not streaming", vd->path);
+        vcap_set_error(vd, "Unable to close stream on %s, device is not streaming", vd->path);
         return -1;
     }
 
@@ -449,7 +451,7 @@ int vcap_stop_stream(vcap_dev* vd)
 
         if (-1 == vcap_ioctl(vd->fd, VIDIOC_STREAMOFF, &type))
         {
-            VCAP_ERROR_ERRNO("Unable to stop stream on %s", vd->path);
+            vcap_set_error_errno(vd, "Unable to stop stream on %s", vd->path);
             return -1;
         }
 
@@ -464,29 +466,34 @@ int vcap_stop_stream(vcap_dev* vd)
 
 bool vcap_is_open(vcap_dev* vd)
 {
+    assert(vd);
     return vd->open;
 }
 
 bool vcap_is_streaming(vcap_dev* vd)
 {
+    assert(vd);
     return vd->streaming;
 }
 
-void vcap_get_device_info(const vcap_dev* vd, vcap_dev_info* info)
+int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info)
 {
     assert(vd);
-    assert(info);
+
+    if (!info)
+    {
+        vcap_set_error(vd, "Parameter can't be null");
+        return -1;
+    }
 
     vcap_caps_to_info(vd->path, vd->caps, info);
+
+    return 0;
 }
 
 size_t vcap_get_buffer_size(vcap_dev* vd)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter can't be null");
-        return 0;
-    }
+    assert(vd);
 
     struct v4l2_format fmt;
 
@@ -495,7 +502,7 @@ size_t vcap_get_buffer_size(vcap_dev* vd)
 
     if (vcap_ioctl(vd->fd, VIDIOC_G_FMT, &fmt))
     {
-        VCAP_ERROR_ERRNO("Unable to get format on device %s", vd->path);
+        vcap_set_error_errno(vd, "Unable to get format on device %s", vd->path);
         return 0;
     }
 
@@ -504,6 +511,14 @@ size_t vcap_get_buffer_size(vcap_dev* vd)
 
 int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 {
+    assert(vd);
+
+    if (!buffer)
+    {
+        vcap_set_error(vd, "Parameter can't be null");
+        return -1;
+    }
+
     struct v4l2_buffer buf;
 
 	//dequeue buffer
@@ -513,14 +528,14 @@ int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 
     if (-1 == vcap_ioctl(vd->fd, VIDIOC_DQBUF, &buf))
     {
-        VCAP_ERROR_ERRNO("Could not dequeue buffer on %s", vd->path);
+        vcap_set_error_errno(vd, "Could not dequeue buffer on %s", vd->path);
         return -1;
     }
 
     memcpy(buffer, vd->buffers[buf.index].data, buffer_size);
 
     if (-1 == vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf)) {
-        VCAP_ERROR_ERRNO("Could not requeue buffer on %s", vd->path);
+        vcap_set_error_errno(vd, "Could not requeue buffer on %s", vd->path);
         return -1;
     }
 
@@ -529,6 +544,8 @@ int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 
 int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 {
+    assert(vd);
+
     while (true)
     {
         if (v4l2_read(vd->fd, buffer, buffer_size) == -1)
@@ -539,7 +556,7 @@ int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
             }
             else
             {
-                VCAP_ERROR_ERRNO("Reading from device %s failed", vd->path);
+                vcap_set_error_errno(vd, "Reading from device %s failed", vd->path);
                 return -1;
             }
         }
@@ -551,7 +568,12 @@ int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 int vcap_grab(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 {
     assert(vd);
-    assert(frame);
+
+    if (!buffer)
+    {
+        vcap_set_error(vd, "Parameter can't be null");
+        return -1;
+    }
 
     if (vd->buffer_count > 0) //TODO errors
         return vcap_grab_mmap(vd, buffer_size, buffer);
@@ -561,15 +583,11 @@ int vcap_grab(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 
 int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return -1;
-    }
+    assert(vd);
 
     if (!rect)
     {
-        VCAP_ERROR("Parameter 'rect' cannot be null");
+        vcap_set_error(vd, "Parameter can't be null");
         return -1;
     }
 
@@ -582,7 +600,7 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
     {
         if (errno == ENODATA || errno == EINVAL)
         {
-            VCAP_ERROR("Cropping is not supported on device '%s'", vd->path);
+            vcap_set_error(vd, "Cropping is not supported on device '%s'", vd->path);
             return -1;
         }
     }
@@ -597,11 +615,7 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
 
 int vcap_reset_crop(vcap_dev* vd)
 {
-    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return -1;
-    }
+    assert(vd);
 
     struct v4l2_cropcap cropcap;
 
@@ -612,7 +626,7 @@ int vcap_reset_crop(vcap_dev* vd)
     {
         if (errno == ENODATA || errno == EINVAL)
         {
-            VCAP_ERROR("Cropping is not supported on device '%s'", vd->path);
+            vcap_set_error(vd, "Cropping is not supported on device '%s'", vd->path);
             return -1;
         }
     }
@@ -625,7 +639,7 @@ int vcap_reset_crop(vcap_dev* vd)
 
     if (vcap_ioctl(vd->fd, VIDIOC_S_CROP, &crop) == -1)
     {
-        VCAP_ERROR_ERRNO("Unable to set crop window on device '%s'", vd->path);
+        vcap_set_error_errno(vd, "Unable to set crop window on device '%s'", vd->path);
         return -1;
     }
 
@@ -634,15 +648,9 @@ int vcap_reset_crop(vcap_dev* vd)
 
 int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
 {
-    if (!vd)
+    if (!vd || !rect)
     {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return -1;
-    }
-
-    if (!rect)
-    {
-        VCAP_ERROR("Parameter 'rect' cannot be null");
+        vcap_set_error(vd, "Parameter can't be null");
         return -1;
     }
 
@@ -655,11 +663,12 @@ int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
     {
         if (errno == ENODATA || errno == EINVAL)
         {
-            VCAP_ERROR("Cropping is not supported on device '%s'", vd->path);
+            vcap_set_error(vd, "Cropping is not supported on device %s", vd->path);
             return -1;
-        } else
+        }
+        else
         {
-            VCAP_ERROR_ERRNO("Unable to get crop window on device '%s'", vd->path);
+            vcap_set_error(vd, "Unable to get crop window on device %s", vd->path);
             return -1;
         }
     }
@@ -676,7 +685,7 @@ int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
 {
     if (!vd)
     {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
+        vcap_set_error(vd, "Parameter can't be null");
         return -1;
     }
 
@@ -693,11 +702,12 @@ int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
     {
         if (errno == ENODATA || errno == EINVAL)
         {
-            VCAP_ERROR("Cropping is not supported on device '%s'", vd->path);
+            vcap_set_error(vd, "Cropping is not supported on device %s", vd->path);
             return -1;
-        } else
+        }
+        else
         {
-            VCAP_ERROR_ERRNO("Unable to set crop window on device '%s'", vd->path);
+            vcap_set_error(vd, "Unable to set crop window on device %s", vd->path);
             return -1;
         }
     }
@@ -707,6 +717,8 @@ int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
 
 static int vcap_request_buffers(vcap_dev* vd, int buffer_count)
 {
+    assert(vd);
+
     struct v4l2_requestbuffers req;
 
     VCAP_CLEAR(req);
@@ -716,13 +728,13 @@ static int vcap_request_buffers(vcap_dev* vd, int buffer_count)
 
 	if (-1 == vcap_ioctl(vd->fd, VIDIOC_REQBUFS, &req))
 	{
-    	VCAP_ERROR_ERRNO("Unable to request buffers on %s", vd->path);
+    	vcap_set_error_errno(vd, "Unable to request buffers on %s", vd->path);
 		return -1;
     }
 
     if (0 == req.count)
     {
-        VCAP_ERROR("Invalid buffer count on %s", vd->path);
+        vcap_set_error(vd, "Invalid buffer count on %s", vd->path);
         return -1;
     }
 
@@ -751,6 +763,8 @@ static int vcap_init_stream(vcap_dev* vd)
 
 static int vcap_shutdown_stream(vcap_dev* vd)
 {
+    assert(vd);
+
     if (vd->buffer_count > 0)
     {
         if (-1 == vcap_unmap_buffers(vd))
@@ -762,7 +776,9 @@ static int vcap_shutdown_stream(vcap_dev* vd)
 
 static int vcap_map_buffers(vcap_dev* vd)
 {
-    for (int i = 0; i < vd->buffer_count; i++)
+    assert(vd);
+
+     for (int i = 0; i < vd->buffer_count; i++)
     {
         struct v4l2_buffer buf;
 
@@ -773,7 +789,7 @@ static int vcap_map_buffers(vcap_dev* vd)
 
         if (-1 == vcap_ioctl(vd->fd, VIDIOC_QUERYBUF, &buf))
         {
-            VCAP_ERROR_ERRNO("Unable to query buffers on %s", vd->path);
+            vcap_set_error_errno(vd, "Unable to query buffers on %s", vd->path);
             return -1;
         }
 
@@ -782,7 +798,7 @@ static int vcap_map_buffers(vcap_dev* vd)
 
         if (MAP_FAILED == vd->buffers[i].data)
         {
-            VCAP_ERROR("MMAP failed on %s", vd->path);
+            vcap_set_error(vd, "MMAP failed on %s", vd->path);
             return -1;
         }
     }
@@ -792,11 +808,13 @@ static int vcap_map_buffers(vcap_dev* vd)
 
 static int vcap_unmap_buffers(vcap_dev* vd)
 {
+    assert(vd);
+
     for (int i = 0; i < vd->buffer_count; i++)
     {
         if (-1 == v4l2_munmap(vd->buffers[i].data, vd->buffers[i].size))
         {
-            VCAP_ERROR_ERRNO("Unmapping buffers failed on %s", vd->path);
+            vcap_set_error_errno(vd, "Unmapping buffers failed on %s", vd->path);
             return -1;
         }
     }
@@ -820,7 +838,7 @@ static int vcap_queue_buffers(vcap_dev* vd)
 
         if (-1 == vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf))
         {
-            VCAP_ERROR_ERRNO("Unable to queue buffers on device %s", vd->path);
+            vcap_set_error_errno(vd, "Unable to queue buffers on device %s", vd->path);
             return -1;
         }
 	}
@@ -828,8 +846,10 @@ static int vcap_queue_buffers(vcap_dev* vd)
 	return 0;
 }
 
-static int vcap_video_device_filter(const struct dirent *a)
+static int vcap_video_device_filter(const struct dirent* a)
 {
+    assert(a);
+
     if (0 == strncmp(a->d_name, "video", 5))
         return 1;
     else

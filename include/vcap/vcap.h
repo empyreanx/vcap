@@ -55,8 +55,6 @@ extern "C" {
 typedef struct vcap_fmt_itr vcap_fmt_itr;       ///< Format iterator
 typedef struct vcap_size_itr vcap_size_itr;     ///< Size iterator
 typedef struct vcap_rate_itr vcap_rate_itr;     ///< Frame rate iterator
-typedef struct vcap_ctrl_itr vcap_ctrl_itr;     ///< Control iterator
-typedef struct vcap_menu_itr vcap_menu_itr;     ///< Menu iterator
 
 typedef struct
 {
@@ -159,17 +157,24 @@ typedef struct
     int32_t height;             ///< Height of rectangle
 } vcap_rect;
 
-///
-/// \brief Defines a video frame
-///
+// Control iterator
 typedef struct
 {
-    vcap_fmt_id fmt;            ///< Frame format
-    vcap_size size;             ///< Size of frame
-    size_t stride;              ///< Length of row in bytes
-    size_t length;              ///< Length of data in bytes
-    uint8_t* data;              ///< Frame data
-} vcap_frame;
+    vcap_dev* vd;
+    uint32_t index;
+    int result;
+    vcap_ctrl_info info;
+} vcap_ctrl_itr;
+
+// Menu iterator
+typedef struct
+{
+    vcap_dev* vd;
+    vcap_ctrl_id ctrl;
+    uint32_t index;
+    int result;
+    vcap_menu_item item;
+} vcap_menu_itr;
 
 #define VCAP_FMT_OK          0  ///< Format is supported
 #define VCAP_FMT_INVALID    -1  ///< Format is not supported
@@ -591,7 +596,7 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl);
 ///
 /// \returns An initialized 'vcap_ctrl_itr' struct
 ///
-vcap_ctrl_itr* vcap_new_ctrl_itr(vcap_dev* vd);
+vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -628,7 +633,7 @@ bool vcap_ctrl_itr_error(vcap_ctrl_itr* itr);
 ///
 /// \returns An initialized 'vcap_menu_itr' struct
 ///
-vcap_menu_itr* vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl);
+vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl);
 
 //------------------------------------------------------------------------------
 ///

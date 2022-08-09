@@ -64,6 +64,7 @@ struct vcap_rate_itr
     vcap_rate rate;
 };
 
+/*
 // Control iterator
 struct vcap_ctrl_itr
 {
@@ -81,7 +82,7 @@ struct vcap_menu_itr
     uint32_t index;
     int result;
     vcap_menu_item item;
-};
+};*/
 
 // Clear data structure
 #define VCAP_CLEAR(arg) memset(&(arg), 0, sizeof(arg))

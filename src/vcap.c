@@ -71,8 +71,8 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     vcap_fmt_itr* fmt_itr = NULL;
     vcap_size_itr* size_itr = NULL;
     vcap_rate_itr* rate_itr = NULL;
-    vcap_ctrl_itr* ctrl_itr = NULL;
-    vcap_menu_itr* menu_itr = NULL;
+    vcap_ctrl_itr ctrl_itr = { 0 };
+    vcap_menu_itr menu_itr = { 0 };
 
     vcap_dev_info info = { 0 };
     vcap_get_device_info(vd, &info);
@@ -186,13 +186,13 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     ctrl_itr = vcap_new_ctrl_itr(vd);
 
     // Check for errors during control iterator allocation
-    if (!ctrl_itr)
+    /*if (!ctrl_itr)
     {
         VCAP_ERROR("%s", vcap_get_error());
         ret = -1; goto end;
-    }
+    }*/
 
-    while (vcap_ctrl_itr_next(ctrl_itr, &ctrl_info))
+    while (vcap_ctrl_itr_next(&ctrl_itr, &ctrl_info))
     {
         printf("   Name: %s, Type: %s\n", ctrl_info.name, ctrl_info.type_name);
 
@@ -204,16 +204,16 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             // Enumerate menu
             //==================================================================
             vcap_menu_item menu_item;
-            vcap_menu_itr* menu_itr = vcap_new_menu_itr(vd, ctrl_info.id);
+            vcap_menu_itr menu_itr = vcap_new_menu_itr(vd, ctrl_info.id);
 
             // Check for errors during menu iterator allocation
-            if (!menu_itr)
+            /*if (!menu_itr)
             {
                 VCAP_ERROR("%s", vcap_get_error());
                 ret = -1; goto end;
-            }
+            }*/
 
-            while (vcap_menu_itr_next(menu_itr, &menu_item))
+            while (vcap_menu_itr_next(&menu_itr, &menu_item))
             {
                 if (ctrl_info.type == VCAP_CTRL_TYPE_MENU)
                     printf("      %i : %s\n", menu_item.index, menu_item.name);
@@ -222,26 +222,26 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             }
 
             // Check for errors during menu iteration
-            if (vcap_menu_itr_error(menu_itr))
+            /*if (vcap_menu_itr_error(&menu_itr))
             {
                 VCAP_ERROR("%s", vcap_get_error());
                 ret = -1; goto end;
             }
 
             vcap_free(menu_itr);
-            menu_itr = NULL;
+            menu_itr = NULL; */
         }
     }
 
     // Check for errors during control iteration
-    if (vcap_ctrl_itr_error(ctrl_itr))
+    /*if (vcap_ctrl_itr_error(&ctrl_itr))
     {
         VCAP_ERROR("%s", vcap_get_error());
         ret = -1; goto end;
     }
 
     vcap_free(ctrl_itr);
-    ctrl_itr = NULL;
+    ctrl_itr = NULL;*/
 
 end:
 
@@ -253,12 +253,6 @@ end:
 
     if (rate_itr)
         vcap_free(rate_itr);
-
-    if (ctrl_itr)
-        vcap_free(ctrl_itr);
-
-    if (menu_itr)
-        vcap_free(menu_itr);
 
     return ret;
 }

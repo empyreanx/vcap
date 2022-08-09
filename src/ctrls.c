@@ -213,25 +213,18 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
     return VCAP_CTRL_OK;
 }
 
-vcap_ctrl_itr* vcap_new_ctrl_itr(vcap_dev* vd)
+vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd)
 {
-    if (!vd)
+    /*if (!vd)
     {
         VCAP_ERROR("Parameter 'vd' cannot be null");
         return NULL;
-    }
+    }*/
 
-    vcap_ctrl_itr* itr = vcap_malloc(sizeof(vcap_ctrl_itr));
-
-    if (!itr)
-    {
-        VCAP_ERROR_ERRNO("Out of memory allocating ctrl iterator");
-        return NULL;
-    }
-
-    itr->vd = vd;
-    itr->index = 0;
-    itr->result = enum_ctrls(vd, &itr->info, 0);
+    vcap_ctrl_itr itr = { 0 };
+    itr.vd = vd;
+    itr.index = 0;
+    itr.result = enum_ctrls(vd, &itr.info, 0);
 
     return itr;
 }
@@ -272,9 +265,9 @@ bool vcap_ctrl_itr_error(vcap_ctrl_itr* itr)
         return false;
 }
 
-vcap_menu_itr* vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
+vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
-    if (!vd)
+    /*if (!vd)
     {
         VCAP_ERROR("Parameter 'vd' cannot be null");
         return NULL;
@@ -284,20 +277,13 @@ vcap_menu_itr* vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
     {
         VCAP_ERROR("Invalid control (out of range)");
         return NULL;
-    }
+    }*/
 
-    vcap_menu_itr* itr = vcap_malloc(sizeof(vcap_menu_itr));
-
-    if (!itr)
-    {
-        VCAP_ERROR_ERRNO("Out of memory allocating menu iterator");
-        return NULL;
-    }
-
-    itr->vd = vd;
-    itr->ctrl = ctrl;
-    itr->index = 0;
-    itr->result = enum_menu(vd, ctrl, &itr->item, 0);
+    vcap_menu_itr itr = { 0 };
+    itr.vd = vd;
+    itr.ctrl = ctrl;
+    itr.index = 0;
+    itr.result = enum_menu(vd, ctrl, &itr.item, 0);
 
     return itr;
 }

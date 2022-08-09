@@ -294,12 +294,6 @@ bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info)
     return true;
 }
 
-bool vcap_fmt_itr_error(vcap_fmt_itr* itr)
-{
-    assert(itr);
-    return (VCAP_ENUM_ERROR == itr->result);
-}
-
 vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
 {
     assert(vd);
@@ -341,12 +335,6 @@ bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size)
     itr->result = enum_sizes(itr->vd, itr->fmt, &itr->size, ++itr->index);
 
     return true;
-}
-
-bool vcap_size_itr_error(vcap_size_itr* itr)
-{
-    assert(itr);
-    return (itr->result == VCAP_ENUM_ERROR);
 }
 
 vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
@@ -392,12 +380,6 @@ bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
     itr->result = enum_rates(itr->vd, itr->fmt, itr->size, &itr->rate, ++itr->index);
 
     return true;
-}
-
-bool vcap_rate_itr_error(vcap_rate_itr* itr)
-{
-    assert(itr);
-    return (itr->result == VCAP_ENUM_ERROR);
 }
 
 int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)

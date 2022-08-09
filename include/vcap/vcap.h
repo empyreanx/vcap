@@ -437,16 +437,6 @@ bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* desc);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Checks if there was an error while creating or advancing the iterator
-///
-/// \param  itr  Pointer to iterator
-///
-/// \returns true if there was an error or false otherwise
-///
-bool vcap_fmt_itr_error(vcap_fmt_itr* itr);
-
-//------------------------------------------------------------------------------
-///
 /// \brief  Creates a new frame size iterator
 ///
 /// Creates and initializes new frame size iterator for the specified frame
@@ -471,16 +461,6 @@ vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt);
 /// \returns 0 if there was an error or there are no more sizes, and 1 otherwise
 ///
 bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Checks if there was an error while creating or advancing the iterator
-///
-/// \param  itr  Pointer to iterator
-///
-/// \returns true if there was an error or false otherwise
-///
-bool vcap_size_itr_error(vcap_size_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
@@ -510,16 +490,6 @@ vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
 /// \returns 0 if there was an error or there are no more sizes, and 1 otherwise
 ///
 bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Checks if there was an error while creating or advancing the iterator
-///
-/// \param  itr  Pointer to iterator
-///
-/// \returns true if there was an error or false otherwise
-///
-bool vcap_rate_itr_error(vcap_rate_itr* itr);
 
 //------------------------------------------------------------------------------
 ///
@@ -639,16 +609,6 @@ bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* desc);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Checks if there was an error while creating or advancing the iterator
-///
-/// \param  itr  Pointer to iterator
-///
-/// \returns true if there was an error or false otherwise
-///
-bool vcap_ctrl_itr_error(vcap_ctrl_itr* itr);
-
-//------------------------------------------------------------------------------
-///
 /// \brief  Creates a new menu iterator
 ///
 /// Creates and initializes a new menu iterator for the specified frame
@@ -673,16 +633,6 @@ vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl);
 /// \returns 0 if there was an error or there are no more controls, and 1 otherwise
 ///
 bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Checks if there was an error while creating or advancing the iterator
-///
-/// \param  itr  Pointer to iterator
-///
-/// \returns true if there was an error or false otherwise
-///
-bool vcap_menu_itr_error(vcap_menu_itr* itr);
 
 //------------------------------------------------------------------------------
 ///

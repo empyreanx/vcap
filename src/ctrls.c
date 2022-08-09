@@ -238,12 +238,6 @@ bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info)
     return true;
 }
 
-bool vcap_ctrl_itr_error(vcap_ctrl_itr* itr)
-{
-    assert(itr);
-    return (itr->result == VCAP_ENUM_ERROR);
-}
-
 vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
     assert(vd);
@@ -285,12 +279,6 @@ bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
     itr->result = enum_menu(itr->vd, itr->ctrl, &itr->item, ++itr->index);
 
     return true;
-}
-
-bool vcap_menu_itr_error(vcap_menu_itr* itr)
-{
-    assert(itr);
-    return (itr->result == VCAP_ENUM_ERROR);
 }
 
 int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)

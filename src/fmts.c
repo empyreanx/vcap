@@ -260,36 +260,28 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
 
 vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
 {
-    /*if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return NULL;
-    }*/
-
-/*    vcap_fmt_itr* itr = vcap_malloc(sizeof(vcap_fmt_itr));
-
-    if (!itr)
-    {
-        VCAP_ERROR_ERRNO("Out of memory allocating fmt iterator");
-        return NULL;
-    }
-*/
     vcap_fmt_itr itr = { 0 };
     itr.vd = vd;
     itr.index = 0;
-    itr.result = enum_fmts(vd, &itr.info, 0);
+
+    if (!vd)
+    {
+        VCAP_ERROR("Parameter can't be null");
+        itr.result = VCAP_ENUM_ERROR;
+    }
+    else
+    {
+        itr.result = enum_fmts(vd, &itr.info, 0);
+    }
 
     return itr;
 }
 
 bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info)
 {
-    if (!itr)
-        return false;
-
-    if (!info)
+    if (!itr || !info)
     {
-        VCAP_ERROR("Parameter 'info' cannot be null");
+        VCAP_ERROR("Parameter can't be null");
         itr->result = VCAP_ENUM_ERROR;
         return false;
     }
@@ -308,44 +300,34 @@ bool vcap_fmt_itr_error(vcap_fmt_itr* itr)
 {
     if (!itr)
     {
-        VCAP_ERROR("Parameter 'itr' cannot be null");
+        VCAP_ERROR("Parameter can't be null");
         return true;
     }
 
-    if (itr->result == VCAP_ENUM_ERROR)
-        return true;
-    else
-        return false;
+    return (VCAP_ENUM_ERROR == itr->result);
 }
 
 vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
 {
-/*    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return NULL;
-    }
-
-    if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
-    {
-        VCAP_ERROR("Invalid format (out of range)");
-        return NULL;
-    }
-
-    vcap_size_itr* itr = vcap_malloc(sizeof(vcap_size_itr));
-
-    if (!itr)
-    {
-        VCAP_ERROR_ERRNO("Out of memory allocating size iterator");
-        return NULL;
-    }*/
-
-
     vcap_size_itr itr;
     itr.vd = vd;
     itr.fmt = fmt;
     itr.index = 0;
-    itr.result = enum_sizes(vd, fmt, &itr.size, 0);
+
+    if (!vd)
+    {
+        VCAP_ERROR("Parameter can't be null");
+        itr.result = VCAP_ENUM_ERROR;
+    }
+    else if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
+    {
+        VCAP_ERROR("Invalid format (out of range)");
+        itr.result = VCAP_ENUM_ERROR;
+    }
+    else
+    {
+        itr.result = enum_sizes(vd, fmt, &itr.size, 0);
+    }
 
     return itr;
 }
@@ -380,40 +362,32 @@ bool vcap_size_itr_error(vcap_size_itr* itr)
         return true;
     }
 
-    if (itr->result == VCAP_ENUM_ERROR)
-        return true;
-    else
-        return false;
+    return (itr->result == VCAP_ENUM_ERROR);
 }
 
 vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 {
-/*    if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return NULL;
-    }
-
-    if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
-    {
-        VCAP_ERROR("Invalid format (out of range)");
-        return NULL;
-    }
-
-    vcap_rate_itr* itr = vcap_malloc(sizeof(vcap_rate_itr));
-
-    if (!itr)
-    {
-        VCAP_ERROR_ERRNO("Out of memory allocating rate iterator");
-        return NULL;
-    }*/
-
     vcap_rate_itr itr;
     itr.vd = vd;
     itr.fmt = fmt;
     itr.size = size;
     itr.index = 0;
     itr.result = enum_rates(vd, fmt, size, &itr.rate, 0);
+
+    if (!vd)
+    {
+        VCAP_ERROR("Parameter can't be null");
+        itr.result = VCAP_ENUM_ERROR;
+    }
+    else if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
+    {
+        VCAP_ERROR("Invalid format (out of range)");
+        itr.result = VCAP_ENUM_ERROR;
+    }
+    else
+    {
+        itr.result = enum_rates(vd, fmt, size, &itr.rate, 0);
+    }
 
     return itr;
 }
@@ -448,10 +422,7 @@ bool vcap_rate_itr_error(vcap_rate_itr* itr)
         return true;
     }
 
-    if (itr->result == VCAP_ENUM_ERROR)
-        return true;
-    else
-        return false;
+    return (itr->result == VCAP_ENUM_ERROR);
 }
 
 int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)

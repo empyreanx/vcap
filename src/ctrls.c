@@ -215,28 +215,27 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
 
 vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd)
 {
-    /*if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return NULL;
-    }*/
-
     vcap_ctrl_itr itr = { 0 };
     itr.vd = vd;
     itr.index = 0;
-    itr.result = enum_ctrls(vd, &itr.info, 0);
+
+    if (!vd)
+    {
+        VCAP_ERROR("Parameter can't be null");
+        itr.result = VCAP_ENUM_ERROR;
+    } else
+    {
+        itr.result = enum_ctrls(vd, &itr.info, 0);
+    }
 
     return itr;
 }
 
 bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info)
 {
-    if (!itr)
-        return false;
-
-    if (!info)
+    if (!itr || !info)
     {
-        VCAP_ERROR("Parameter 'info' cannot be null");
+        VCAP_ERROR("Parameter can't be null");
         itr->result = VCAP_ENUM_ERROR;
         return false;
     }
@@ -255,47 +254,43 @@ bool vcap_ctrl_itr_error(vcap_ctrl_itr* itr)
 {
     if (!itr)
     {
-        VCAP_ERROR("Parameter 'itr' cannot be null");
+        VCAP_ERROR("Parameter can't be null");
         return true;
     }
 
-    if (itr->result == VCAP_ENUM_ERROR)
-        return true;
-    else
-        return false;
+    return (itr->result == VCAP_ENUM_ERROR);
 }
 
 vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
-    /*if (!vd)
-    {
-        VCAP_ERROR("Parameter 'vd' cannot be null");
-        return NULL;
-    }
-
-    if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN)
-    {
-        VCAP_ERROR("Invalid control (out of range)");
-        return NULL;
-    }*/
-
     vcap_menu_itr itr = { 0 };
     itr.vd = vd;
     itr.ctrl = ctrl;
     itr.index = 0;
-    itr.result = enum_menu(vd, ctrl, &itr.item, 0);
+
+    if (!vd)
+    {
+        VCAP_ERROR("Parameter can't be null");
+        itr.result = VCAP_ENUM_ERROR;
+    }
+    else if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN)
+    {
+        VCAP_ERROR("Invalid control (out of range)");
+        itr.result = VCAP_ENUM_ERROR;
+    }
+    else
+    {
+        itr.result = enum_menu(vd, ctrl, &itr.item, 0);
+    }
 
     return itr;
 }
 
 bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
 {
-    if (!itr)
-        return false;
-
-    if (!item)
+    if (!itr || !item)
     {
-        VCAP_ERROR("Parameter 'item' cannot be null");
+        VCAP_ERROR("Parameter can't be null");
         itr->result = VCAP_ENUM_ERROR;
         return false;
     }
@@ -318,10 +313,7 @@ bool vcap_menu_itr_error(vcap_menu_itr* itr)
         return true;
     }
 
-    if (itr->result == VCAP_ENUM_ERROR)
-        return true;
-    else
-        return false;
+    return (itr->result == VCAP_ENUM_ERROR);
 }
 
 int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)

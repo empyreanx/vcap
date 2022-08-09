@@ -90,16 +90,6 @@ typedef struct
 } vcap_dev_info;
 
 ///
-/// \brief Pixel format description
-///
-typedef struct
-{
-    vcap_fmt_id id;             ///< Format ID
-    uint8_t name[32];           ///< Format name
-    uint8_t fourcc[5];          ///< FourCC string
-} vcap_fmt_desc;
-
-///
 /// \brief Frame dimensions
 ///
 typedef struct
@@ -118,6 +108,16 @@ typedef struct
 } vcap_rate;
 
 ///
+/// \brief Pixel format description
+///
+typedef struct
+{
+    vcap_fmt_id id;             ///< Format ID
+    uint8_t name[32];           ///< Format name
+    uint8_t fourcc[5];          ///< FourCC string
+} vcap_fmt_info;
+
+///
 /// \brief Control descriptor
 ///
 typedef struct
@@ -131,7 +131,7 @@ typedef struct
     int32_t step;               ///< The spacing between consecutive values
     int32_t default_value;      ///< The default value of the control (set when the driver is first loaded)
     bool read_only;             ///< true if the control is permanently read-only and false if read/write
-} vcap_ctrl_desc;
+} vcap_ctrl_info;
 
 ///
 /// \brief Control menu item
@@ -430,7 +430,7 @@ int vcap_set_crop(vcap_dev* vd, vcap_rect rect);
 ///          VCAP_FMT_INVALID if the format ID is invalid
 ///          VCAP_FMT_ERROR   if getting the format descriptor failed
 ///
-int vcap_get_fmt_desc(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_desc* desc);
+int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* desc);
 
 //------------------------------------------------------------------------------
 ///
@@ -455,7 +455,7 @@ vcap_fmt_itr* vcap_new_fmt_itr(vcap_dev* vd);
 ///
 /// \returns 0 if there was an error or there are no more formats, and 1 otherwise
 ///
-bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_desc* desc);
+bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* desc);
 
 //------------------------------------------------------------------------------
 ///
@@ -573,6 +573,8 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size);
 ///
 int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
 
+// size_t vcap_get_buffer_size(vcap_dev* vd)
+
 //------------------------------------------------------------------------------
 ///
 /// \brief  Get the current frame rate
@@ -614,7 +616,7 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate);
 ///          VCAP_CTRL_INVALID  if the control ID is invalid, and
 ///          VCAP_CTRL_ERROR    if getting the control descriptor failed
 ///
-int vcap_get_ctrl_desc(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc);
+int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* desc);
 
 //------------------------------------------------------------------------------
 ///
@@ -657,7 +659,7 @@ vcap_ctrl_itr* vcap_new_ctrl_itr(vcap_dev* vd);
 ///
 /// \returns 0 if there was an error or there are no more controls, and 1 otherwise
 ///
-bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_desc* desc);
+bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* desc);
 
 //------------------------------------------------------------------------------
 ///

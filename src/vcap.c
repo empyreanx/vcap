@@ -90,7 +90,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     //==========================================================================
     // Enumerate formats
     //==========================================================================
-    vcap_fmt_desc fmt_desc;
+    vcap_fmt_info fmt_info;
     fmt_itr = vcap_new_fmt_itr(vd);
 
     // Check for errors during format iterator allocation
@@ -100,17 +100,17 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
         ret = -1; goto end;
     }
 
-    while (vcap_fmt_itr_next(fmt_itr, &fmt_desc))
+    while (vcap_fmt_itr_next(fmt_itr, &fmt_info))
     {
         fprintf(file, "------------------------------------------------\n");
-        fprintf(file, "Format: %s, FourCC: %s\n", fmt_desc.name, fmt_desc.fourcc);
+        fprintf(file, "Format: %s, FourCC: %s\n", fmt_info.name, fmt_info.fourcc);
         fprintf(file, "Sizes:\n");
 
         //======================================================================
         // Enumerate sizes
         //======================================================================
         vcap_size size;
-        size_itr = vcap_new_size_itr(vd, fmt_desc.id);
+        size_itr = vcap_new_size_itr(vd, fmt_info.id);
 
         // Check for errors during frame size iterator allocation
         if (!size_itr)
@@ -128,7 +128,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             // Enumerate frame rates
             //==================================================================
             vcap_rate rate;
-            rate_itr = vcap_new_rate_itr(vd, fmt_desc.id, size);
+            rate_itr = vcap_new_rate_itr(vd, fmt_info.id, size);
 
             // Check for errors during frame rate iterator allocation
             if (!rate_itr)
@@ -182,7 +182,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     fprintf(file, "------------------------------------------------\n");
     fprintf(file, "Controls:\n");
 
-    vcap_ctrl_desc ctrl_desc;
+    vcap_ctrl_info ctrl_info;
     ctrl_itr = vcap_new_ctrl_itr(vd);
 
     // Check for errors during control iterator allocation
@@ -192,11 +192,11 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
         ret = -1; goto end;
     }
 
-    while (vcap_ctrl_itr_next(ctrl_itr, &ctrl_desc))
+    while (vcap_ctrl_itr_next(ctrl_itr, &ctrl_info))
     {
-        printf("   Name: %s, Type: %s\n", ctrl_desc.name, ctrl_desc.type_name);
+        printf("   Name: %s, Type: %s\n", ctrl_info.name, ctrl_info.type_name);
 
-        if (ctrl_desc.type == VCAP_CTRL_TYPE_MENU || ctrl_desc.type == VCAP_CTRL_TYPE_INTEGER_MENU)
+        if (ctrl_info.type == VCAP_CTRL_TYPE_MENU || ctrl_info.type == VCAP_CTRL_TYPE_INTEGER_MENU)
         {
             printf("   Menu:\n");
 
@@ -204,7 +204,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             // Enumerate menu
             //==================================================================
             vcap_menu_item menu_item;
-            vcap_menu_itr* menu_itr = vcap_new_menu_itr(vd, ctrl_desc.id);
+            vcap_menu_itr* menu_itr = vcap_new_menu_itr(vd, ctrl_info.id);
 
             // Check for errors during menu iterator allocation
             if (!menu_itr)
@@ -215,7 +215,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
 
             while (vcap_menu_itr_next(menu_itr, &menu_item))
             {
-                if (ctrl_desc.type == VCAP_CTRL_TYPE_MENU)
+                if (ctrl_info.type == VCAP_CTRL_TYPE_MENU)
                     printf("      %i : %s\n", menu_item.index, menu_item.name);
                 else
                     printf("      %i : %li\n", menu_item.index, menu_item.value);

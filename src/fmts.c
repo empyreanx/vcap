@@ -216,11 +216,11 @@ static uint32_t fmt_map[] = {
     V4L2_PIX_FMT_IPU3_SRGGB10*/
 };
 
-static int enum_fmts(vcap_dev* vd, vcap_fmt_desc* desc, uint32_t index);
+static int enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index);
 static int enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index);
 static int enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index);
 
-int vcap_get_fmt_desc(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_desc* desc)
+int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
 {
     if (!vd)
     {
@@ -234,9 +234,9 @@ int vcap_get_fmt_desc(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_desc* desc)
         return VCAP_FMT_ERROR;
     }
 
-    if (!desc)
+    if (!info)
     {
-        VCAP_ERROR("Parameter 'desc' cannot be null");
+        VCAP_ERROR("Parameter 'info' cannot be null");
         return VCAP_FMT_ERROR;
     }
 
@@ -244,12 +244,12 @@ int vcap_get_fmt_desc(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_desc* desc)
 
     do
     {
-        result = enum_fmts(vd, desc, i);
+        result = enum_fmts(vd, info, i);
 
         if (result == VCAP_ENUM_ERROR)
             return VCAP_FMT_ERROR;
 
-        if (result == VCAP_ENUM_OK && desc->id == fmt)
+        if (result == VCAP_ENUM_OK && info->id == fmt)
             return VCAP_FMT_OK;
 
     }
@@ -276,19 +276,19 @@ vcap_fmt_itr* vcap_new_fmt_itr(vcap_dev* vd)
 
     itr->vd = vd;
     itr->index = 0;
-    itr->result = enum_fmts(vd, &itr->desc, 0);
+    itr->result = enum_fmts(vd, &itr->info, 0);
 
     return itr;
 }
 
-bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_desc* desc)
+bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info)
 {
     if (!itr)
         return false;
 
-    if (!desc)
+    if (!info)
     {
-        VCAP_ERROR("Parameter 'desc' cannot be null");
+        VCAP_ERROR("Parameter 'info' cannot be null");
         itr->result = VCAP_ENUM_ERROR;
         return false;
     }
@@ -296,9 +296,9 @@ bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_desc* desc)
     if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
         return false;
 
-    *desc = itr->desc;
+    *info = itr->info;
 
-    itr->result = enum_fmts(itr->vd, &itr->desc, ++itr->index);
+    itr->result = enum_fmts(itr->vd, &itr->info, ++itr->index);
 
     return true;
 }
@@ -583,7 +583,7 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
     return 0;
 }
 
-static int enum_fmts(vcap_dev* vd, vcap_fmt_desc* desc, uint32_t index)
+static int enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
 {
     struct v4l2_fmtdesc fmtd;
 
@@ -604,15 +604,15 @@ static int enum_fmts(vcap_dev* vd, vcap_fmt_desc* desc, uint32_t index)
         }
     }
 
-    // Copy name
-    assert(sizeof(desc->name) == sizeof(fmtd.description));
-    memcpy(desc->name, fmtd.description, sizeof(desc->name));
+    // Copy name (TODO vcap_strcpy)
+    assert(sizeof(info->name) == sizeof(fmtd.description));
+    memcpy(info->name, fmtd.description, sizeof(info->name));
 
     // Convert FOURCC code
-    vcap_fourcc_string(fmtd.pixelformat, desc->fourcc);
+    vcap_fourcc_string(fmtd.pixelformat, info->fourcc);
 
     // Copy pixel format
-    desc->id = vcap_convert_fmt_id(fmtd.pixelformat);
+    info->id = vcap_convert_fmt_id(fmtd.pixelformat);
 
     return VCAP_ENUM_OK;
 }

@@ -90,7 +90,7 @@ int vcap_ioctl(int fd, int request, void *arg)
     {
         result = v4l2_ioctl(fd, request, arg);
     }
-    while (result == -1 && (errno == EINTR || errno == EAGAIN));
+    while (-1 == result && (EINTR == errno || EAGAIN == errno));
 
     return result;
 }

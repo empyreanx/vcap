@@ -42,7 +42,7 @@ struct vcap_fmt_itr
     vcap_dev* vd;
     uint32_t index;
     int result;
-    vcap_fmt_desc desc;
+    vcap_fmt_info info;
 };
 
 // Size iterator
@@ -72,7 +72,7 @@ struct vcap_ctrl_itr
     vcap_dev* vd;
     uint32_t index;
     int result;
-    vcap_ctrl_desc desc;
+    vcap_ctrl_info info;
 };
 
 // Menu iterator

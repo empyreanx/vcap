@@ -98,13 +98,13 @@ static char* type_name_map[] = {
     "Unknown"
 };
 
-static int enum_ctrls(vcap_dev* vd, vcap_ctrl_desc* desc, uint32_t index);
+static int enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index);
 static int enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index);
 
 static vcap_ctrl_id convert_ctrl_id(uint32_t id);
 static vcap_ctrl_type convert_ctrl_type(uint32_t type);
 
-int vcap_get_ctrl_desc(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc)
+int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
 {
     if (!vd)
     {
@@ -118,9 +118,9 @@ int vcap_get_ctrl_desc(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc)
         return VCAP_CTRL_ERROR;
     }
 
-    if (!desc)
+    if (!info)
     {
-        VCAP_ERROR("Parameter 'desc' cannot be null");
+        VCAP_ERROR("Parameter 'info' cannot be null");
         return VCAP_CTRL_ERROR;
     }
 
@@ -146,32 +146,32 @@ int vcap_get_ctrl_desc(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_desc* desc)
         return VCAP_CTRL_INVALID;
 
     // Copy name
-    assert(sizeof(desc->name) == sizeof(qctrl.name));
-    memcpy(desc->name, qctrl.name, sizeof(desc->name));
+    assert(sizeof(info->name) == sizeof(qctrl.name));
+    memcpy(info->name, qctrl.name, sizeof(info->name));
 
     // Copy control ID
-    desc->id = convert_ctrl_id(qctrl.id);
+    info->id = convert_ctrl_id(qctrl.id);
 
     // Convert type
     vcap_ctrl_type type = convert_ctrl_type(qctrl.type);
 
     // Copy type
-    desc->type = type;
+    info->type = type;
 
     // Copy type string
-    strncpy((char*)desc->type_name, type_name_map[type], sizeof(desc->type_name));
+    strncpy((char*)info->type_name, type_name_map[type], sizeof(info->type_name));
 
     // Min/Max/Step/Default
-    desc->min = qctrl.minimum;
-    desc->max = qctrl.maximum;
-    desc->step = qctrl.step;
-    desc->default_value = qctrl.default_value;
+    info->min = qctrl.minimum;
+    info->max = qctrl.maximum;
+    info->step = qctrl.step;
+    info->default_value = qctrl.default_value;
 
     // Read-only flag
     if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY)
-        desc->read_only = true;
+        info->read_only = true;
     else
-        desc->read_only = false;
+        info->read_only = false;
 
     return VCAP_CTRL_OK;
 }
@@ -232,19 +232,19 @@ vcap_ctrl_itr* vcap_new_ctrl_itr(vcap_dev* vd)
 
     itr->vd = vd;
     itr->index = 0;
-    itr->result = enum_ctrls(vd, &itr->desc, 0);
+    itr->result = enum_ctrls(vd, &itr->info, 0);
 
     return itr;
 }
 
-bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_desc* desc)
+bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info)
 {
     if (!itr)
         return false;
 
-    if (!desc)
+    if (!info)
     {
-        VCAP_ERROR("Parameter 'desc' cannot be null");
+        VCAP_ERROR("Parameter 'info' cannot be null");
         itr->result = VCAP_ENUM_ERROR;
         return false;
     }
@@ -252,9 +252,9 @@ bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_desc* desc)
     if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
         return false;
 
-    *desc = itr->desc;
+    *info = itr->info;
 
-    itr->result = enum_ctrls(itr->vd, &itr->desc, ++itr->index);
+    itr->result = enum_ctrls(itr->vd, &itr->info, ++itr->index);
 
     return true;
 }
@@ -418,9 +418,9 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
         return -1;
     }
 
-    vcap_ctrl_desc desc;
+    vcap_ctrl_info info;
 
-    int result = vcap_get_ctrl_desc(vd, ctrl, &desc);
+    int result = vcap_get_ctrl_info(vd, ctrl, &info);
 
     if (result == VCAP_CTRL_ERROR)
     {
@@ -436,7 +436,7 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
 
     if (result == VCAP_CTRL_OK)
     {
-        if (vcap_set_ctrl(vd, ctrl, desc.default_value) == -1)
+        if (vcap_set_ctrl(vd, ctrl, info.default_value) == -1)
         {
             VCAP_ERROR("%s", vcap_get_error());;
             return -1;
@@ -469,13 +469,13 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
     return 0;
 }
 
-int enum_ctrls(vcap_dev* vd, vcap_ctrl_desc* desc, uint32_t index)
+int enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
 {
     int count = 0;
 
     for (int ctrl = 0; ctrl < VCAP_CTRL_UNKNOWN; ctrl++)
     {
-        int result = vcap_get_ctrl_desc(vd, ctrl, desc);
+        int result = vcap_get_ctrl_info(vd, ctrl, info);
 
         if (result == VCAP_CTRL_ERROR)
             return VCAP_ENUM_ERROR;
@@ -499,9 +499,9 @@ int enum_ctrls(vcap_dev* vd, vcap_ctrl_desc* desc, uint32_t index)
 int enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index)
 {
     // Check if supported and a menu
-    vcap_ctrl_desc desc;
+    vcap_ctrl_info info;
 
-    int result = vcap_get_ctrl_desc(vd, ctrl, &desc);
+    int result = vcap_get_ctrl_info(vd, ctrl, &info);
 
     if (result == VCAP_CTRL_ERROR)
         return VCAP_ENUM_ERROR;
@@ -514,19 +514,19 @@ int enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t in
 
     assert(result == VCAP_CTRL_OK || result == VCAP_CTRL_INACTIVE);
 
-    if (desc.read_only)
+    if (info.read_only)
     {
         VCAP_ERROR("Can't enumerate menu of a read-only control");
         return VCAP_ENUM_ERROR;
     }
 
-    if (desc.type != VCAP_CTRL_TYPE_MENU && desc.type != VCAP_CTRL_TYPE_INTEGER_MENU)
+    if (info.type != VCAP_CTRL_TYPE_MENU && info.type != VCAP_CTRL_TYPE_INTEGER_MENU)
     {
         VCAP_ERROR("Control is not a menu");
         return VCAP_ENUM_ERROR;
     }
 
-    if (index + desc.min > desc.min + desc.max)
+    if (index + info.min > info.min + info.max)
     {
         return VCAP_ENUM_INVALID;
     }
@@ -536,7 +536,7 @@ int enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t in
 
     VCAP_CLEAR(qmenu);
     qmenu.id = ctrl_map[ctrl];
-    qmenu.index = desc.min + index;
+    qmenu.index = info.min + index;
 
     if (vcap_ioctl(vd->fd, VIDIOC_QUERYMENU, &qmenu) == -1)
     {
@@ -553,7 +553,7 @@ int enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t in
 
     item->index = index;
 
-    if (desc.type == VCAP_CTRL_TYPE_MENU)
+    if (info.type == VCAP_CTRL_TYPE_MENU)
     {
         assert(sizeof(item->name) == sizeof(qmenu.name));
         memcpy(item->name, qmenu.name, sizeof(item->name));

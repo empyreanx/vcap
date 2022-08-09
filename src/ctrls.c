@@ -146,8 +146,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
         return VCAP_CTRL_INVALID;
 
     // Copy name
-    assert(sizeof(info->name) == sizeof(qctrl.name));
-    memcpy(info->name, qctrl.name, sizeof(info->name));
+    vcap_ustrcpy(info->name, qctrl.name, sizeof(info->name));
 
     // Copy control ID
     info->id = convert_ctrl_id(qctrl.id);
@@ -555,8 +554,7 @@ int enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t in
 
     if (info.type == VCAP_CTRL_TYPE_MENU)
     {
-        assert(sizeof(item->name) == sizeof(qmenu.name));
-        memcpy(item->name, qmenu.name, sizeof(item->name));
+        vcap_ustrcpy(item->name, qmenu.name, sizeof(item->name));
     }
     else
     {

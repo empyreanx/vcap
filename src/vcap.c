@@ -312,9 +312,9 @@ void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap
 
     // Copy device information
     vcap_strcpy(info->path, path, sizeof(info->path));
-    vcap_strcpy((char*)info->driver, (char*)caps.driver, sizeof(info->driver));
-    vcap_strcpy((char*)info->card, (char*)caps.card, sizeof(info->card));
-    vcap_strcpy((char*)info->bus_info, (char*)caps.bus_info, sizeof(info->bus_info));
+    vcap_ustrcpy(info->driver, caps.driver, sizeof(info->driver));
+    vcap_ustrcpy(info->card, caps.card, sizeof(info->card));
+    vcap_ustrcpy(info->bus_info, caps.bus_info, sizeof(info->bus_info));
     info->version = caps.version;
 
     // Decode version

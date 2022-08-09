@@ -81,7 +81,7 @@ typedef struct
 ///
 typedef struct
 {
-    char path[512];             ///< Device path
+    char path[512];           ///< Device path
     uint8_t driver[32];         ///< Device driver name
     uint8_t card[32];           ///< Video hardware info
     uint8_t bus_info[32];       ///< Bus info

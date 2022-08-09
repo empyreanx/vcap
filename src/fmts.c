@@ -604,9 +604,7 @@ static int enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
         }
     }
 
-    // Copy name (TODO vcap_strcpy)
-    assert(sizeof(info->name) == sizeof(fmtd.description));
-    memcpy(info->name, fmtd.description, sizeof(info->name));
+    vcap_ustrcpy(info->name, fmtd.description, sizeof(info->name));
 
     // Convert FOURCC code
     vcap_fourcc_string(fmtd.pixelformat, info->fourcc);

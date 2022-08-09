@@ -31,10 +31,8 @@
 #define VCAP_ERROR(fmt, ...) vcap_set_error("[%s:%d] "fmt, __func__, __LINE__, ##__VA_ARGS__)
 #define VCAP_ERROR_ERRNO(fmt, ...) vcap_set_error("[%s:%d] "fmt" (%s)", __func__, __LINE__, strerror(errno), ##__VA_ARGS__)
 
+void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size);
 void vcap_strcpy(char* dst, const char* src, size_t size);
-
-// Frame grabber
-
 
 // Format iterator
 struct vcap_fmt_itr

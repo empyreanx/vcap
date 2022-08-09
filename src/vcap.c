@@ -109,19 +109,19 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
                 fprintf(file, " %u/%u", rate.numerator, rate.denominator);
             }
 
-            if (vcap_rate_itr_error(&rate_itr))
+            if (vcap_itr_error(&rate_itr))
                 return -1;
 
             fprintf(file, ")\n");
         }
 
         // Check for errors during frame size iteration
-        if (vcap_size_itr_error(&size_itr))
+        if (vcap_itr_error(&size_itr))
             return -1;
     }
 
     // Check for errors during format iteration
-    if (vcap_fmt_itr_error(&fmt_itr))
+    if (vcap_itr_error(&fmt_itr))
         return -1;
 
     //==========================================================================
@@ -156,13 +156,13 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             }
 
             // Check for errors during menu iteration
-            if (vcap_menu_itr_error(&menu_itr))
+            if (vcap_itr_error(&menu_itr))
                 return -1;
         }
     }
 
     // Check for errors during control iteration
-    if (vcap_ctrl_itr_error(&ctrl_itr))
+    if (vcap_itr_error(&ctrl_itr))
         return -1;
 
     return 0;
@@ -193,7 +193,7 @@ int vcap_query_caps(const char* path, struct v4l2_capability* caps)
     // Obtain device capabilities
     if (-1 == vcap_ioctl(fd, VIDIOC_QUERYCAP, caps))
     {
-        //VCAP_ERROR_ERRNO("Querying video device %s capabilities failed", path);
+        vcap_set_global_error("Querying video device %s capabilities failed", path);
         v4l2_close(fd);
         return -1;
     }
@@ -201,7 +201,7 @@ int vcap_query_caps(const char* path, struct v4l2_capability* caps)
     // Ensure video capture is supported
     if (!(caps->capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
-        //VCAP_ERROR("Video device %s does not support video capture", path);
+        vcap_set_global_error("Video device %s does not support video capture", path);
         v4l2_close(fd);
         return -1;
     }
@@ -213,6 +213,7 @@ int vcap_query_caps(const char* path, struct v4l2_capability* caps)
 
 void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_dev_info* info)
 {
+    assert(path);
     assert(info);
 
     // Copy device information
@@ -238,7 +239,7 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info)
 
     if (n < 0)
     {
-        //VCAP_ERROR("Failed to scan '/dev' directory");
+        vcap_set_global_error("Failed to scan '/dev' directory");
         return VCAP_ENUM_ERROR;
     }
 
@@ -272,6 +273,8 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info)
 
 vcap_dev* vcap_create_device(const char* path, bool decoding, int buffer_count)
 {
+    assert(path);
+
     vcap_dev* vd = vcap_malloc(sizeof(vcap_dev));
     memset(vd, 0, sizeof(vcap_dev));
 
@@ -575,10 +578,10 @@ int vcap_grab(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
         return -1;
     }
 
-    if (vd->buffer_count > 0) //TODO errors
+    if (vd->buffer_count > 0)
         return vcap_grab_mmap(vd, buffer_size, buffer);
-
-    return vcap_grab_read(vd, buffer_size, buffer);
+    else
+        return vcap_grab_read(vd, buffer_size, buffer);
 }
 
 int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
@@ -648,7 +651,9 @@ int vcap_reset_crop(vcap_dev* vd)
 
 int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
 {
-    if (!vd || !rect)
+    assert(vd);
+
+    if (!rect)
     {
         vcap_set_error(vd, "Parameter can't be null");
         return -1;

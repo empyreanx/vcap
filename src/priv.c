@@ -32,7 +32,6 @@
 #include <sys/stat.h>
 
 static char error_msg[1024];
-//static char error_tmp[1024];*/
 
 static vcap_malloc_func malloc_func_ptr = malloc;
 static vcap_free_func free_func_ptr = free;
@@ -47,14 +46,40 @@ void vcap_strcpy(char* dst, const char* src, size_t size)
     snprintf(dst, size, "%s", src);
 }
 
-/*const char* vcap_get_error_priv()
+void vcap_set_error(vcap_dev* vd, const char* fmt, ...)
 {
-    return error_msg;
-}*/
+    char error_msg1[1024];
+    char error_msg2[1024];
+    snprintf(error_msg1, sizeof(error_msg1), "[%s:%d]", __func__, __LINE__);
+    assert(vd);
+
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(error_msg2, sizeof(error_msg2), fmt, args);
+    va_end(args);
+
+    snprintf(vd->error_msg, sizeof(vd->error_msg), "%s %s", error_msg1, error_msg2);
+}
+
+void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...)
+{
+    char error_msg1[1024];
+    char error_msg2[1024];
+    snprintf(error_msg1, sizeof(error_msg1), "[%s:%d] (%s)", __func__, __LINE__, strerror(errno));
+    assert(vd);
+
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(error_msg2, sizeof(error_msg2), fmt, args);
+    va_end(args);
+
+    snprintf(vd->error_msg, sizeof(vd->error_msg), "%s %s", error_msg1, error_msg2);
+}
 
 const char* vcap_get_error(vcap_dev* vd)
 {
-    return vd->err_msg;
+    assert(vd);
+    return vd->error_msg;
 }
 
 void vcap_set_alloc_priv(vcap_malloc_func malloc_func, vcap_free_func free_func)

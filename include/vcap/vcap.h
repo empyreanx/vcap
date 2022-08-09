@@ -62,7 +62,7 @@ typedef struct
 {
     int fd;
     char path[512];
-    char err_msg[1024];
+    char error_msg[2048];
     bool open;
     bool streaming;
     bool decoding;

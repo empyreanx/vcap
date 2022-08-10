@@ -271,7 +271,7 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info)
     return VCAP_ENUM_INVALID;
 }
 
-vcap_dev* vcap_create_device(const char* path, bool decoding, int buffer_count)
+vcap_dev* vcap_create_device(const char* path, bool convert, int buffer_count)
 {
     assert(path);
 
@@ -281,7 +281,7 @@ vcap_dev* vcap_create_device(const char* path, bool decoding, int buffer_count)
     vd->fd = -1;
     vd->buffer_count = buffer_count;
     vd->streaming = false;
-    vd->decoding = decoding;
+    vd->convert = convert;
 
     vcap_strcpy(vd->path, path, sizeof(vd->path));
 
@@ -373,7 +373,7 @@ int vcap_open(vcap_dev* vd)
         }
     }
 
-    if (vd->decoding)
+    if (vd->convert)
         vd->fd = v4l2_fd_open(vd->fd, 0);
     else
         vd->fd = v4l2_fd_open(vd->fd, V4L2_DISABLE_CONVERSION);

@@ -216,9 +216,9 @@ static uint32_t fmt_map[] = {
     V4L2_PIX_FMT_IPU3_SRGGB10*/
 };
 
-static int enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index);
-static int enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index);
-static int enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index);
+static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index);
+static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index);
+static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index);
 
 int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
 {
@@ -240,7 +240,7 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
 
     do
     {
-        result = enum_fmts(vd, info, i);
+        result = vcap_enum_fmts(vd, info, i);
 
         if (result == VCAP_ENUM_ERROR)
             return VCAP_FMT_ERROR;
@@ -267,7 +267,7 @@ vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
     }
     else
     {
-        itr.result = enum_fmts(vd, &itr.info, 0);
+        itr.result = vcap_enum_fmts(vd, &itr.info, 0);
     }
 
     return itr;
@@ -289,7 +289,7 @@ bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info)
 
     *info = itr->info;
 
-    itr->result = enum_fmts(itr->vd, &itr->info, ++itr->index);
+    itr->result = vcap_enum_fmts(itr->vd, &itr->info, ++itr->index);
 
     return true;
 }
@@ -310,7 +310,7 @@ vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
     }
     else
     {
-        itr.result = enum_sizes(vd, fmt, &itr.size, 0);
+        itr.result = vcap_enum_sizes(vd, fmt, &itr.size, 0);
     }
 
     return itr;
@@ -332,7 +332,7 @@ bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size)
 
     *size = itr->size;
 
-    itr->result = enum_sizes(itr->vd, itr->fmt, &itr->size, ++itr->index);
+    itr->result = vcap_enum_sizes(itr->vd, itr->fmt, &itr->size, ++itr->index);
 
     return true;
 }
@@ -346,7 +346,7 @@ vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     itr.fmt = fmt;
     itr.size = size;
     itr.index = 0;
-    itr.result = enum_rates(vd, fmt, size, &itr.rate, 0);
+    itr.result = vcap_enum_rates(vd, fmt, size, &itr.rate, 0);
 
     if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
     {
@@ -355,7 +355,7 @@ vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     }
     else
     {
-        itr.result = enum_rates(vd, fmt, size, &itr.rate, 0);
+        itr.result = vcap_enum_rates(vd, fmt, size, &itr.rate, 0);
     }
 
     return itr;
@@ -377,7 +377,7 @@ bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
 
     *rate = itr->rate;
 
-    itr->result = enum_rates(itr->vd, itr->fmt, itr->size, &itr->rate, ++itr->index);
+    itr->result = vcap_enum_rates(itr->vd, itr->fmt, itr->size, &itr->rate, ++itr->index);
 
     return true;
 }
@@ -497,7 +497,7 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
     return 0;
 }
 
-static int enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
+static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
 {
     struct v4l2_fmtdesc fmtd;
 
@@ -529,7 +529,7 @@ static int enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
     return VCAP_ENUM_OK;
 }
 
-static int enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index)
+static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index)
 {
     assert(vd);
 
@@ -561,7 +561,7 @@ static int enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t i
     return VCAP_ENUM_OK;
 }
 
-static int enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index)
+static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index)
 {
     assert(vd);
 

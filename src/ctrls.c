@@ -98,8 +98,8 @@ static char* type_name_map[] = {
     "Unknown"
 };
 
-static int enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index);
-static int enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index);
+static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index);
+static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index);
 
 static vcap_ctrl_id convert_ctrl_id(uint32_t id);
 static vcap_ctrl_type convert_ctrl_type(uint32_t type);
@@ -212,7 +212,7 @@ vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd)
     vcap_ctrl_itr itr = { 0 };
     itr.vd = vd;
     itr.index = 0;
-    itr.result = enum_ctrls(vd, &itr.info, 0);
+    itr.result = vcap_enum_ctrls(vd, &itr.info, 0);
 
     return itr;
 }
@@ -233,7 +233,7 @@ bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info)
 
     *info = itr->info;
 
-    itr->result = enum_ctrls(itr->vd, &itr->info, ++itr->index);
+    itr->result = vcap_enum_ctrls(itr->vd, &itr->info, ++itr->index);
 
     return true;
 }
@@ -254,7 +254,7 @@ vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
     }
     else
     {
-        itr.result = enum_menu(vd, ctrl, &itr.item, 0);
+        itr.result = vcap_enum_menu(vd, ctrl, &itr.item, 0);
     }
 
     return itr;
@@ -276,7 +276,7 @@ bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
 
     *item = itr->item;
 
-    itr->result = enum_menu(itr->vd, itr->ctrl, &itr->item, ++itr->index);
+    itr->result = vcap_enum_menu(itr->vd, itr->ctrl, &itr->item, ++itr->index);
 
     return true;
 }
@@ -386,7 +386,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
     return 0;
 }
 
-int enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
+int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
 {
     assert(vd);
     assert(info);
@@ -416,7 +416,7 @@ int enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
     return VCAP_ENUM_INVALID;
 }
 
-int enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index)
+int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index)
 {
     assert(vd);
     assert(item);

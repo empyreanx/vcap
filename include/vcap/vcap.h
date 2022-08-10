@@ -217,10 +217,8 @@ typedef struct
 #define VCAP_ENUM_DISABLED  -2  ///< Valid index, but item is disabled
 #define VCAP_ENUM_ERROR     -3  ///< Error enumerating item
 
-typedef void* (*vcap_malloc_func)(size_t size); ///< Custom malloc function type
-typedef void (*vcap_free_func)(void* ptr);      ///< Custom free function type
-
-
+typedef void* (*vcap_malloc_fn)(size_t size); ///< Custom malloc function type
+typedef void  (*vcap_free_fn)(void* ptr);     ///< Custom free function type
 
 //------------------------------------------------------------------------------
 ///
@@ -230,15 +228,7 @@ typedef void (*vcap_free_func)(void* ptr);      ///< Custom free function type
 /// allocation. However, if you are already using a custom allocator you might
 /// as well use this function. By default Vcap uses the standard malloc and free.
 ///
-void vcap_set_alloc(vcap_malloc_func malloc_func, vcap_free_func free_func);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Deallocates memory
-///
-/// \param  ptr  Pointer to the memory to be freed
-///
-void vcap_free(void* ptr);
+void vcap_set_alloc(vcap_malloc_fn malloc_fp, vcap_free_fn free_fp);
 
 //------------------------------------------------------------------------------
 ///

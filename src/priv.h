@@ -43,12 +43,6 @@ const char* vcap_get_global_error();
 // Generic iterator error test
 #define vcap_itr_error(itr) (VCAP_ENUM_ERROR == (itr)->result)
 
-// Private allocator setter (avoids global variable)
-void vcap_set_alloc_priv(vcap_malloc_func malloc_func, vcap_free_func free_func);
-
-// Declare malloc function
-void* vcap_malloc(size_t size);
-
 // FOURCC character code to string
 void vcap_fourcc_string(uint32_t code, uint8_t* str);
 

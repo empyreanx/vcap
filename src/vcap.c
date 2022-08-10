@@ -42,14 +42,23 @@ static int vcap_queue_buffers(vcap_dev* vd);
 // Filters device list so that 'scandir' returns only video devices.
 static int vcap_video_device_filter(const struct dirent *a);
 
-/*const char* vcap_get_error()
-{
-    return vcap_get_error_priv();
-}*/
+static vcap_malloc_fn global_malloc_fp = malloc;
+static vcap_free_fn global_free_fp = free;
 
-void vcap_set_alloc(vcap_malloc_func malloc_func, vcap_free_func free_func)
+void vcap_set_alloc(vcap_malloc_fn malloc_fp, vcap_free_fn free_fp)
 {
-    vcap_set_alloc_priv(malloc_func, free_func);
+    global_malloc_fp = malloc_fp;
+    global_free_fp = free_fp;
+}
+
+static void* vcap_malloc(size_t size)
+{
+    return global_malloc_fp(size);
+}
+
+static void vcap_free(void* ptr)
+{
+    global_free_fp(ptr);
 }
 
 //

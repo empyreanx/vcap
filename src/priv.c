@@ -33,9 +33,6 @@
 
 static char error_msg[1024];
 
-static vcap_malloc_func malloc_func_ptr = malloc;
-static vcap_free_func free_func_ptr = free;
-
 void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size)
 {
     snprintf((char*)dst, size, "%s", (char*)src);
@@ -80,22 +77,6 @@ const char* vcap_get_error(vcap_dev* vd)
 {
     assert(vd);
     return vd->error_msg;
-}
-
-void vcap_set_alloc_priv(vcap_malloc_func malloc_func, vcap_free_func free_func)
-{
-    malloc_func_ptr = malloc_func;
-    free_func_ptr = free_func;
-}
-
-void* vcap_malloc(size_t size)
-{
-    return malloc_func_ptr(size);
-}
-
-void vcap_free(void* ptr)
-{
-    free_func_ptr(ptr);
 }
 
 void vcap_set_global_error(const char* fmt, ...)

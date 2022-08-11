@@ -320,7 +320,16 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
 {
     assert(vd);
 
-    for (vcap_ctrl_id ctrl = 0; ctrl < V4L2_CID_LASTP1; ctrl++)
+    for (vcap_ctrl_id ctrl = V4L2_CID_BASE; ctrl < V4L2_CID_LASTP1; ctrl++)
+    {
+        if (vcap_ctrl_status(vd, ctrl) != VCAP_CTRL_OK)
+            continue;
+
+        if (vcap_reset_ctrl(vd, ctrl) == -1)
+            return -1;
+    }
+
+    for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl < V4L2_CID_CAMERA_CLASS_BASE + 36; ctrl++)
     {
         if (vcap_ctrl_status(vd, ctrl) != VCAP_CTRL_OK)
             continue;
@@ -340,6 +349,26 @@ int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
     int count = 0;
 
     for (vcap_ctrl_id ctrl = V4L2_CID_BASE; ctrl < V4L2_CID_LASTP1; ctrl++)
+    {
+        int result = vcap_get_ctrl_info(vd, ctrl, info);
+
+        if (result == VCAP_CTRL_ERROR)
+            return VCAP_ENUM_ERROR;
+
+        if (result == VCAP_CTRL_INVALID)
+            continue;
+
+        if (index == count)
+        {
+            return VCAP_ENUM_OK;
+        }
+        else
+        {
+            count++;
+        }
+    }
+
+    for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl < V4L2_CID_CAMERA_CLASS_BASE + 36; ctrl++)
     {
         int result = vcap_get_ctrl_info(vd, ctrl, info);
 
@@ -395,12 +424,13 @@ int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32
         return VCAP_ENUM_ERROR;
     }
 
+    // Query menu
+
     if (index + info.min > info.min + info.max)
     {
         return VCAP_ENUM_INVALID;
     }
 
-    // Query menu
     struct v4l2_querymenu qmenu;
 
     VCAP_CLEAR(qmenu);
@@ -415,7 +445,7 @@ int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32
         }
         else
         {
-            vcap_set_error_errno(vd, "Unable to enumerate menu on device '%s'", vd->path);
+            vcap_set_error_errno(vd, "Unable to enumerate menu on device %s", vd->path);
             return VCAP_ENUM_ERROR;
         }
     }
@@ -423,13 +453,9 @@ int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32
     item->index = index;
 
     if (info.type == VCAP_CTRL_TYPE_MENU)
-    {
         vcap_ustrcpy(item->name, qmenu.name, sizeof(item->name));
-    }
     else
-    {
         item->value = qmenu.value;
-    }
 
     return VCAP_ENUM_OK;
 }

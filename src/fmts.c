@@ -25,197 +25,6 @@
 
 #include <assert.h>
 
-static uint32_t fmt_map[] = {
-    /* RGB formats */
-    V4L2_PIX_FMT_RGB332,
-    V4L2_PIX_FMT_RGB444,
-    V4L2_PIX_FMT_ARGB444,
-    V4L2_PIX_FMT_XRGB444,
-    V4L2_PIX_FMT_RGB555,
-    V4L2_PIX_FMT_ARGB555,
-    V4L2_PIX_FMT_XRGB555,
-    V4L2_PIX_FMT_RGB565,
-    V4L2_PIX_FMT_RGB555X,
-    V4L2_PIX_FMT_ARGB555X,
-    V4L2_PIX_FMT_XRGB555X,
-    V4L2_PIX_FMT_RGB565X,
-    V4L2_PIX_FMT_BGR666,
-    V4L2_PIX_FMT_BGR24,
-    V4L2_PIX_FMT_RGB24,
-    V4L2_PIX_FMT_BGR32,
-    V4L2_PIX_FMT_ABGR32,
-    V4L2_PIX_FMT_XBGR32,
-    V4L2_PIX_FMT_RGB32,
-    V4L2_PIX_FMT_ARGB32,
-    V4L2_PIX_FMT_XRGB32,
-
-    /* Grey formats */
-    V4L2_PIX_FMT_GREY,
-    V4L2_PIX_FMT_Y4,
-    V4L2_PIX_FMT_Y6,
-    V4L2_PIX_FMT_Y10,
-    V4L2_PIX_FMT_Y12,
-    V4L2_PIX_FMT_Y16,
-    V4L2_PIX_FMT_Y16_BE,
-
-    /* Grey bit-packed formats */
-    V4L2_PIX_FMT_Y10BPACK,
-
-    /* Palette formats */
-    V4L2_PIX_FMT_PAL8,
-
-    /* Chrominance formats */
-    V4L2_PIX_FMT_UV8,
-
-    /* Luminance+Chrominance formats */
-    V4L2_PIX_FMT_YUYV,
-    V4L2_PIX_FMT_YYUV,
-    V4L2_PIX_FMT_YVYU,
-    V4L2_PIX_FMT_UYVY,
-    V4L2_PIX_FMT_VYUY,
-    V4L2_PIX_FMT_Y41P,
-    V4L2_PIX_FMT_YUV444,
-    V4L2_PIX_FMT_YUV555,
-    V4L2_PIX_FMT_YUV565,
-    V4L2_PIX_FMT_YUV32,
-    V4L2_PIX_FMT_HI240,
-    V4L2_PIX_FMT_HM12,
-    V4L2_PIX_FMT_M420,
-
-    /* two planes -- one Y, one Cr + Cb interleaved  */
-    V4L2_PIX_FMT_NV12,
-    V4L2_PIX_FMT_NV21,
-    V4L2_PIX_FMT_NV16,
-    V4L2_PIX_FMT_NV61,
-    V4L2_PIX_FMT_NV24,
-    V4L2_PIX_FMT_NV42,
-
-    /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
-    V4L2_PIX_FMT_NV12M,
-    V4L2_PIX_FMT_NV21M,
-    V4L2_PIX_FMT_NV16M,
-    V4L2_PIX_FMT_NV61M,
-    V4L2_PIX_FMT_NV12MT,
-    V4L2_PIX_FMT_NV12MT_16X16,
-
-    /* three planes - Y Cb, Cr */
-    V4L2_PIX_FMT_YUV410,
-    V4L2_PIX_FMT_YVU410,
-    V4L2_PIX_FMT_YUV411P,
-    V4L2_PIX_FMT_YUV420,
-    V4L2_PIX_FMT_YVU420,
-    V4L2_PIX_FMT_YUV422P,
-
-    /* three non contiguous planes - Y, Cb, Cr */
-    V4L2_PIX_FMT_YUV420M,
-    V4L2_PIX_FMT_YVU420M,
-    V4L2_PIX_FMT_YUV422M,
-    V4L2_PIX_FMT_YVU422M,
-    V4L2_PIX_FMT_YUV444M,
-    V4L2_PIX_FMT_YVU444M,
-
-    /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
-    V4L2_PIX_FMT_SBGGR8,
-    V4L2_PIX_FMT_SGBRG8,
-    V4L2_PIX_FMT_SGRBG8,
-    V4L2_PIX_FMT_SRGGB8,
-    V4L2_PIX_FMT_SBGGR10,
-    V4L2_PIX_FMT_SGBRG10,
-    V4L2_PIX_FMT_SGRBG10,
-    V4L2_PIX_FMT_SRGGB10,
-            /* 10bit raw bayer packed, 5 bytes for every 4 pixels */
-    V4L2_PIX_FMT_SBGGR10P,
-    V4L2_PIX_FMT_SGBRG10P,
-    V4L2_PIX_FMT_SGRBG10P,
-    V4L2_PIX_FMT_SRGGB10P,
-            /* 10bit raw bayer a-law compressed to 8 bits */
-    V4L2_PIX_FMT_SBGGR10ALAW8,
-    V4L2_PIX_FMT_SGBRG10ALAW8,
-    V4L2_PIX_FMT_SGRBG10ALAW8,
-    V4L2_PIX_FMT_SRGGB10ALAW8,
-            /* 10bit raw bayer DPCM compressed to 8 bits */
-    V4L2_PIX_FMT_SBGGR10DPCM8,
-    V4L2_PIX_FMT_SGBRG10DPCM8,
-    V4L2_PIX_FMT_SGRBG10DPCM8,
-    V4L2_PIX_FMT_SRGGB10DPCM8,
-    V4L2_PIX_FMT_SBGGR12,
-    V4L2_PIX_FMT_SGBRG12,
-    V4L2_PIX_FMT_SGRBG12,
-    V4L2_PIX_FMT_SRGGB12,
-            /* 12bit raw bayer packed, 6 bytes for every 4 pixels */
-    V4L2_PIX_FMT_SBGGR12P,
-    V4L2_PIX_FMT_SGBRG12P,
-    V4L2_PIX_FMT_SGRBG12P,
-    V4L2_PIX_FMT_SRGGB12P,
-    V4L2_PIX_FMT_SBGGR16,
-    V4L2_PIX_FMT_SGBRG16,
-    V4L2_PIX_FMT_SGRBG16,
-    V4L2_PIX_FMT_SRGGB16,
-
-    /* HSV formats */
-    V4L2_PIX_FMT_HSV24,
-    V4L2_PIX_FMT_HSV32,
-
-    /* compressed formats */
-    V4L2_PIX_FMT_MJPEG,
-    V4L2_PIX_FMT_JPEG,
-    V4L2_PIX_FMT_DV,
-    V4L2_PIX_FMT_MPEG,
-    V4L2_PIX_FMT_H264,
-    V4L2_PIX_FMT_H264_NO_SC,
-    V4L2_PIX_FMT_H264_MVC,
-    V4L2_PIX_FMT_H263,
-    V4L2_PIX_FMT_MPEG1,
-    V4L2_PIX_FMT_MPEG2,
-    V4L2_PIX_FMT_MPEG4,
-    V4L2_PIX_FMT_XVID,
-    V4L2_PIX_FMT_VC1_ANNEX_G,
-    V4L2_PIX_FMT_VC1_ANNEX_L,
-    V4L2_PIX_FMT_VP8,
-    V4L2_PIX_FMT_VP9,
-    //V4L2_PIX_FMT_HEVC,
-    //V4L2_PIX_FMT_FWHT,
-
-    /*  Vendor-specific formats   */
-    V4L2_PIX_FMT_CPIA1,
-    V4L2_PIX_FMT_WNVA,
-    V4L2_PIX_FMT_SN9C10X,
-    V4L2_PIX_FMT_SN9C20X_I420,
-    V4L2_PIX_FMT_PWC1,
-    V4L2_PIX_FMT_PWC2,
-    V4L2_PIX_FMT_ET61X251,
-    V4L2_PIX_FMT_SPCA501,
-    V4L2_PIX_FMT_SPCA505,
-    V4L2_PIX_FMT_SPCA508,
-    V4L2_PIX_FMT_SPCA561,
-    V4L2_PIX_FMT_PAC207,
-    V4L2_PIX_FMT_MR97310A,
-    V4L2_PIX_FMT_JL2005BCD,
-    V4L2_PIX_FMT_SN9C2028,
-    V4L2_PIX_FMT_SQ905C,
-    V4L2_PIX_FMT_PJPG,
-    V4L2_PIX_FMT_OV511,
-    V4L2_PIX_FMT_OV518,
-    V4L2_PIX_FMT_STV0680,
-    V4L2_PIX_FMT_TM6000,
-    V4L2_PIX_FMT_CIT_YYVYUY,
-    V4L2_PIX_FMT_KONICA420,
-    V4L2_PIX_FMT_JPGL,
-    V4L2_PIX_FMT_SE401,
-    V4L2_PIX_FMT_S5C_UYVY_JPG,
-    V4L2_PIX_FMT_Y8I,
-    V4L2_PIX_FMT_Y12I,
-    V4L2_PIX_FMT_Z16,
-    V4L2_PIX_FMT_MT21C,
-    V4L2_PIX_FMT_INZI,
-
-    /* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
-    /*V4L2_PIX_FMT_IPU3_SBGGR10,
-    V4L2_PIX_FMT_IPU3_SGBRG10,
-    V4L2_PIX_FMT_IPU3_SGRBG10,
-    V4L2_PIX_FMT_IPU3_SRGGB10*/
-};
-
 static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index);
 static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index);
 static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index);
@@ -223,12 +32,6 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
 int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
 {
     assert(vd);
-
-    if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
-    {
-        vcap_set_error(vd, "Invalid format (out of range)");
-        return VCAP_FMT_ERROR;
-    }
 
     if (!info)
     {
@@ -302,16 +105,7 @@ vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
     itr.vd = vd;
     itr.fmt = fmt;
     itr.index = 0;
-
-    if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
-    {
-        vcap_set_error(vd, "Invalid format (out of range");
-        itr.result = VCAP_ENUM_ERROR;
-    }
-    else
-    {
-        itr.result = vcap_enum_sizes(vd, fmt, &itr.size, 0);
-    }
+    itr.result = vcap_enum_sizes(vd, fmt, &itr.size, 0);
 
     return itr;
 }
@@ -347,16 +141,6 @@ vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     itr.size = size;
     itr.index = 0;
     itr.result = vcap_enum_rates(vd, fmt, size, &itr.rate, 0);
-
-    if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
-    {
-        vcap_set_error(vd, "Invalid format (out of range)");
-        itr.result = VCAP_ENUM_ERROR;
-    }
-    else
-    {
-        itr.result = vcap_enum_rates(vd, fmt, size, &itr.rate, 0);
-    }
 
     return itr;
 }
@@ -403,7 +187,7 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
         return -1;
     }
 
-    *fmt = vcap_convert_fmt_id(gfmt.fmt.pix.pixelformat);
+    *fmt = gfmt.fmt.pix.pixelformat;
 
     size->width = gfmt.fmt.pix.width;
     size->height = gfmt.fmt.pix.height;
@@ -414,12 +198,6 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
 int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 {
     assert(vd);
-
-    if (fmt < 0 || fmt >= VCAP_FMT_UNKNOWN)
-    {
-        vcap_set_error(vd, "Invalid format (out of range)");
-        return -1;
-    }
 
     bool streaming = vcap_is_streaming(vd);
 
@@ -434,7 +212,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     sfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     sfmt.fmt.pix.width = size.width;
     sfmt.fmt.pix.height = size.height;
-    sfmt.fmt.pix.pixelformat = fmt_map[fmt];
+    sfmt.fmt.pix.pixelformat = fmt;
     sfmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
 
     if (-1 == vcap_ioctl(vd->fd, VIDIOC_S_FMT, &sfmt))
@@ -524,7 +302,7 @@ static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
     vcap_fourcc_string(fmtd.pixelformat, info->fourcc);
 
     // Copy pixel format
-    info->id = vcap_convert_fmt_id(fmtd.pixelformat);
+    info->id = fmtd.pixelformat;
 
     return VCAP_ENUM_OK;
 }
@@ -537,7 +315,7 @@ static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint3
 
     VCAP_CLEAR(fenum);
     fenum.index = index;
-    fenum.pixel_format = fmt_map[fmt];
+    fenum.pixel_format = fmt;
 
     if (vcap_ioctl(vd->fd, VIDIOC_ENUM_FRAMESIZES, &fenum) == -1)
     {
@@ -569,7 +347,7 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
 
     VCAP_CLEAR(frenum);
     frenum.index = index;
-    frenum.pixel_format = fmt_map[fmt];
+    frenum.pixel_format = fmt;
     frenum.width = size.width;
     frenum.height = size.height;
 
@@ -598,13 +376,3 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
     return VCAP_ENUM_OK;
 }
 
-vcap_ctrl_id vcap_convert_fmt_id(uint32_t id)
-{
-    for (int i = 0; i < VCAP_FMT_UNKNOWN; i++)
-    {
-        if (fmt_map[i] == id)
-            return (vcap_ctrl_id)i;
-    }
-
-    return VCAP_FMT_UNKNOWN;
-}

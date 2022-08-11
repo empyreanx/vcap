@@ -32,15 +32,17 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
+// Filters device list so that 'scandir' returns only video devices.
+static int vcap_video_device_filter(const struct dirent *a);
+static void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_dev_info* info);
 static int vcap_request_buffers(vcap_dev* vd, int buffer_count);
 static int vcap_init_stream(vcap_dev* vd);
 static int vcap_shutdown_stream(vcap_dev* vd);
 static int vcap_map_buffers(vcap_dev* vd);
 static int vcap_unmap_buffers(vcap_dev* vd);
 static int vcap_queue_buffers(vcap_dev* vd);
-
-// Filters device list so that 'scandir' returns only video devices.
-static int vcap_video_device_filter(const struct dirent *a);
+static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer);
+static int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer);
 
 static vcap_malloc_fn global_malloc_fp = malloc;
 static vcap_free_fn global_free_fp = free;
@@ -220,25 +222,6 @@ int vcap_query_caps(const char* path, struct v4l2_capability* caps)
     return 0;
 }
 
-void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_dev_info* info)
-{
-    assert(path);
-    assert(info);
-
-    // Copy device information
-    vcap_strcpy(info->path, path, sizeof(info->path));
-    vcap_ustrcpy(info->driver, caps.driver, sizeof(info->driver));
-    vcap_ustrcpy(info->card, caps.card, sizeof(info->card));
-    vcap_ustrcpy(info->bus_info, caps.bus_info, sizeof(info->bus_info));
-    info->version = caps.version;
-
-    // Decode version
-    snprintf((char*)info->version_str, sizeof(info->version_str), "%u.%u.%u",
-            (caps.version >> 16) & 0xFF,
-            (caps.version >> 8) & 0xFF,
-            (caps.version & 0xFF));
-}
-
 int vcap_enum_devices(unsigned index, vcap_dev_info* info)
 {
     int count = 0;
@@ -406,7 +389,7 @@ int vcap_close(vcap_dev* vd)
 
     if (vd->buffer_count > 0)
     {
-        if (vcap_is_streaming(vd) && -1 == vcap_stop_stream(vd))
+        if (vcap_is_streaming(vd) && -1 == vcap_stop_stream(vd)) //TODO: close device anyway?
             return -1;
     }
 
@@ -453,7 +436,7 @@ int vcap_stop_stream(vcap_dev* vd)
 
     if (!vcap_is_streaming(vd))
     {
-        vcap_set_error(vd, "Unable to close stream on %s, device is not streaming", vd->path);
+        vcap_set_error(vd, "Unable to stop stream on %s, device is not streaming", vd->path);
         return -1;
     }
 
@@ -519,62 +502,6 @@ size_t vcap_get_buffer_size(vcap_dev* vd)
     }
 
     return fmt.fmt.pix.sizeimage;
-}
-
-int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
-{
-    assert(vd);
-
-    if (!buffer)
-    {
-        vcap_set_error(vd, "Parameter can't be null");
-        return -1;
-    }
-
-    struct v4l2_buffer buf;
-
-	//dequeue buffer
-    VCAP_CLEAR(buf);
-    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    buf.memory = V4L2_MEMORY_MMAP;
-
-    if (-1 == vcap_ioctl(vd->fd, VIDIOC_DQBUF, &buf))
-    {
-        vcap_set_error_errno(vd, "Could not dequeue buffer on %s", vd->path);
-        return -1;
-    }
-
-    memcpy(buffer, vd->buffers[buf.index].data, buffer_size);
-
-    if (-1 == vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf)) {
-        vcap_set_error_errno(vd, "Could not requeue buffer on %s", vd->path);
-        return -1;
-    }
-
-    return 0;
-}
-
-int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
-{
-    assert(vd);
-
-    while (true)
-    {
-        if (v4l2_read(vd->fd, buffer, buffer_size) == -1)
-        {
-            if (errno == EAGAIN)
-            {
-                continue;
-            }
-            else
-            {
-                vcap_set_error_errno(vd, "Reading from device %s failed", vd->path);
-                return -1;
-            }
-        }
-
-        return 0; // Break out of loop
-    }
 }
 
 int vcap_grab(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
@@ -729,6 +656,34 @@ int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
     return 0;
 }
 
+static int vcap_video_device_filter(const struct dirent* a)
+{
+    assert(a);
+
+    if (0 == strncmp(a->d_name, "video", 5))
+        return 1;
+    else
+        return 0;
+}
+
+static void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_dev_info* info)
+{
+    assert(path);
+    assert(info);
+
+    // Copy device information
+    vcap_strcpy(info->path, path, sizeof(info->path));
+    vcap_ustrcpy(info->driver, caps.driver, sizeof(info->driver));
+    vcap_ustrcpy(info->card, caps.card, sizeof(info->card));
+    vcap_ustrcpy(info->bus_info, caps.bus_info, sizeof(info->bus_info));
+    info->version = caps.version;
+
+    // Decode version
+    snprintf((char*)info->version_str, sizeof(info->version_str), "%u.%u.%u",
+            (caps.version >> 16) & 0xFF,
+            (caps.version >> 8) & 0xFF,
+            (caps.version & 0xFF));
+}
 static int vcap_request_buffers(vcap_dev* vd, int buffer_count)
 {
     assert(vd);
@@ -860,12 +815,59 @@ static int vcap_queue_buffers(vcap_dev* vd)
 	return 0;
 }
 
-static int vcap_video_device_filter(const struct dirent* a)
+static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 {
-    assert(a);
+    assert(vd);
 
-    if (0 == strncmp(a->d_name, "video", 5))
-        return 1;
-    else
-        return 0;
+    if (!buffer)
+    {
+        vcap_set_error(vd, "Parameter can't be null");
+        return -1;
+    }
+
+    struct v4l2_buffer buf;
+
+	//dequeue buffer
+    VCAP_CLEAR(buf);
+    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    buf.memory = V4L2_MEMORY_MMAP;
+
+    if (-1 == vcap_ioctl(vd->fd, VIDIOC_DQBUF, &buf))
+    {
+        vcap_set_error_errno(vd, "Could not dequeue buffer on %s", vd->path);
+        return -1;
+    }
+
+    memcpy(buffer, vd->buffers[buf.index].data, buffer_size);
+
+    if (-1 == vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf)) {
+        vcap_set_error_errno(vd, "Could not requeue buffer on %s", vd->path);
+        return -1;
+    }
+
+    return 0;
 }
+
+static int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
+{
+    assert(vd);
+
+    while (true)
+    {
+        if (v4l2_read(vd->fd, buffer, buffer_size) == -1)
+        {
+            if (errno == EAGAIN)
+            {
+                continue;
+            }
+            else
+            {
+                vcap_set_error_errno(vd, "Reading from device %s failed", vd->path);
+                return -1;
+            }
+        }
+
+        return 0; // Break out of loop
+    }
+}
+

@@ -24,11 +24,12 @@
 #define VCAP_CTRLS_H
 
 #include <linux/videodev2.h>
+#include <stdint.h>
 
 ///
 /// \brief Control IDs
 ///
-typedef enum
+/*typedef enum
 {
     VCAP_CTRL_BRIGHTNESS,                  // Integer
     VCAP_CTRL_CONTRAST,                    // Integer
@@ -86,7 +87,9 @@ typedef enum
     VCAP_CTRL_PAN_SPEED,                   // Integer
     VCAP_CTRL_TILT_SPEED,                  // Integer
     VCAP_CTRL_UNKNOWN
-} vcap_ctrl_id;
+} vcap_ctrl_id;*/
+
+typedef uint32_t vcap_ctrl_id;
 
 ///
 /// \brief Control types

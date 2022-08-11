@@ -23,63 +23,43 @@
 #include <libv4l2.h>
 #include <assert.h>
 
-static uint32_t ctrl_map[] = {
-    V4L2_CID_BRIGHTNESS,                  // Integer
-    V4L2_CID_CONTRAST,                    // Integer
-    V4L2_CID_SATURATION,                  // Integer
-    V4L2_CID_HUE,                         // Integer
-    V4L2_CID_AUTO_WHITE_BALANCE,          // Boolean
-    V4L2_CID_DO_WHITE_BALANCE,            // Button
-    V4L2_CID_RED_BALANCE,                 // Integer
-    V4L2_CID_BLUE_BALANCE,                // Integer
-    V4L2_CID_GAMMA,                       // Integer
-    V4L2_CID_EXPOSURE,                    // Integer
-    V4L2_CID_AUTOGAIN,                    // Boolean
-    V4L2_CID_GAIN,                        // Integer
-    V4L2_CID_HFLIP,                       // Boolean
-    V4L2_CID_VFLIP,                       // Boolean
-    V4L2_CID_POWER_LINE_FREQUENCY,        // Enum
-    V4L2_CID_HUE_AUTO,                    // Boolean
-    V4L2_CID_WHITE_BALANCE_TEMPERATURE,   // Integer
-    V4L2_CID_SHARPNESS,                   // Integer
-    V4L2_CID_BACKLIGHT_COMPENSATION,      // Integer
-    V4L2_CID_CHROMA_AGC,                  // Boolean
-    V4L2_CID_CHROMA_GAIN,                 // Integer
-    V4L2_CID_COLOR_KILLER,                // Boolean
-    V4L2_CID_AUTOBRIGHTNESS,              // Boolean
-    V4L2_CID_ROTATE,                      // Integer
-    V4L2_CID_BG_COLOR,                    // Integer
-    V4L2_CID_ILLUMINATORS_1,              // Boolean
-    V4L2_CID_ILLUMINATORS_2,              // Boolean
-    V4L2_CID_ALPHA_COMPONENT,             // Integer
-    V4L2_CID_EXPOSURE_AUTO,               // Enum
-    V4L2_CID_EXPOSURE_ABSOLUTE,           // Integer
-    V4L2_CID_EXPOSURE_AUTO_PRIORITY,      // Boolean
-    V4L2_CID_AUTO_EXPOSURE_BIAS,          // Integer Menu
-    V4L2_CID_EXPOSURE_METERING,           // Enum
-    V4L2_CID_PAN_RELATIVE,                // Integer
-    V4L2_CID_TILT_RELATIVE,               // Integer
-    V4L2_CID_PAN_RESET,                   // Button
-    V4L2_CID_TILT_RESET,                  // Button
-    V4L2_CID_PAN_ABSOLUTE,                // Integer
-    V4L2_CID_TILT_ABSOLUTE,               // Integer
-    V4L2_CID_FOCUS_ABSOLUTE,              // Integer
-    V4L2_CID_FOCUS_RELATIVE,              // Integer
-    V4L2_CID_FOCUS_AUTO,                  // Boolean
-    V4L2_CID_AUTO_FOCUS_START,            // Button
-    V4L2_CID_AUTO_FOCUS_STOP,             // Button
-    V4L2_CID_AUTO_FOCUS_RANGE,            // Enum
-    V4L2_CID_ZOOM_ABSOLUTE,               // Integer
-    V4L2_CID_ZOOM_RELATIVE,               // Integer
-    V4L2_CID_ZOOM_CONTINUOUS,             // Integer
-    V4L2_CID_IRIS_ABSOLUTE,               // Integer
-    V4L2_CID_IRIS_RELATIVE,               // Integer
-    V4L2_CID_BAND_STOP_FILTER,            // Integer
-    V4L2_CID_WIDE_DYNAMIC_RANGE,          // Boolean
-    V4L2_CID_IMAGE_STABILIZATION,         // Boolean
-    V4L2_CID_PAN_SPEED,                   // Integer
-    V4L2_CID_TILT_SPEED                   // Integer
-};
+/*static bool vcap_type_supported(int type)
+{
+    switch (type)
+    {
+        case V4L2_CTRL_TYPE_INTEGER:
+        case V4L2_CTRL_TYPE_BOOLEAN:
+        case V4L2_CTRL_TYPE_MENU:
+        case V4L2_CTRL_TYPE_INTEGER_MENU:
+        case V4L2_CTRL_TYPE_BUTTON:
+            return true;
+    }
+
+    return false;
+}
+
+static const char* vcap_type_str(int type)
+{
+    switch (type)
+    {
+        case V4L2_CTRL_TYPE_INTEGER:
+            return "Integer";
+
+        case V4L2_CTRL_TYPE_BOOLEAN:
+            return "Boolean";
+
+        case V4L2_CTRL_TYPE_MENU:
+            return "Menu";
+
+        case V4L2_CTRL_TYPE_INTEGER_MENU:
+            return "Integer Menu";
+
+        case V4L2_CTRL_TYPE_BUTTON:
+            return "Button";
+    }
+
+    return "Unknown";
+}*/
 
 static uint32_t type_map[] = {
     V4L2_CTRL_TYPE_INTEGER,
@@ -101,18 +81,11 @@ static char* type_name_map[] = {
 static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index);
 static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index);
 
-static vcap_ctrl_id convert_ctrl_id(uint32_t id);
 static vcap_ctrl_type convert_ctrl_type(uint32_t type);
 
 int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
 {
     assert(vd);
-
-    if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN)
-    {
-        vcap_set_error(vd, "Invalid control (out of range)");
-        return VCAP_CTRL_ERROR;
-    }
 
     if (!info)
     {
@@ -123,7 +96,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     struct v4l2_queryctrl qctrl;
 
     VCAP_CLEAR(qctrl);
-    qctrl.id = ctrl_map[ctrl];
+    qctrl.id = ctrl;
 
     if (vcap_ioctl(vd->fd, VIDIOC_QUERYCTRL, &qctrl) == -1)
     {
@@ -145,7 +118,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     vcap_ustrcpy(info->name, qctrl.name, sizeof(info->name));
 
     // Copy control ID
-    info->id = convert_ctrl_id(qctrl.id);
+    info->id = qctrl.id;
 
     // Convert type
     vcap_ctrl_type type = convert_ctrl_type(qctrl.type);
@@ -178,7 +151,7 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
     struct v4l2_queryctrl qctrl;
 
     VCAP_CLEAR(qctrl);
-    qctrl.id = ctrl_map[ctrl];
+    qctrl.id = ctrl;
 
     if (vcap_ioctl(vd->fd, VIDIOC_QUERYCTRL, &qctrl) == -1)
     {
@@ -246,16 +219,7 @@ vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
     itr.vd = vd;
     itr.ctrl = ctrl;
     itr.index = 0;
-
-    if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN)
-    {
-        vcap_set_error(vd, "Invalid control (out of range)");
-        itr.result = VCAP_ENUM_ERROR;
-    }
-    else
-    {
-        itr.result = vcap_enum_menu(vd, ctrl, &itr.item, 0);
-    }
+    itr.result = vcap_enum_menu(vd, ctrl, &itr.item, 0);
 
     return itr;
 }
@@ -285,12 +249,6 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
 {
     assert(vd);
 
-    if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN)
-    {
-        vcap_set_error(vd, "Invalid control (out of range)");
-        return -1;
-    }
-
     if (!value)
     {
         vcap_set_error(vd, "Parameter can't be null");
@@ -300,7 +258,7 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
     struct v4l2_control gctrl;
 
     VCAP_CLEAR(gctrl);
-    gctrl.id = ctrl_map[ctrl];
+    gctrl.id = ctrl;
 
     if (vcap_ioctl(vd->fd, VIDIOC_G_CTRL, &gctrl) == -1)
     {
@@ -317,16 +275,10 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
 {
     assert(vd);
 
-    if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN)
-    {
-        vcap_set_error(vd, "Invalid control (out of range)");
-        return -1;
-    }
-
     struct v4l2_control sctrl;
 
     VCAP_CLEAR(sctrl);
-    sctrl.id = ctrl_map[ctrl];
+    sctrl.id = ctrl;
     sctrl.value = value;
 
     if (vcap_ioctl(vd->fd, VIDIOC_S_CTRL, &sctrl) == -1)
@@ -341,12 +293,6 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
 int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
     assert(vd);
-
-    if (ctrl < 0 || ctrl >= VCAP_CTRL_UNKNOWN)
-    {
-        vcap_set_error(vd, "Invalid control (out of range)");
-        return -1;
-    }
 
     vcap_ctrl_info info;
 
@@ -374,7 +320,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
 {
     assert(vd);
 
-    for (int ctrl = 0; ctrl < VCAP_CTRL_UNKNOWN; ctrl++)
+    for (vcap_ctrl_id ctrl = 0; ctrl < V4L2_CID_LASTP1; ctrl++)
     {
         if (vcap_ctrl_status(vd, ctrl) != VCAP_CTRL_OK)
             continue;
@@ -393,7 +339,7 @@ int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
 
     int count = 0;
 
-    for (int ctrl = 0; ctrl < VCAP_CTRL_UNKNOWN; ctrl++)
+    for (vcap_ctrl_id ctrl = 0; ctrl < V4L2_CID_LASTP1; ctrl++)
     {
         int result = vcap_get_ctrl_info(vd, ctrl, info);
 
@@ -458,7 +404,7 @@ int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32
     struct v4l2_querymenu qmenu;
 
     VCAP_CLEAR(qmenu);
-    qmenu.id = ctrl_map[ctrl];
+    qmenu.id = ctrl;
     qmenu.index = info.min + index;
 
     if (vcap_ioctl(vd->fd, VIDIOC_QUERYMENU, &qmenu) == -1)
@@ -486,17 +432,6 @@ int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32
     }
 
     return VCAP_ENUM_OK;
-}
-
-static vcap_ctrl_id convert_ctrl_id(uint32_t id)
-{
-    for (int i = 0; i < VCAP_CTRL_UNKNOWN; i++)
-    {
-        if (ctrl_map[i] == id)
-            return (vcap_ctrl_id)i;
-    }
-
-    return VCAP_CTRL_UNKNOWN;
 }
 
 static vcap_ctrl_type convert_ctrl_type(uint32_t type)

@@ -339,7 +339,7 @@ int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
 
     int count = 0;
 
-    for (vcap_ctrl_id ctrl = 0; ctrl < V4L2_CID_LASTP1; ctrl++)
+    for (vcap_ctrl_id ctrl = V4L2_CID_BASE; ctrl < V4L2_CID_LASTP1; ctrl++)
     {
         int result = vcap_get_ctrl_info(vd, ctrl, info);
 

@@ -217,6 +217,9 @@ typedef struct
 #define VCAP_ENUM_DISABLED  -2  ///< Valid index, but item is disabled
 #define VCAP_ENUM_ERROR     -3  ///< Error enumerating item
 
+// Generic iterator error test
+#define vcap_itr_error(itr) (VCAP_ENUM_ERROR == (itr)->result)
+
 typedef void* (*vcap_malloc_fn)(size_t size); ///< Custom malloc function type
 typedef void  (*vcap_free_fn)(void* ptr);     ///< Custom free function type
 

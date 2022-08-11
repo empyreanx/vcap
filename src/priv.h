@@ -40,9 +40,6 @@ const char* vcap_get_global_error();
 // Clear data structure
 #define VCAP_CLEAR(arg) memset(&(arg), 0, sizeof(arg))
 
-// Generic iterator error test
-#define vcap_itr_error(itr) (VCAP_ENUM_ERROR == (itr)->result)
-
 // FOURCC character code to string
 void vcap_fourcc_string(uint32_t code, uint8_t* str);
 

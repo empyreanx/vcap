@@ -23,8 +23,8 @@
 #include <libv4l2.h>
 #include <assert.h>
 
-static bool vcap_type_supported(int type);
-static const char* vcap_type_str(int type);
+static bool vcap_type_supported(uint32_t type);
+static const char* vcap_type_str(vcap_ctrl_type type);
 static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index);
 static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index);
 
@@ -56,10 +56,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
         }
     }
 
-    // Convert type
-    vcap_ctrl_type type = qctrl.type;
-
-    if (!vcap_type_supported(type))
+    if (!vcap_type_supported(qctrl.type))
         return VCAP_CTRL_INVALID;
 
     if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
@@ -72,10 +69,10 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     info->id = qctrl.id;
 
     // Copy type
-    info->type = type;
+    info->type = qctrl.type;
 
     // Copy type string
-    strncpy((char*)info->type_name, vcap_type_str(type), sizeof(info->type_name));
+    vcap_ustrcpy(info->type_name, (uint8_t*)vcap_type_str(info->type), sizeof(info->type_name));
 
     // Min/Max/Step/Default
     info->min = qctrl.minimum;
@@ -289,7 +286,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
     return 0;
 }
 
-static bool vcap_type_supported(int type)
+static bool vcap_type_supported(uint32_t type)
 {
     switch (type)
     {
@@ -304,7 +301,7 @@ static bool vcap_type_supported(int type)
     return false;
 }
 
-static const char* vcap_type_str(int type)
+static const char* vcap_type_str(vcap_ctrl_type type)
 {
     switch (type)
     {

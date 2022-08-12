@@ -111,6 +111,9 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
         }
     }
 
+    if (!vcap_type_supported(qctrl.type))
+        return VCAP_CTRL_INVALID;
+
     if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
         return VCAP_CTRL_INVALID;
 
@@ -342,13 +345,9 @@ static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
             continue;
 
         if (index == count)
-        {
             return VCAP_ENUM_OK;
-        }
         else
-        {
             count++;
-        }
     }
 
     for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl < V4L2_CID_CAMERA_CLASS_BASE + 36; ctrl++)
@@ -362,13 +361,9 @@ static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
             continue;
 
         if (index == count)
-        {
             return VCAP_ENUM_OK;
-        }
         else
-        {
             count++;
-        }
     }
 
     return VCAP_ENUM_INVALID;
@@ -416,20 +411,19 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
 
     int count = 0;
 
-    for (int i = index + info.min; i <= info.min + info.max; i++)
+    for (int i = info.min; i <= info.min + info.max; i++)
     {
         struct v4l2_querymenu qmenu;
 
         VCAP_CLEAR(qmenu);
         qmenu.id = ctrl;
-        qmenu.index = info.min + index;
+        qmenu.index = i;
 
         if (vcap_ioctl(vd->fd, VIDIOC_QUERYMENU, &qmenu) == -1)
         {
             if (errno == EINVAL)
             {
                 continue;
-                index++;
             }
             else
             {

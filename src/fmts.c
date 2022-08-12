@@ -35,7 +35,7 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
 
     if (!info)
     {
-        vcap_set_error(vd, "Parameter 'info' cannot be null");
+        vcap_set_error(vd, "Parameter can't be null");
         return VCAP_FMT_ERROR;
     }
 
@@ -51,8 +51,7 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
         if (result == VCAP_ENUM_OK && info->id == fmt)
             return VCAP_FMT_OK;
 
-    }
-    while (result != VCAP_ENUM_INVALID && ++i);
+    } while (result != VCAP_ENUM_INVALID && ++i);
 
     return VCAP_FMT_INVALID;
 }

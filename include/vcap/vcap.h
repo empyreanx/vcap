@@ -215,8 +215,7 @@ typedef struct
 #define VCAP_ENUM_OK         0  ///< Successfully enumerated item (valid index)
 #define VCAP_ENUM_INVALID   -1  ///< Invalid index
 #define VCAP_ENUM_DISABLED  -2  ///< Valid index, but item is disabled
-#define VCAP_ENUM_RESUME    -3  ///< Should skip index
-#define VCAP_ENUM_ERROR     -4  ///< Error enumerating item
+#define VCAP_ENUM_ERROR     -3  ///< Error enumerating item
 
 // Generic iterator error test
 #define vcap_itr_error(itr) (VCAP_ENUM_ERROR == (itr)->result)

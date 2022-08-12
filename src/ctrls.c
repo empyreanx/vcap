@@ -404,16 +404,16 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
         return VCAP_ENUM_ERROR;
     }
 
-    if (index + info.min > info.min + info.max)
+    if (index > info.max)
     {
         return VCAP_ENUM_INVALID;
     }
 
     // Query menu
 
-    int count = 0;
+    uint32_t count = 0;
 
-    for (int i = info.min; i <= info.min + info.max; i++)
+    for (int32_t i = info.min; i <= info.max; i += info.step)
     {
         struct v4l2_querymenu qmenu;
 

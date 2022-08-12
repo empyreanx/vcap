@@ -221,9 +221,6 @@ vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
     itr.index = 0;
     itr.result = vcap_enum_menu(vd, ctrl, &itr.item, 0);
 
-    while (itr.result == VCAP_ENUM_RESUME)
-        itr.result = vcap_enum_menu(itr.vd, itr.ctrl, &itr.item, ++itr.index);
-
     return itr;
 }
 
@@ -243,10 +240,7 @@ bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
 
     *item = itr->item;
 
-    itr->result = VCAP_ENUM_RESUME;
-
-    while (itr->result == VCAP_ENUM_RESUME)
-        itr->result = vcap_enum_menu(itr->vd, itr->ctrl, &itr->item, ++itr->index);
+    itr->result = vcap_enum_menu(itr->vd, itr->ctrl, &itr->item, ++itr->index);
 
     return true;
 }
@@ -437,38 +431,48 @@ int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32
 
     // Query menu
 
-    struct v4l2_querymenu qmenu;
+    int count = 0;
 
-    VCAP_CLEAR(qmenu);
-    qmenu.id = ctrl;
-    qmenu.index = info.min + index;
-
-    if (vcap_ioctl(vd->fd, VIDIOC_QUERYMENU, &qmenu) == -1)
+    for (int i = index + info.min; i <= info.min + info.max; i++)
     {
-        if (errno == EINVAL)
+        struct v4l2_querymenu qmenu;
+
+        VCAP_CLEAR(qmenu);
+        qmenu.id = ctrl;
+        qmenu.index = info.min + index;
+
+        if (vcap_ioctl(vd->fd, VIDIOC_QUERYMENU, &qmenu) == -1)
         {
-            return VCAP_ENUM_RESUME;
-            index++;
+            if (errno == EINVAL)
+            {
+                continue;
+                index++;
+            }
+            else
+            {
+                vcap_set_error_errno(vd, "Unable to enumerate menu on device %s", vd->path);
+                return VCAP_ENUM_ERROR;
+            }
+        }
+
+        if (index == count)
+        {
+            item->index = i;
+
+            if (info.type == VCAP_CTRL_TYPE_MENU)
+                vcap_ustrcpy(item->name, qmenu.name, sizeof(item->name));
+            else
+                item->value = qmenu.value;
+
+            return VCAP_ENUM_OK;
         }
         else
         {
-            vcap_set_error_errno(vd, "Unable to enumerate menu on device %s", vd->path);
-            return VCAP_ENUM_ERROR;
+            count++;
         }
     }
 
-    item->index = index;
-
-    if (info.type == VCAP_CTRL_TYPE_MENU)
-    {
-        vcap_ustrcpy(item->name, qmenu.name, sizeof(item->name));
-    }
-    else
-    {
-        item->value = qmenu.value;
-    }
-
-    return VCAP_ENUM_OK;
+    return VCAP_ENUM_INVALID;
 }
 
 static vcap_ctrl_type convert_ctrl_type(uint32_t type)

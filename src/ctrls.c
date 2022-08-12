@@ -23,44 +23,8 @@
 #include <libv4l2.h>
 #include <assert.h>
 
-static bool vcap_type_supported(int type)
-{
-    switch (type)
-    {
-        case V4L2_CTRL_TYPE_INTEGER:
-        case V4L2_CTRL_TYPE_BOOLEAN:
-        case V4L2_CTRL_TYPE_MENU:
-        case V4L2_CTRL_TYPE_INTEGER_MENU:
-        case V4L2_CTRL_TYPE_BUTTON:
-            return true;
-    }
-
-    return false;
-}
-
-static const char* vcap_type_str(int type)
-{
-    switch (type)
-    {
-        case V4L2_CTRL_TYPE_INTEGER:
-            return "Integer";
-
-        case V4L2_CTRL_TYPE_BOOLEAN:
-            return "Boolean";
-
-        case V4L2_CTRL_TYPE_MENU:
-            return "Menu";
-
-        case V4L2_CTRL_TYPE_INTEGER_MENU:
-            return "Integer Menu";
-
-        case V4L2_CTRL_TYPE_BUTTON:
-            return "Button";
-    }
-
-    return "Unknown";
-}
-
+static bool vcap_type_supported(int type);
+static const char* vcap_type_str(int type);
 static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index);
 static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index);
 
@@ -325,7 +289,45 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
     return 0;
 }
 
-int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
+static bool vcap_type_supported(int type)
+{
+    switch (type)
+    {
+        case V4L2_CTRL_TYPE_INTEGER:
+        case V4L2_CTRL_TYPE_BOOLEAN:
+        case V4L2_CTRL_TYPE_MENU:
+        case V4L2_CTRL_TYPE_INTEGER_MENU:
+        case V4L2_CTRL_TYPE_BUTTON:
+            return true;
+    }
+
+    return false;
+}
+
+static const char* vcap_type_str(int type)
+{
+    switch (type)
+    {
+        case V4L2_CTRL_TYPE_INTEGER:
+            return "Integer";
+
+        case V4L2_CTRL_TYPE_BOOLEAN:
+            return "Boolean";
+
+        case V4L2_CTRL_TYPE_MENU:
+            return "Menu";
+
+        case V4L2_CTRL_TYPE_INTEGER_MENU:
+            return "Integer Menu";
+
+        case V4L2_CTRL_TYPE_BUTTON:
+            return "Button";
+    }
+
+    return "Unknown";
+}
+
+static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
 {
     assert(vd);
     assert(info);
@@ -375,7 +377,7 @@ int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
     return VCAP_ENUM_INVALID;
 }
 
-int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index)
+static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index)
 {
     assert(vd);
     assert(item);

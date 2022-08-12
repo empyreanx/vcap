@@ -23,6 +23,8 @@
 #include <libv4l2.h>
 #include <assert.h>
 
+#define VCAP_LAST_CAMERA_CID (V4L2_CID_CAMERA_CLASS_BASE+35)
+
 static bool vcap_type_supported(uint32_t type);
 static const char* vcap_type_str(vcap_ctrl_type type);
 static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index);
@@ -277,7 +279,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
             return -1;
     }
 
-    for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl < V4L2_CID_CAMERA_CLASS_BASE + 36; ctrl++)
+    for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl <= VCAP_LAST_CAMERA_CID; ctrl++)
     {
         if (vcap_ctrl_status(vd, ctrl) != VCAP_CTRL_OK)
             continue;
@@ -350,7 +352,7 @@ static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
             count++;
     }
 
-    for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl < V4L2_CID_CAMERA_CLASS_BASE + 36; ctrl++)
+    for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl <= VCAP_LAST_CAMERA_CID; ctrl++)
     {
         int result = vcap_get_ctrl_info(vd, ctrl, info);
 

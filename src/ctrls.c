@@ -221,6 +221,9 @@ vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
     itr.index = 0;
     itr.result = vcap_enum_menu(vd, ctrl, &itr.item, 0);
 
+    while (itr.result == VCAP_ENUM_RESUME)
+        itr.result = vcap_enum_menu(itr.vd, itr.ctrl, &itr.item, ++itr.index);
+
     return itr;
 }
 
@@ -240,7 +243,10 @@ bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
 
     *item = itr->item;
 
-    itr->result = vcap_enum_menu(itr->vd, itr->ctrl, &itr->item, ++itr->index);
+    itr->result = VCAP_ENUM_RESUME;
+
+    while (itr->result == VCAP_ENUM_RESUME)
+        itr->result = vcap_enum_menu(itr->vd, itr->ctrl, &itr->item, ++itr->index);
 
     return true;
 }
@@ -424,12 +430,12 @@ int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32
         return VCAP_ENUM_ERROR;
     }
 
-    // Query menu
-
     if (index + info.min > info.min + info.max)
     {
         return VCAP_ENUM_INVALID;
     }
+
+    // Query menu
 
     struct v4l2_querymenu qmenu;
 
@@ -441,7 +447,8 @@ int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32
     {
         if (errno == EINVAL)
         {
-            return VCAP_ENUM_INVALID;
+            return VCAP_ENUM_RESUME;
+            index++;
         }
         else
         {
@@ -453,9 +460,13 @@ int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32
     item->index = index;
 
     if (info.type == VCAP_CTRL_TYPE_MENU)
+    {
         vcap_ustrcpy(item->name, qmenu.name, sizeof(item->name));
+    }
     else
+    {
         item->value = qmenu.value;
+    }
 
     return VCAP_ENUM_OK;
 }

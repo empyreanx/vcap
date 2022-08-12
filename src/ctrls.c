@@ -23,7 +23,7 @@
 #include <libv4l2.h>
 #include <assert.h>
 
-/*static bool vcap_type_supported(int type)
+static bool vcap_type_supported(int type)
 {
     switch (type)
     {
@@ -59,29 +59,10 @@ static const char* vcap_type_str(int type)
     }
 
     return "Unknown";
-}*/
-
-static uint32_t type_map[] = {
-    V4L2_CTRL_TYPE_INTEGER,
-    V4L2_CTRL_TYPE_BOOLEAN,
-    V4L2_CTRL_TYPE_MENU,
-    V4L2_CTRL_TYPE_INTEGER_MENU,
-    V4L2_CTRL_TYPE_BUTTON
-};
-
-static char* type_name_map[] = {
-    "Integer",
-    "Boolean",
-    "Menu",
-    "Integer Menu",
-    "Button",
-    "Unknown"
-};
+}
 
 static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index);
 static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index);
-
-static vcap_ctrl_type convert_ctrl_type(uint32_t type);
 
 int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
 {
@@ -111,6 +92,12 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
         }
     }
 
+    // Convert type
+    vcap_ctrl_type type = qctrl.type;
+
+    if (!vcap_type_supported(type))
+        return VCAP_CTRL_INVALID;
+
     if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
         return VCAP_CTRL_INVALID;
 
@@ -120,14 +107,11 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     // Copy control ID
     info->id = qctrl.id;
 
-    // Convert type
-    vcap_ctrl_type type = convert_ctrl_type(qctrl.type);
-
     // Copy type
     info->type = type;
 
     // Copy type string
-    strncpy((char*)info->type_name, type_name_map[type], sizeof(info->type_name));
+    strncpy((char*)info->type_name, vcap_type_str(type), sizeof(info->type_name));
 
     // Min/Max/Step/Default
     info->min = qctrl.minimum;
@@ -418,7 +402,7 @@ int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32
         return VCAP_ENUM_ERROR;
     }
 
-    if (info.type != VCAP_CTRL_TYPE_MENU && info.type != VCAP_CTRL_TYPE_INTEGER_MENU)
+    if (info.type != V4L2_CTRL_TYPE_MENU && info.type != V4L2_CTRL_TYPE_INTEGER_MENU)
     {
         vcap_set_error(vd, "Control is not a menu");
         return VCAP_ENUM_ERROR;
@@ -459,7 +443,7 @@ int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32
         {
             item->index = i;
 
-            if (info.type == VCAP_CTRL_TYPE_MENU)
+            if (info.type == V4L2_CTRL_TYPE_MENU)
                 vcap_ustrcpy(item->name, qmenu.name, sizeof(item->name));
             else
                 item->value = qmenu.value;
@@ -475,13 +459,3 @@ int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32
     return VCAP_ENUM_INVALID;
 }
 
-static vcap_ctrl_type convert_ctrl_type(uint32_t type)
-{
-    for (int i = 0; i < VCAP_CTRL_TYPE_UNKNOWN; i++)
-    {
-        if (type_map[i] == type)
-            return (vcap_ctrl_type)i;
-    }
-
-    return VCAP_CTRL_TYPE_UNKNOWN;
-}

@@ -148,7 +148,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     {
         printf("   Name: %s, Type: %s\n", ctrl_info.name, ctrl_info.type_name);
 
-        if (ctrl_info.type == VCAP_CTRL_TYPE_MENU || ctrl_info.type == VCAP_CTRL_TYPE_INTEGER_MENU)
+        if (ctrl_info.type == V4L2_CTRL_TYPE_MENU || ctrl_info.type == V4L2_CTRL_TYPE_INTEGER_MENU)
         {
             printf("   Menu:\n");
 
@@ -160,7 +160,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
 
             while (vcap_menu_itr_next(&menu_itr, &menu_item))
             {
-                if (ctrl_info.type == VCAP_CTRL_TYPE_MENU)
+                if (ctrl_info.type == V4L2_CTRL_TYPE_MENU)
                     printf("      %i : %s\n", menu_item.index, menu_item.name);
                 else
                     printf("      %i : %li\n", menu_item.index, menu_item.value);

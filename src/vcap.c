@@ -79,12 +79,27 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     //==========================================================================
     // Print device info
     //==========================================================================
-    printf("------------------------------------------------\n");
+    fprintf(file, "------------------------------------------------\n");
     fprintf(file, "Device: %s\n", info.path);
     fprintf(file, "Driver: %s\n", info.driver);
     fprintf(file, "Driver version: %s\n", info.version_str);
     fprintf(file, "Card: %s\n", info.card);
     fprintf(file, "Bus Info: %s\n", info.bus_info);
+    fprintf(file, "------------------------------------------------\n");
+
+    fprintf(file, "Stream: ");
+
+    if (info.stream)
+        fprintf(file, "Supported\n");
+    else
+        fprintf(file, "Not supported\n");
+
+    fprintf(file, "Read: ");
+
+    if (info.read)
+        fprintf(file, "Supported\n");
+    else
+        fprintf(file, "Not supported\n");
 
     //==========================================================================
     // Enumerate formats
@@ -683,7 +698,11 @@ static void vcap_caps_to_info(const char* path, const struct v4l2_capability cap
             (caps.version >> 16) & 0xFF,
             (caps.version >> 8) & 0xFF,
             (caps.version & 0xFF));
+
+    info->stream = caps.capabilities & V4L2_CAP_STREAMING;
+    info->read = caps.capabilities & V4L2_CAP_READWRITE;
 }
+
 static int vcap_request_buffers(vcap_dev* vd, int buffer_count)
 {
     assert(vd);

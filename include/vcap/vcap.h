@@ -204,20 +204,29 @@ typedef struct
     vcap_rate rate;
 } vcap_rate_itr;
 
-#define VCAP_FMT_OK          0  ///< Format is supported
-#define VCAP_FMT_INVALID    -1  ///< Format is not supported
-#define VCAP_FMT_ERROR      -2  ///< Error reading format descriptor
+enum
+{
+    VCAP_FMT_OK      =  0,    ///< Format is supported
+    VCAP_FMT_INVALID = -1,    ///< Format is not supported
+    VCAP_FMT_ERROR   = -2     ///< Error reading format descriptor
+};
 
-#define VCAP_CTRL_OK         0  ///< Control is supported
-#define VCAP_CTRL_INACTIVE  -1  ///< Control is supported, but inactive
-#define VCAP_CTRL_READ_ONLY -2  ///< Control is presently read-only
-#define VCAP_CTRL_INVALID   -2  ///< Control is not supported
-#define VCAP_CTRL_ERROR     -3  ///< Error reading control descriptor
+enum
+{
+    VCAP_CTRL_OK        =  0,  ///< Control is supported
+    VCAP_CTRL_INACTIVE  = -1,  ///< Control is supported, but inactive
+    VCAP_CTRL_READ_ONLY = -2,  ///< Control is presently read-only
+    VCAP_CTRL_INVALID   = -3,  ///< Control is not supported
+    VCAP_CTRL_ERROR     = -4   ///< Error reading control descriptor
+};
 
-#define VCAP_ENUM_OK         0  ///< Successfully enumerated item (valid index)
-#define VCAP_ENUM_INVALID   -1  ///< Invalid index
-#define VCAP_ENUM_DISABLED  -2  ///< Valid index, but item is disabled
-#define VCAP_ENUM_ERROR     -3  ///< Error enumerating item
+enum
+{
+    VCAP_ENUM_OK       =  0,   ///< Successfully enumerated item (valid index)
+    VCAP_ENUM_INVALID  = -1,   ///< Invalid index
+    VCAP_ENUM_DISABLED = -2,   ///< Valid index, but item is disabled
+    VCAP_ENUM_ERROR    = -3    ///< Error enumerating item
+};
 
 // Generic iterator error test
 #define vcap_itr_error(itr) (VCAP_ENUM_ERROR == (itr)->result)

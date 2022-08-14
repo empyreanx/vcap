@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 
     if (ret == VCAP_ENUM_ERROR)
     {
-        printf("%s\n", vcap_get_error());
+        printf("%s\n", vcap_get_global_error());
         return -1;
     }
 
@@ -53,13 +53,13 @@ int main(int argc, char** argv)
 
     if (ret == -1)
     {
-        printf("%s\n", vcap_get_error());
+        printf("%s\n", vcap_get_error(vd));
         return -1;
     }
 
     // Dump info
     if (vcap_dump_info(vd, stdout) == -1)
-        printf("%s\n", vcap_get_error());
+        printf("%s\n", vcap_get_error(vd));
 
     // Close device
     vcap_close(vd);

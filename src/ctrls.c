@@ -116,11 +116,11 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
     if (!vcap_type_supported(qctrl.type))
         return VCAP_CTRL_INVALID;
 
-    if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
-        return VCAP_CTRL_INVALID;
-
     if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY || qctrl.flags & V4L2_CTRL_FLAG_GRABBED)
         return VCAP_CTRL_READ_ONLY;
+
+    if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+        return VCAP_CTRL_DISABLED;
 
     if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE)
         return VCAP_CTRL_INACTIVE;
@@ -389,8 +389,6 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
         vcap_set_error(vd, "Can't enumerate menu of an invalid control");
         return VCAP_ENUM_ERROR;
     }
-
-    assert(result == VCAP_CTRL_OK || result == VCAP_CTRL_INACTIVE);
 
     if (info.read_only)
     {

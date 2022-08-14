@@ -216,8 +216,9 @@ enum
     VCAP_CTRL_OK        =  0,  ///< Control is supported
     VCAP_CTRL_INACTIVE  = -1,  ///< Control is supported, but inactive
     VCAP_CTRL_READ_ONLY = -2,  ///< Control is presently read-only
-    VCAP_CTRL_INVALID   = -3,  ///< Control is not supported
-    VCAP_CTRL_ERROR     = -4   ///< Error reading control descriptor
+    VCAP_CTRL_DISABLED  = -3,  ///< Control is supported, but disabled
+    VCAP_CTRL_INVALID   = -4,  ///< Control is not supported
+    VCAP_CTRL_ERROR     = -5   ///< Error reading control descriptor
 };
 
 enum
@@ -248,7 +249,8 @@ void vcap_set_alloc(vcap_malloc_fn malloc_fp, vcap_free_fn free_fp);
 ///
 /// \brief  Returns a string containing the last error message
 ///
-const char* vcap_get_error();
+const char* vcap_get_error(vcap_dev* vd);
+const char* vcap_get_global_error();
 
 //------------------------------------------------------------------------------
 ///

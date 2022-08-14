@@ -63,6 +63,12 @@ static void vcap_free(void* ptr)
     global_free_fp(ptr);
 }
 
+const char* vcap_get_error(vcap_dev* vd)
+{
+    assert(vd);
+    return vd->error_msg;
+}
+
 //
 // Prints device information. The implementation of this function is very
 // pedantic in terms of error checking. Every error condition is checked and

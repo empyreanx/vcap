@@ -73,12 +73,6 @@ void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...)
     snprintf(vd->error_msg, sizeof(vd->error_msg), "%s %s", error_msg1, error_msg2);
 }
 
-const char* vcap_get_error(vcap_dev* vd)
-{
-    assert(vd);
-    return vd->error_msg;
-}
-
 void vcap_set_global_error(const char* fmt, ...)
 {
     va_list args;

@@ -31,8 +31,6 @@
 #include <string.h>
 #include <sys/stat.h>
 
-static char error_msg[1024];
-
 void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size)
 {
     snprintf((char*)dst, size, "%s", (char*)src);
@@ -60,10 +58,12 @@ void vcap_set_error(vcap_dev* vd, const char* fmt, ...)
 
 void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...)
 {
+    assert(vd);
+
     char error_msg1[1024];
     char error_msg2[1024];
+
     snprintf(error_msg1, sizeof(error_msg1), "[%s:%d] (%s)", __func__, __LINE__, strerror(errno));
-    assert(vd);
 
     va_list args;
     va_start(args, fmt);
@@ -71,19 +71,6 @@ void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...)
     va_end(args);
 
     snprintf(vd->error_msg, sizeof(vd->error_msg), "%s %s", error_msg1, error_msg2);
-}
-
-void vcap_set_global_error(const char* fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(error_msg, sizeof(error_msg), fmt, args);
-    va_end(args);
-}
-
-const char* vcap_get_global_error()
-{
-    return error_msg;
 }
 
 void vcap_fourcc_string(uint32_t code, uint8_t* str)
@@ -103,7 +90,7 @@ int vcap_ioctl(int fd, int request, void *arg)
     {
         result = v4l2_ioctl(fd, request, arg);
     }
-    while (-1 == result && (EINTR == errno || EAGAIN == errno));
+    while (-1 == result && (errno == EINTR || errno == EAGAIN));
 
     return result;
 }

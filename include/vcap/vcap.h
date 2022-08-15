@@ -250,7 +250,6 @@ void vcap_set_alloc(vcap_malloc_fn malloc_fp, vcap_free_fn free_fp);
 /// \brief  Returns a string containing the last error message
 ///
 const char* vcap_get_error(vcap_dev* vd);
-const char* vcap_get_global_error();
 
 //------------------------------------------------------------------------------
 ///

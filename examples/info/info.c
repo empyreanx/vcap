@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 
     if (ret == VCAP_ENUM_ERROR)
     {
-        printf("%s\n", vcap_get_global_error());
+        printf("Error while enumerating devices\n");
         return -1;
     }
 

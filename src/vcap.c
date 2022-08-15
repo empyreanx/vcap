@@ -225,7 +225,6 @@ int vcap_query_caps(const char* path, struct v4l2_capability* caps)
     // Obtain device capabilities
     if (-1 == vcap_ioctl(fd, VIDIOC_QUERYCAP, caps))
     {
-        vcap_set_global_error("Querying video device %s capabilities failed", path);
         v4l2_close(fd);
         return -1;
     }
@@ -233,7 +232,6 @@ int vcap_query_caps(const char* path, struct v4l2_capability* caps)
     // Ensure video capture is supported
     if (!(caps->capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
-        vcap_set_global_error("Video device %s does not support video capture", path);
         v4l2_close(fd);
         return -1;
     }
@@ -251,10 +249,7 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info)
     int n = scandir("/dev", &names, vcap_video_device_filter, alphasort);
 
     if (n < 0)
-    {
-        vcap_set_global_error("Failed to scan '/dev' directory");
         return VCAP_ENUM_ERROR;
-    }
 
     char path[512];
 
@@ -323,7 +318,7 @@ int vcap_open(vcap_dev* vd)
     struct v4l2_capability caps;
 
     // Device must exist
-    if (-1 == stat(vd->path, &st))
+    if (stat(vd->path, &st) == -1)
     {
         vcap_set_error_errno(vd, "Video device %s does not exist", vd->path);
         return -1;
@@ -339,7 +334,7 @@ int vcap_open(vcap_dev* vd)
     // Open the video device
     vd->fd = v4l2_open(vd->path, O_RDWR | O_NONBLOCK, 0);
 
-    if (-1 == vd->fd)
+    if (vd->fd == -1)
     {
         vcap_set_error_errno(vd, "Opening video device %s failed", vd->path);
         return -1;
@@ -349,7 +344,7 @@ int vcap_open(vcap_dev* vd)
     fcntl(vd->fd, F_SETFD, FD_CLOEXEC);
 
     // Obtain device capabilities
-    if (-1 == vcap_ioctl(vd->fd, VIDIOC_QUERYCAP, &caps))
+    if (vcap_ioctl(vd->fd, VIDIOC_QUERYCAP, &caps) == -1)
     {
         vcap_set_error_errno(vd, "Querying video device %s capabilities failed", vd->path);
         v4l2_close(vd->fd);

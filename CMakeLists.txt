@@ -37,7 +37,7 @@ add_definitions(-Wall -std=c99 -D_GNU_SOURCE)
 
 # Add souce files
 file(GLOB SOURCE_FILES
-    include/vcap/*.h
+    include/vcap/vcap.h
     src/*.h
     src/*.c
 )
@@ -69,8 +69,6 @@ find_package(Doxygen)
 
 if(DOXYGEN_FOUND)
     configure_file(${PROJECT_SOURCE_DIR}/include/vcap/vcap.h ${CMAKE_CURRENT_BINARY_DIR}/vcap.h COPYONLY)
-    configure_file(${PROJECT_SOURCE_DIR}/include/vcap/ctrls.h ${CMAKE_CURRENT_BINARY_DIR}/ctrls.h COPYONLY)
-    configure_file(${PROJECT_SOURCE_DIR}/include/vcap/fmts.h ${CMAKE_CURRENT_BINARY_DIR}/fmts.h COPYONLY)
 
     add_custom_target(docs
         COMMAND ${DOXYGEN_EXECUTABLE} ${PROJECT_SOURCE_DIR}/doxygen.conf

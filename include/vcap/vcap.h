@@ -40,12 +40,20 @@
 #ifndef VCAP_H
 #define VCAP_H
 
+#include <linux/videodev2.h>
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "ctrls.h"
-#include "fmts.h"
+typedef uint32_t vcap_ctrl_id;
+typedef uint8_t vcap_ctrl_type;
+
+///
+/// \brief Format IDs
+///
+typedef uint32_t vcap_fmt_id;
 
 #include <stdbool.h>
 #include <stddef.h>

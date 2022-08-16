@@ -259,7 +259,7 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info)
 
         struct v4l2_capability caps;
 
-        if (0 == vcap_query_caps(path, &caps))
+        if (vcap_query_caps(path, &caps) == 0)
         {
             if (index == count)
             {
@@ -405,7 +405,7 @@ int vcap_close(vcap_dev* vd)
 
     if (vd->buffer_count > 0)
     {
-        if (vcap_is_streaming(vd) && -1 == vcap_stop_stream(vd)) //TODO: close device anyway?
+        if (vcap_is_streaming(vd) && vcap_stop_stream(vd) == -1) //TODO: close device anyway?
             return -1;
     }
 
@@ -429,12 +429,12 @@ int vcap_start_stream(vcap_dev* vd)
 
     if (vd->buffer_count > 0)
     {
-        if (-1 == vcap_init_stream(vd))
+        if (vcap_init_stream(vd) == -1)
             return -1;
 
     	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-        if (-1 == vcap_ioctl(vd->fd, VIDIOC_STREAMON, &type))
+        if (vcap_ioctl(vd->fd, VIDIOC_STREAMON, &type) == -1)
         {
             vcap_set_error_errno(vd, "Unable to start stream on %s", vd->path);
             return -1;
@@ -460,7 +460,7 @@ int vcap_stop_stream(vcap_dev* vd)
     {
     	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-        if (-1 == vcap_ioctl(vd->fd, VIDIOC_STREAMOFF, &type))
+        if (vcap_ioctl(vd->fd, VIDIOC_STREAMOFF, &type) == -1)
         {
             vcap_set_error_errno(vd, "Unable to stop stream on %s", vd->path);
             return -1;
@@ -511,7 +511,7 @@ size_t vcap_get_buffer_size(vcap_dev* vd)
     VCAP_CLEAR(fmt);
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (vcap_ioctl(vd->fd, VIDIOC_G_FMT, &fmt))
+    if (vcap_ioctl(vd->fd, VIDIOC_G_FMT, &fmt) == -1)
     {
         vcap_set_error_errno(vd, "Unable to get format on device %s", vd->path);
         return 0;
@@ -715,13 +715,13 @@ static int vcap_request_buffers(vcap_dev* vd, int buffer_count)
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     req.memory = V4L2_MEMORY_MMAP;
 
-	if (-1 == vcap_ioctl(vd->fd, VIDIOC_REQBUFS, &req))
+	if (vcap_ioctl(vd->fd, VIDIOC_REQBUFS, &req) == -1)
 	{
     	vcap_set_error_errno(vd, "Unable to request buffers on %s", vd->path);
 		return -1;
     }
 
-    if (0 == req.count)
+    if (req.count == 0)
     {
         vcap_set_error(vd, "Invalid buffer count on %s", vd->path);
         return -1;
@@ -737,13 +737,13 @@ static int vcap_init_stream(vcap_dev* vd)
 {
     if (vd->buffer_count > 0)
     {
-        if (-1 == vcap_request_buffers(vd, vd->buffer_count))
+        if (vcap_request_buffers(vd, vd->buffer_count) == -1)
             return -1;
 
-        if (-1 == vcap_map_buffers(vd))
+        if (vcap_map_buffers(vd) == -1)
             return -1;
 
-        if (-1 == vcap_queue_buffers(vd))
+        if (vcap_queue_buffers(vd) == -1)
             return -1;
     }
 
@@ -756,7 +756,7 @@ static int vcap_shutdown_stream(vcap_dev* vd)
 
     if (vd->buffer_count > 0)
     {
-        if (-1 == vcap_unmap_buffers(vd))
+        if (vcap_unmap_buffers(vd) == -1)
             return -1;
     }
 
@@ -776,7 +776,7 @@ static int vcap_map_buffers(vcap_dev* vd)
         buf.memory = V4L2_MEMORY_MMAP;
         buf.index = i;
 
-        if (-1 == vcap_ioctl(vd->fd, VIDIOC_QUERYBUF, &buf))
+        if (vcap_ioctl(vd->fd, VIDIOC_QUERYBUF, &buf) == -1)
         {
             vcap_set_error_errno(vd, "Unable to query buffers on %s", vd->path);
             return -1;
@@ -785,7 +785,7 @@ static int vcap_map_buffers(vcap_dev* vd)
         vd->buffers[i].size = buf.length;
         vd->buffers[i].data = v4l2_mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, vd->fd, buf.m.offset);
 
-        if (MAP_FAILED == vd->buffers[i].data)
+        if (vd->buffers[i].data == MAP_FAILED)
         {
             vcap_set_error(vd, "MMAP failed on %s", vd->path);
             return -1;
@@ -801,7 +801,7 @@ static int vcap_unmap_buffers(vcap_dev* vd)
 
     for (int i = 0; i < vd->buffer_count; i++)
     {
-        if (-1 == v4l2_munmap(vd->buffers[i].data, vd->buffers[i].size))
+        if (v4l2_munmap(vd->buffers[i].data, vd->buffers[i].size) == -1)
         {
             vcap_set_error_errno(vd, "Unmapping buffers failed on %s", vd->path);
             return -1;
@@ -825,7 +825,7 @@ static int vcap_queue_buffers(vcap_dev* vd)
         buf.memory = V4L2_MEMORY_MMAP;
         buf.index = i;
 
-        if (-1 == vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf))
+        if (vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf) == -1)
         {
             vcap_set_error_errno(vd, "Unable to queue buffers on device %s", vd->path);
             return -1;
@@ -852,7 +852,7 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_MMAP;
 
-    if (-1 == vcap_ioctl(vd->fd, VIDIOC_DQBUF, &buf))
+    if (vcap_ioctl(vd->fd, VIDIOC_DQBUF, &buf) == -1)
     {
         vcap_set_error_errno(vd, "Could not dequeue buffer on %s", vd->path);
         return -1;
@@ -860,7 +860,7 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 
     memcpy(buffer, vd->buffers[buf.index].data, buffer_size);
 
-    if (-1 == vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf)) {
+    if (vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf) == -1) {
         vcap_set_error_errno(vd, "Could not requeue buffer on %s", vd->path);
         return -1;
     }

@@ -200,10 +200,10 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 
     bool streaming = vcap_is_streaming(vd);
 
-    if (vcap_is_open(vd) && -1 == vcap_close(vd))
+    if (vcap_is_open(vd) && vcap_close(vd) == -1)
         return -1;
 
-    if (-1 == vcap_open(vd))
+    if (vcap_open(vd) == -1)
         return -1;
 
     struct v4l2_format sfmt;
@@ -214,13 +214,13 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     sfmt.fmt.pix.pixelformat = fmt;
     sfmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
 
-    if (-1 == vcap_ioctl(vd->fd, VIDIOC_S_FMT, &sfmt))
+    if (vcap_ioctl(vd->fd, VIDIOC_S_FMT, &sfmt) == -1)
     {
         vcap_set_error_errno(vd, "Unable to set format on %s", vd->path);
         return -1;
     }
 
-    if (streaming && -1 == vcap_start_stream(vd))
+    if (streaming && vcap_start_stream(vd) == -1)
         return -1;
 
     return 0;
@@ -245,10 +245,8 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
         return -1;
     }
 
-    // NOTE: We swap the numerator and denominator because Vcap uses frame rates
-    // instead of intervals.
-    rate->numerator = parm.parm.capture.timeperframe.denominator;
-    rate->denominator = parm.parm.capture.timeperframe.numerator;
+    rate->numerator = parm.parm.capture.timeperframe.numerator;
+    rate->denominator = parm.parm.capture.timeperframe.denominator;
 
     return 0;
 }
@@ -259,11 +257,9 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
 
     struct v4l2_streamparm parm;
 
-    // NOTE: We swap the numerator and denominator because Vcap uses frame rates
-    // instead of intervals.
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    parm.parm.capture.timeperframe.numerator = rate.denominator;
-    parm.parm.capture.timeperframe.denominator = rate.numerator;
+    parm.parm.capture.timeperframe.numerator = rate.numerator;
+    parm.parm.capture.timeperframe.denominator = rate.denominator;
 
     if(vcap_ioctl(vd->fd, VIDIOC_S_PARM, &parm) == -1)
     {
@@ -367,10 +363,8 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
     if (frenum.type != V4L2_FRMIVAL_TYPE_DISCRETE)
         return VCAP_ENUM_DISABLED;
 
-    // NOTE: We swap the numerator and denominator because Vcap uses frame rates
-    // instead of intervals.
-    rate->numerator = frenum.discrete.denominator;
-    rate->denominator = frenum.discrete.numerator;
+    rate->numerator = frenum.discrete.numerator;
+    rate->denominator = frenum.discrete.denominator;
 
     return VCAP_ENUM_OK;
 }

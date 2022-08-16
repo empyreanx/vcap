@@ -18,14 +18,17 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 //==============================================================================
 
-#include "priv.h"
-
 #include <linux/videodev2.h>
 #include <libv4l2.h>
 
+#include <vcap/vcap.h>
+
 #include <assert.h>
 #include <dirent.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,6 +37,9 @@
 
 #define VCAP_CID_CAMERA_CLASS_LAST (V4L2_CID_CAMERA_CLASS_BASE+35)
 
+// Clear data structure
+#define VCAP_CLEAR(arg) memset(&(arg), 0, sizeof(arg))
+
 static bool vcap_type_supported(uint32_t type);
 static const char* vcap_type_str(vcap_ctrl_type type);
 static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index);
@@ -41,6 +47,12 @@ static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint3
 static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index);
 static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index);
 static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index);
+
+// FOURCC character code to string
+static void vcap_fourcc_string(uint32_t code, uint8_t* str);
+
+// Extended ioctl function
+static int vcap_ioctl(int fd, int request, void *arg);
 
 // Filters device list so that 'scandir' returns only video devices.
 static int vcap_video_device_filter(const struct dirent *a);
@@ -53,6 +65,10 @@ static int vcap_unmap_buffers(vcap_dev* vd);
 static int vcap_queue_buffers(vcap_dev* vd);
 static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer);
 static int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer);
+static void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size);
+static void vcap_strcpy(char* dst, const char* src, size_t size);
+static void vcap_set_error(vcap_dev* vd, const char* fmt, ...);
+static void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...);
 
 static vcap_malloc_fn global_malloc_fp = malloc;
 static vcap_free_fn global_free_fp = free;
@@ -1500,6 +1516,32 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
 // Internal Functions
 //==============================================================================
 
+static void vcap_fourcc_string(uint32_t code, uint8_t* str)
+{
+    assert(str);
+
+    str[0] = (code >> 0) & 0xFF;
+    str[1] = (code >> 8) & 0xFF;
+    str[2] = (code >> 16) & 0xFF;
+    str[3] = (code >> 24) & 0xFF;
+    str[4] = '\0';
+}
+
+static int vcap_ioctl(int fd, int request, void *arg)
+{
+    assert(arg);
+
+    int result;
+
+    do
+    {
+        result = v4l2_ioctl(fd, request, arg);
+    }
+    while (result == -1 && (errno == EINTR || errno == EAGAIN));
+
+    return result;
+}
+
 static int vcap_video_device_filter(const struct dirent* a)
 {
     assert(a);
@@ -1723,5 +1765,58 @@ static int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 
         return 0; // Break out of loop
     }
+}
+
+static void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size)
+{
+    assert(dst);
+    assert(src);
+
+    snprintf((char*)dst, size, "%s", (char*)src);
+}
+
+static void vcap_strcpy(char* dst, const char* src, size_t size)
+{
+    assert(dst);
+    assert(src);
+
+    snprintf(dst, size, "%s", src);
+}
+
+static void vcap_set_error(vcap_dev* vd, const char* fmt, ...)
+{
+    assert(vd);
+    assert(fmt);
+
+    char error_msg1[1024];
+    char error_msg2[1024];
+
+    snprintf(error_msg1, sizeof(error_msg1), "[%s:%d]", __func__, __LINE__);
+    assert(vd);
+
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(error_msg2, sizeof(error_msg2), fmt, args);
+    va_end(args);
+
+    snprintf(vd->error_msg, sizeof(vd->error_msg), "%s %s", error_msg1, error_msg2);
+}
+
+static void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...)
+{
+    assert(vd);
+    assert(fmt);
+
+    char error_msg1[1024];
+    char error_msg2[1024];
+
+    snprintf(error_msg1, sizeof(error_msg1), "[%s:%d] (%s)", __func__, __LINE__, strerror(errno));
+
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(error_msg2, sizeof(error_msg2), fmt, args);
+    va_end(args);
+
+    snprintf(vd->error_msg, sizeof(vd->error_msg), "%s %s", error_msg1, error_msg2);
 }
 

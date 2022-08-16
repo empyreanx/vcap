@@ -245,8 +245,10 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
         return -1;
     }
 
-    rate->numerator = parm.parm.capture.timeperframe.numerator;
-    rate->denominator = parm.parm.capture.timeperframe.denominator;
+    // NOTE: We swap the numerator and denominator because Vcap uses frame rates
+    // instead of intervals.
+    rate->numerator = parm.parm.capture.timeperframe.denominator;
+    rate->denominator = parm.parm.capture.timeperframe.numerator;
 
     return 0;
 }
@@ -256,10 +258,12 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
     assert(vd);
 
     struct v4l2_streamparm parm;
-
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    parm.parm.capture.timeperframe.numerator = rate.numerator;
-    parm.parm.capture.timeperframe.denominator = rate.denominator;
+
+    // NOTE: We swap the numerator and denominator because Vcap uses frame rates
+    // instead of intervals.
+    parm.parm.capture.timeperframe.numerator = rate.denominator;
+    parm.parm.capture.timeperframe.denominator = rate.numerator;
 
     if(vcap_ioctl(vd->fd, VIDIOC_S_PARM, &parm) == -1)
     {
@@ -363,8 +367,10 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
     if (frenum.type != V4L2_FRMIVAL_TYPE_DISCRETE)
         return VCAP_ENUM_DISABLED;
 
-    rate->numerator = frenum.discrete.numerator;
-    rate->denominator = frenum.discrete.denominator;
+    // NOTE: We swap the numerator and denominator because Vcap uses frame rates
+    // instead of intervals.
+    rate->numerator = frenum.discrete.denominator;
+    rate->denominator = frenum.discrete.numerator;
 
     return VCAP_ENUM_OK;
 }

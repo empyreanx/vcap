@@ -18,19 +18,41 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 //==============================================================================
 
-#include "priv.h"
-
 #include <linux/videodev2.h>
 #include <libv4l2.h>
 
+#include <vcap/vcap.h>
+
 #include <assert.h>
 #include <dirent.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+
+#define VCAP_CID_CAMERA_CLASS_LAST (V4L2_CID_CAMERA_CLASS_BASE+35)
+
+// Clear data structure
+#define VCAP_CLEAR(arg) memset(&(arg), 0, sizeof(arg))
+
+static bool vcap_type_supported(uint32_t type);
+static const char* vcap_type_str(vcap_ctrl_type type);
+static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index);
+static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index);
+static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index);
+static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index);
+static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index);
+
+// FOURCC character code to string
+static void vcap_fourcc_string(uint32_t code, uint8_t* str);
+
+// Extended ioctl function
+static int vcap_ioctl(int fd, int request, void *arg);
 
 // Filters device list so that 'scandir' returns only video devices.
 static int vcap_video_device_filter(const struct dirent *a);
@@ -43,6 +65,10 @@ static int vcap_unmap_buffers(vcap_dev* vd);
 static int vcap_queue_buffers(vcap_dev* vd);
 static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer);
 static int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer);
+static void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size);
+static void vcap_strcpy(char* dst, const char* src, size_t size);
+static void vcap_set_error(vcap_dev* vd, const char* fmt, ...);
+static void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...);
 
 static vcap_malloc_fn global_malloc_fp = malloc;
 static vcap_free_fn global_free_fp = free;
@@ -209,7 +235,7 @@ int vcap_query_caps(const char* path, struct v4l2_capability* caps)
     int fd = -1;
 
     // Device must exist
-    if (-1 == stat(path, &st))
+    if (stat(path, &st) == -1)
        return -1;
 
     // Device must be a character device
@@ -219,11 +245,11 @@ int vcap_query_caps(const char* path, struct v4l2_capability* caps)
     // Open the video device
     fd = v4l2_open(path, O_RDWR | O_NONBLOCK, 0);
 
-    if (-1 == fd)
+    if (fd == -1)
         return -1;
 
     // Obtain device capabilities
-    if (-1 == vcap_ioctl(fd, VIDIOC_QUERYCAP, caps))
+    if (vcap_ioctl(fd, VIDIOC_QUERYCAP, caps) == -1)
     {
         v4l2_close(fd);
         return -1;
@@ -243,6 +269,11 @@ int vcap_query_caps(const char* path, struct v4l2_capability* caps)
 
 int vcap_enum_devices(unsigned index, vcap_dev_info* info)
 {
+    assert(info);
+
+    if (!info)
+        return VCAP_ENUM_ERROR;
+
     int count = 0;
 
     struct dirent **names;
@@ -298,6 +329,8 @@ vcap_dev* vcap_create_device(const char* path, bool convert, int buffer_count)
 
 void vcap_destroy_device(vcap_dev* vd)
 {
+    assert(vd);
+
     if (vcap_is_open(vd))
         vcap_close(vd);
 
@@ -466,7 +499,7 @@ int vcap_stop_stream(vcap_dev* vd)
             return -1;
         }
 
-        if (-1 == vcap_shutdown_stream(vd))
+        if (vcap_shutdown_stream(vd) == -1)
             return -1;
 
         vd->streaming = false;
@@ -490,6 +523,7 @@ bool vcap_is_streaming(vcap_dev* vd)
 int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info)
 {
     assert(vd);
+    assert(info);
 
     if (!info)
     {
@@ -523,6 +557,7 @@ size_t vcap_get_buffer_size(vcap_dev* vd)
 int vcap_grab(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 {
     assert(vd);
+    assert(buffer);
 
     if (!buffer)
     {
@@ -536,9 +571,540 @@ int vcap_grab(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
         return vcap_grab_read(vd, buffer_size, buffer);
 }
 
+//==============================================================================
+// Format functions
+//==============================================================================
+
+int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
+{
+    assert(vd);
+    assert(info);
+
+    if (!info)
+    {
+        vcap_set_error(vd, "Parameter can't be null");
+        return VCAP_FMT_ERROR;
+    }
+
+    int result, i = 0;
+
+    do
+    {
+        result = vcap_enum_fmts(vd, info, i);
+
+        if (result == VCAP_ENUM_ERROR)
+            return VCAP_FMT_ERROR;
+
+        if (result == VCAP_ENUM_OK && info->id == fmt)
+            return VCAP_FMT_OK;
+
+    } while (result != VCAP_ENUM_INVALID && ++i);
+
+    return VCAP_FMT_INVALID;
+}
+
+vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
+{
+    assert(vd);
+
+    vcap_fmt_itr itr = { 0 };
+    itr.vd = vd;
+    itr.index = 0;
+
+    if (!vd)
+    {
+        vcap_set_error(vd, "Parameter can't be null");
+        itr.result = VCAP_ENUM_ERROR;
+    }
+    else
+    {
+        itr.result = vcap_enum_fmts(vd, &itr.info, 0);
+    }
+
+    return itr;
+}
+
+bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info)
+{
+    assert(itr);
+    assert(info);
+
+    if (!info)
+    {
+        vcap_set_error(itr->vd, "Parameter can't be null");
+        itr->result = VCAP_ENUM_ERROR;
+        return false;
+    }
+
+    if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
+        return false;
+
+    *info = itr->info;
+
+    itr->result = vcap_enum_fmts(itr->vd, &itr->info, ++itr->index);
+
+    return true;
+}
+
+vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
+{
+    assert(vd);
+
+    vcap_size_itr itr;
+    itr.vd = vd;
+    itr.fmt = fmt;
+    itr.index = 0;
+    itr.result = vcap_enum_sizes(vd, fmt, &itr.size, 0);
+
+    return itr;
+}
+
+bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size)
+{
+    assert(itr);
+    assert(size);
+
+    if (!size)
+    {
+        vcap_set_error(itr->vd, "Parameter can't be null");
+        itr->result = VCAP_ENUM_ERROR;
+        return false;
+    }
+
+    if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
+        return false;
+
+    *size = itr->size;
+
+    itr->result = vcap_enum_sizes(itr->vd, itr->fmt, &itr->size, ++itr->index);
+
+    return true;
+}
+
+vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
+{
+    assert(vd);
+
+    vcap_rate_itr itr;
+    itr.vd = vd;
+    itr.fmt = fmt;
+    itr.size = size;
+    itr.index = 0;
+    itr.result = vcap_enum_rates(vd, fmt, size, &itr.rate, 0);
+
+    return itr;
+}
+
+bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
+{
+    assert(itr);
+    assert(rate);
+
+    if (!rate)
+    {
+        vcap_set_error(itr->vd, "Parameter can't be null");
+        itr->result = VCAP_ENUM_ERROR;
+        return false;
+    }
+
+    if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
+        return false;
+
+    *rate = itr->rate;
+
+    itr->result = vcap_enum_rates(itr->vd, itr->fmt, itr->size, &itr->rate, ++itr->index);
+
+    return true;
+}
+
+int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
+{
+    assert(vd);
+    assert(size);
+
+    if (!fmt || !size)
+    {
+        vcap_set_error(vd, "Parameter can't be null");
+        return -1;
+    }
+
+    struct v4l2_format gfmt;
+
+    VCAP_CLEAR(gfmt);
+    gfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+    if (vcap_ioctl(vd->fd, VIDIOC_G_FMT, &gfmt))
+    {
+        vcap_set_error_errno(vd, "Unable to get format on device %s", vd->path);
+        return -1;
+    }
+
+    *fmt = gfmt.fmt.pix.pixelformat;
+
+    size->width = gfmt.fmt.pix.width;
+    size->height = gfmt.fmt.pix.height;
+
+    return 0;
+}
+
+int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
+{
+    assert(vd);
+
+    bool streaming = vcap_is_streaming(vd);
+
+    if (vcap_is_open(vd) && vcap_close(vd) == -1)
+        return -1;
+
+    if (vcap_open(vd) == -1)
+        return -1;
+
+    struct v4l2_format sfmt;
+
+    sfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    sfmt.fmt.pix.width = size.width;
+    sfmt.fmt.pix.height = size.height;
+    sfmt.fmt.pix.pixelformat = fmt;
+    sfmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
+
+    if (vcap_ioctl(vd->fd, VIDIOC_S_FMT, &sfmt) == -1)
+    {
+        vcap_set_error_errno(vd, "Unable to set format on %s", vd->path);
+        return -1;
+    }
+
+    if (streaming && vcap_start_stream(vd) == -1)
+        return -1;
+
+    return 0;
+}
+
+int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
+{
+    assert(vd);
+    assert(rate);
+
+    if (!rate)
+    {
+        vcap_set_error(vd, "Parameter can't be null");
+        return -1;
+    }
+
+    struct v4l2_streamparm parm;
+    parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+    if (vcap_ioctl(vd->fd, VIDIOC_G_PARM, &parm) == -1)
+    {
+        vcap_set_error_errno(vd, "Unable to get frame rate on device %s", vd->path);
+        return -1;
+    }
+
+    // NOTE: We swap the numerator and denominator because Vcap uses frame rates
+    // instead of intervals.
+    rate->numerator = parm.parm.capture.timeperframe.denominator;
+    rate->denominator = parm.parm.capture.timeperframe.numerator;
+
+    return 0;
+}
+
+int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
+{
+    assert(vd);
+
+    struct v4l2_streamparm parm;
+    parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+    // NOTE: We swap the numerator and denominator because Vcap uses frame rates
+    // instead of intervals.
+    parm.parm.capture.timeperframe.numerator = rate.denominator;
+    parm.parm.capture.timeperframe.denominator = rate.numerator;
+
+    if(vcap_ioctl(vd->fd, VIDIOC_S_PARM, &parm) == -1)
+    {
+        vcap_set_error_errno(vd, "Unable to set framerate on device %s", vd->path);
+        return -1;
+    }
+
+    return 0;
+}
+
+//==============================================================================
+// Control Functions
+//==============================================================================
+
+int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
+{
+    assert(vd);
+    assert(info);
+
+    if (!info)
+    {
+        vcap_set_error(vd, "Parameter can't be null");
+        return VCAP_CTRL_ERROR;
+    }
+
+    struct v4l2_queryctrl qctrl;
+
+    VCAP_CLEAR(qctrl);
+    qctrl.id = ctrl;
+
+    if (vcap_ioctl(vd->fd, VIDIOC_QUERYCTRL, &qctrl) == -1)
+    {
+        if (errno == EINVAL)
+        {
+            return VCAP_CTRL_INVALID;
+        }
+        else
+        {
+            vcap_set_error_errno(vd, "Unable to read control descriptor on device %s", vd->path);
+            return VCAP_CTRL_ERROR;
+        }
+    }
+
+    if (!vcap_type_supported(qctrl.type))
+        return VCAP_CTRL_INVALID;
+
+    if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+        return VCAP_CTRL_INVALID;
+
+    // Copy name
+    vcap_ustrcpy(info->name, qctrl.name, sizeof(info->name));
+
+    // Copy control ID
+    info->id = qctrl.id;
+
+    // Copy type
+    info->type = qctrl.type;
+
+    // Copy type string
+    vcap_ustrcpy(info->type_name, (uint8_t*)vcap_type_str(info->type), sizeof(info->type_name));
+
+    // Min/Max/Step/Default
+    info->min = qctrl.minimum;
+    info->max = qctrl.maximum;
+    info->step = qctrl.step;
+    info->default_value = qctrl.default_value;
+
+    // Read-only flag
+    if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY)
+        info->read_only = true;
+    else
+        info->read_only = false;
+
+    return VCAP_CTRL_OK;
+}
+
+int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
+{
+    assert(vd);
+
+    struct v4l2_queryctrl qctrl;
+
+    VCAP_CLEAR(qctrl);
+    qctrl.id = ctrl;
+
+    if (vcap_ioctl(vd->fd, VIDIOC_QUERYCTRL, &qctrl) == -1)
+    {
+        if (errno == EINVAL)
+        {
+            return VCAP_CTRL_INVALID;
+        }
+        else
+        {
+            vcap_set_error_errno(vd, "Unable to check control status on device %s", vd->path);
+            return VCAP_CTRL_ERROR;
+        }
+    }
+
+    if (!vcap_type_supported(qctrl.type))
+        return VCAP_CTRL_INVALID;
+
+    if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY || qctrl.flags & V4L2_CTRL_FLAG_GRABBED)
+        return VCAP_CTRL_READ_ONLY;
+
+    if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+        return VCAP_CTRL_DISABLED;
+
+    if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE)
+        return VCAP_CTRL_INACTIVE;
+
+    return VCAP_CTRL_OK;
+}
+
+vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd)
+{
+    assert(vd);
+
+    vcap_ctrl_itr itr = { 0 };
+    itr.vd = vd;
+    itr.index = 0;
+    itr.result = vcap_enum_ctrls(vd, &itr.info, 0);
+
+    return itr;
+}
+
+bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info)
+{
+    assert(itr);
+    assert(info);
+
+    if (!info)
+    {
+        vcap_set_error(itr->vd, "Parameter can't be null");
+        itr->result = VCAP_ENUM_ERROR;
+        return false;
+    }
+
+    if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
+        return false;
+
+    *info = itr->info;
+
+    itr->result = vcap_enum_ctrls(itr->vd, &itr->info, ++itr->index);
+
+    return true;
+}
+
+vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
+{
+    assert(vd);
+
+    vcap_menu_itr itr = { 0 };
+    itr.vd = vd;
+    itr.ctrl = ctrl;
+    itr.index = 0;
+    itr.result = vcap_enum_menu(vd, ctrl, &itr.item, 0);
+
+    return itr;
+}
+
+bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
+{
+    assert(itr);
+    assert(item);
+
+    if (!item)
+    {
+        vcap_set_error(itr->vd, "Parameter can't be null");
+        itr->result = VCAP_ENUM_ERROR;
+        return false;
+    }
+
+    if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
+        return false;
+
+    *item = itr->item;
+
+    itr->result = vcap_enum_menu(itr->vd, itr->ctrl, &itr->item, ++itr->index);
+
+    return true;
+}
+
+int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
+{
+    assert(vd);
+    assert(value);
+
+    if (!value)
+    {
+        vcap_set_error(vd, "Parameter can't be null");
+        return -1;
+    }
+
+    struct v4l2_control gctrl;
+
+    VCAP_CLEAR(gctrl);
+    gctrl.id = ctrl;
+
+    if (vcap_ioctl(vd->fd, VIDIOC_G_CTRL, &gctrl) == -1)
+    {
+        vcap_set_error_errno(vd, "Could not get control (%d) value on device %s", ctrl, vd->path);
+        return -1;
+    }
+
+    *value = gctrl.value;
+
+    return 0;
+}
+
+int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
+{
+    assert(vd);
+
+    struct v4l2_control sctrl;
+
+    VCAP_CLEAR(sctrl);
+    sctrl.id = ctrl;
+    sctrl.value = value;
+
+    if (vcap_ioctl(vd->fd, VIDIOC_S_CTRL, &sctrl) == -1)
+    {
+        vcap_set_error_errno(vd, "Could not set control (%d) value on device %s", ctrl, vd->path);
+        return -1;
+    }
+
+    return 0;
+}
+
+int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
+{
+    assert(vd);
+
+    vcap_ctrl_info info;
+
+    int result = vcap_get_ctrl_info(vd, ctrl, &info);
+
+    if (result == VCAP_CTRL_ERROR)
+        return -1;
+
+    if (result == VCAP_CTRL_INVALID)
+    {
+        vcap_set_error(vd, "Invalid control");
+        return -1;
+    }
+
+    if (result == VCAP_CTRL_OK)
+    {
+        if (vcap_set_ctrl(vd, ctrl, info.default_value) == -1)
+            return -1;
+    }
+
+    return 0;
+}
+
+int vcap_reset_all_ctrls(vcap_dev* vd)
+{
+    assert(vd);
+
+    for (vcap_ctrl_id ctrl = V4L2_CID_BASE; ctrl < V4L2_CID_LASTP1; ctrl++)
+    {
+        if (vcap_ctrl_status(vd, ctrl) != VCAP_CTRL_OK)
+            continue;
+
+        if (vcap_reset_ctrl(vd, ctrl) == -1)
+            return -1;
+    }
+
+    for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl <= VCAP_CID_CAMERA_CLASS_LAST; ctrl++)
+    {
+        if (vcap_ctrl_status(vd, ctrl) != VCAP_CTRL_OK)
+            continue;
+
+        if (vcap_reset_ctrl(vd, ctrl) == -1)
+            return -1;
+    }
+
+    return 0;
+}
+
+
+//==============================================================================
+// Crop functions
+//==============================================================================
 int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
 {
     assert(vd);
+    assert(rect);
 
     if (!rect)
     {
@@ -604,6 +1170,7 @@ int vcap_reset_crop(vcap_dev* vd)
 int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
 {
     assert(vd);
+    assert(rect);
 
     if (!rect)
     {
@@ -672,6 +1239,309 @@ int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
     return 0;
 }
 
+//==============================================================================
+// Enumeration Functions
+//==============================================================================
+
+static bool vcap_type_supported(uint32_t type)
+{
+    switch (type)
+    {
+        case V4L2_CTRL_TYPE_INTEGER:
+        case V4L2_CTRL_TYPE_BOOLEAN:
+        case V4L2_CTRL_TYPE_MENU:
+        case V4L2_CTRL_TYPE_INTEGER_MENU:
+        case V4L2_CTRL_TYPE_BUTTON:
+            return true;
+    }
+
+    return false;
+}
+
+static const char* vcap_type_str(vcap_ctrl_type type)
+{
+    switch (type)
+    {
+        case V4L2_CTRL_TYPE_INTEGER:
+            return "Integer";
+
+        case V4L2_CTRL_TYPE_BOOLEAN:
+            return "Boolean";
+
+        case V4L2_CTRL_TYPE_MENU:
+            return "Menu";
+
+        case V4L2_CTRL_TYPE_INTEGER_MENU:
+            return "Integer Menu";
+
+        case V4L2_CTRL_TYPE_BUTTON:
+            return "Button";
+    }
+
+    return "Unknown";
+}
+
+
+static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
+{
+    assert(vd);
+    assert(info);
+
+    struct v4l2_fmtdesc fmtd;
+
+    VCAP_CLEAR(fmtd);
+    fmtd.index = index;
+    fmtd.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+    if (vcap_ioctl(vd->fd, VIDIOC_ENUM_FMT, &fmtd) == -1)
+    {
+        if (errno == EINVAL)
+        {
+            return VCAP_ENUM_INVALID;
+        }
+        else
+        {
+            vcap_set_error_errno(vd, "Unable to enumerate formats on device %s", vd->path);
+            return VCAP_ENUM_ERROR;
+        }
+    }
+
+    vcap_ustrcpy(info->name, fmtd.description, sizeof(info->name));
+
+    // Convert FOURCC code
+    vcap_fourcc_string(fmtd.pixelformat, info->fourcc);
+
+    // Copy pixel format
+    info->id = fmtd.pixelformat;
+
+    return VCAP_ENUM_OK;
+}
+
+static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index)
+{
+    assert(vd);
+    assert(size);
+
+    struct v4l2_frmsizeenum fenum;
+
+    VCAP_CLEAR(fenum);
+    fenum.index = index;
+    fenum.pixel_format = fmt;
+
+    if (vcap_ioctl(vd->fd, VIDIOC_ENUM_FRAMESIZES, &fenum) == -1)
+    {
+        if (errno == EINVAL)
+        {
+            return VCAP_ENUM_INVALID;
+        } else
+        {
+            vcap_set_error_errno(vd, "Unable to enumerate sizes on device '%s'", vd->path);
+            return VCAP_ENUM_ERROR;
+        }
+    }
+
+    // Only discrete sizes are supported
+    if (fenum.type != V4L2_FRMSIZE_TYPE_DISCRETE)
+        return VCAP_ENUM_DISABLED;
+
+    size->width  = fenum.discrete.width;
+    size->height = fenum.discrete.height;
+
+    return VCAP_ENUM_OK;
+}
+
+static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index)
+{
+    assert(vd);
+    assert(rate);
+
+    struct v4l2_frmivalenum frenum;
+
+    VCAP_CLEAR(frenum);
+    frenum.index = index;
+    frenum.pixel_format = fmt;
+    frenum.width = size.width;
+    frenum.height = size.height;
+
+    if (vcap_ioctl(vd->fd, VIDIOC_ENUM_FRAMEINTERVALS, &frenum) == -1)
+    {
+        if (errno == EINVAL)
+        {
+            return VCAP_ENUM_INVALID;
+        }
+        else
+        {
+            vcap_set_error_errno(vd, "Unable to enumerate frame rates on device %s", vd->path);
+            return VCAP_ENUM_ERROR;
+        }
+    }
+
+    // Only discrete frame rates are supported
+    if (frenum.type != V4L2_FRMIVAL_TYPE_DISCRETE)
+        return VCAP_ENUM_DISABLED;
+
+    // NOTE: We swap the numerator and denominator because Vcap uses frame rates
+    // instead of intervals.
+    rate->numerator = frenum.discrete.denominator;
+    rate->denominator = frenum.discrete.numerator;
+
+    return VCAP_ENUM_OK;
+}
+
+static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
+{
+    assert(vd);
+    assert(info);
+
+    int count = 0;
+
+    for (vcap_ctrl_id ctrl = V4L2_CID_BASE; ctrl < V4L2_CID_LASTP1; ctrl++)
+    {
+        int result = vcap_get_ctrl_info(vd, ctrl, info);
+
+        if (result == VCAP_CTRL_ERROR)
+            return VCAP_ENUM_ERROR;
+
+        if (result == VCAP_CTRL_INVALID)
+            continue;
+
+        if (index == count)
+            return VCAP_ENUM_OK;
+        else
+            count++;
+    }
+
+    for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl <= VCAP_CID_CAMERA_CLASS_LAST; ctrl++)
+    {
+        int result = vcap_get_ctrl_info(vd, ctrl, info);
+
+        if (result == VCAP_CTRL_ERROR)
+            return VCAP_ENUM_ERROR;
+
+        if (result == VCAP_CTRL_INVALID)
+            continue;
+
+        if (index == count)
+            return VCAP_ENUM_OK;
+        else
+            count++;
+    }
+
+    return VCAP_ENUM_INVALID;
+}
+
+static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index)
+{
+    assert(vd);
+    assert(item);
+
+    // Check if supported and a menu
+    vcap_ctrl_info info;
+
+    int result = vcap_get_ctrl_info(vd, ctrl, &info);
+
+    if (result == VCAP_CTRL_ERROR)
+        return VCAP_ENUM_ERROR;
+
+    if (result == VCAP_CTRL_INVALID)
+    {
+        vcap_set_error(vd, "Can't enumerate menu of an invalid control");
+        return VCAP_ENUM_ERROR;
+    }
+
+    if (info.read_only)
+    {
+        vcap_set_error(vd, "Can't enumerate menu of a read-only control");
+        return VCAP_ENUM_ERROR;
+    }
+
+    if (info.type != V4L2_CTRL_TYPE_MENU && info.type != V4L2_CTRL_TYPE_INTEGER_MENU)
+    {
+        vcap_set_error(vd, "Control is not a menu");
+        return VCAP_ENUM_ERROR;
+    }
+
+    if (index > info.max)
+    {
+        return VCAP_ENUM_INVALID;
+    }
+
+    // Query menu
+
+    uint32_t count = 0;
+
+    for (int32_t i = info.min; i <= info.max; i += info.step)
+    {
+        struct v4l2_querymenu qmenu;
+
+        VCAP_CLEAR(qmenu);
+        qmenu.id = ctrl;
+        qmenu.index = i;
+
+        if (vcap_ioctl(vd->fd, VIDIOC_QUERYMENU, &qmenu) == -1)
+        {
+            if (errno == EINVAL)
+            {
+                continue;
+            }
+            else
+            {
+                vcap_set_error_errno(vd, "Unable to enumerate menu on device %s", vd->path);
+                return VCAP_ENUM_ERROR;
+            }
+        }
+
+        if (index == count)
+        {
+            item->index = i;
+
+            if (info.type == V4L2_CTRL_TYPE_MENU)
+                vcap_ustrcpy(item->name, qmenu.name, sizeof(item->name));
+            else
+                item->value = qmenu.value;
+
+            return VCAP_ENUM_OK;
+        }
+        else
+        {
+            count++;
+        }
+    }
+
+    return VCAP_ENUM_INVALID;
+}
+
+
+//==============================================================================
+// Internal Functions
+//==============================================================================
+
+static void vcap_fourcc_string(uint32_t code, uint8_t* str)
+{
+    assert(str);
+
+    str[0] = (code >> 0) & 0xFF;
+    str[1] = (code >> 8) & 0xFF;
+    str[2] = (code >> 16) & 0xFF;
+    str[3] = (code >> 24) & 0xFF;
+    str[4] = '\0';
+}
+
+static int vcap_ioctl(int fd, int request, void *arg)
+{
+    assert(arg);
+
+    int result;
+
+    do
+    {
+        result = v4l2_ioctl(fd, request, arg);
+    }
+    while (result == -1 && (errno == EINTR || errno == EAGAIN));
+
+    return result;
+}
+
 static int vcap_video_device_filter(const struct dirent* a)
 {
     assert(a);
@@ -735,6 +1605,8 @@ static int vcap_request_buffers(vcap_dev* vd, int buffer_count)
 
 static int vcap_init_stream(vcap_dev* vd)
 {
+    assert(vd);
+
     if (vd->buffer_count > 0)
     {
         if (vcap_request_buffers(vd, vd->buffer_count) == -1)
@@ -816,6 +1688,8 @@ static int vcap_unmap_buffers(vcap_dev* vd)
 
 static int vcap_queue_buffers(vcap_dev* vd)
 {
+    assert(vd);
+
     for (int i = 0; i < vd->buffer_count; i++)
     {
         struct v4l2_buffer buf;
@@ -838,6 +1712,7 @@ static int vcap_queue_buffers(vcap_dev* vd)
 static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 {
     assert(vd);
+    assert(buffer);
 
     if (!buffer)
     {
@@ -871,6 +1746,7 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 static int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 {
     assert(vd);
+    assert(buffer);
 
     while (true)
     {
@@ -889,5 +1765,58 @@ static int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 
         return 0; // Break out of loop
     }
+}
+
+static void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size)
+{
+    assert(dst);
+    assert(src);
+
+    snprintf((char*)dst, size, "%s", (char*)src);
+}
+
+static void vcap_strcpy(char* dst, const char* src, size_t size)
+{
+    assert(dst);
+    assert(src);
+
+    snprintf(dst, size, "%s", src);
+}
+
+static void vcap_set_error(vcap_dev* vd, const char* fmt, ...)
+{
+    assert(vd);
+    assert(fmt);
+
+    char error_msg1[1024];
+    char error_msg2[1024];
+
+    snprintf(error_msg1, sizeof(error_msg1), "[%s:%d]", __func__, __LINE__);
+    assert(vd);
+
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(error_msg2, sizeof(error_msg2), fmt, args);
+    va_end(args);
+
+    snprintf(vd->error_msg, sizeof(vd->error_msg), "%s %s", error_msg1, error_msg2);
+}
+
+static void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...)
+{
+    assert(vd);
+    assert(fmt);
+
+    char error_msg1[1024];
+    char error_msg2[1024];
+
+    snprintf(error_msg1, sizeof(error_msg1), "[%s:%d] (%s)", __func__, __LINE__, strerror(errno));
+
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(error_msg2, sizeof(error_msg2), fmt, args);
+    va_end(args);
+
+    snprintf(vd->error_msg, sizeof(vd->error_msg), "%s %s", error_msg1, error_msg2);
 }
 

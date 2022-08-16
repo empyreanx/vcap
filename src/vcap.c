@@ -243,6 +243,11 @@ int vcap_query_caps(const char* path, struct v4l2_capability* caps)
 
 int vcap_enum_devices(unsigned index, vcap_dev_info* info)
 {
+    assert(info);
+
+    if (!info)
+        return VCAP_ENUM_ERROR;
+
     int count = 0;
 
     struct dirent **names;
@@ -298,6 +303,8 @@ vcap_dev* vcap_create_device(const char* path, bool convert, int buffer_count)
 
 void vcap_destroy_device(vcap_dev* vd)
 {
+    assert(vd);
+
     if (vcap_is_open(vd))
         vcap_close(vd);
 
@@ -490,6 +497,7 @@ bool vcap_is_streaming(vcap_dev* vd)
 int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info)
 {
     assert(vd);
+    assert(info);
 
     if (!info)
     {
@@ -523,6 +531,7 @@ size_t vcap_get_buffer_size(vcap_dev* vd)
 int vcap_grab(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 {
     assert(vd);
+    assert(buffer);
 
     if (!buffer)
     {
@@ -539,6 +548,7 @@ int vcap_grab(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
 {
     assert(vd);
+    assert(rect);
 
     if (!rect)
     {
@@ -604,6 +614,7 @@ int vcap_reset_crop(vcap_dev* vd)
 int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
 {
     assert(vd);
+    assert(rect);
 
     if (!rect)
     {
@@ -735,6 +746,8 @@ static int vcap_request_buffers(vcap_dev* vd, int buffer_count)
 
 static int vcap_init_stream(vcap_dev* vd)
 {
+    assert(vd);
+
     if (vd->buffer_count > 0)
     {
         if (vcap_request_buffers(vd, vd->buffer_count) == -1)
@@ -816,6 +829,8 @@ static int vcap_unmap_buffers(vcap_dev* vd)
 
 static int vcap_queue_buffers(vcap_dev* vd)
 {
+    assert(vd);
+
     for (int i = 0; i < vd->buffer_count; i++)
     {
         struct v4l2_buffer buf;
@@ -838,6 +853,7 @@ static int vcap_queue_buffers(vcap_dev* vd)
 static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 {
     assert(vd);
+    assert(buffer);
 
     if (!buffer)
     {
@@ -871,6 +887,7 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 static int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 {
     assert(vd);
+    assert(buffer);
 
     while (true)
     {

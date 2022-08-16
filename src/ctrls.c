@@ -33,6 +33,7 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
 int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
 {
     assert(vd);
+    assert(info);
 
     if (!info)
     {
@@ -143,6 +144,7 @@ vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd)
 bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info)
 {
     assert(itr);
+    assert(info);
 
     if (!info)
     {
@@ -177,6 +179,7 @@ vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
 bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
 {
     assert(itr);
+    assert(item);
 
     if (!item)
     {
@@ -198,6 +201,7 @@ bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
 int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
 {
     assert(vd);
+    assert(value);
 
     if (!value)
     {

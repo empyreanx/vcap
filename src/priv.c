@@ -33,18 +33,28 @@
 
 void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size)
 {
+    assert(dst);
+    assert(src);
+
     snprintf((char*)dst, size, "%s", (char*)src);
 }
 
 void vcap_strcpy(char* dst, const char* src, size_t size)
 {
+    assert(dst);
+    assert(src);
+
     snprintf(dst, size, "%s", src);
 }
 
 void vcap_set_error(vcap_dev* vd, const char* fmt, ...)
 {
+    assert(vd);
+    assert(fmt);
+
     char error_msg1[1024];
     char error_msg2[1024];
+
     snprintf(error_msg1, sizeof(error_msg1), "[%s:%d]", __func__, __LINE__);
     assert(vd);
 
@@ -59,6 +69,7 @@ void vcap_set_error(vcap_dev* vd, const char* fmt, ...)
 void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...)
 {
     assert(vd);
+    assert(fmt);
 
     char error_msg1[1024];
     char error_msg2[1024];
@@ -75,6 +86,8 @@ void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...)
 
 void vcap_fourcc_string(uint32_t code, uint8_t* str)
 {
+    assert(str);
+
     str[0] = (code >> 0) & 0xFF;
     str[1] = (code >> 8) & 0xFF;
     str[2] = (code >> 16) & 0xFF;
@@ -84,13 +97,15 @@ void vcap_fourcc_string(uint32_t code, uint8_t* str)
 
 int vcap_ioctl(int fd, int request, void *arg)
 {
+    assert(arg);
+
     int result;
 
     do
     {
         result = v4l2_ioctl(fd, request, arg);
     }
-    while (-1 == result && (errno == EINTR || errno == EAGAIN));
+    while (result == -1 && (errno == EINTR || errno == EAGAIN));
 
     return result;
 }

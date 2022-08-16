@@ -32,6 +32,7 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
 int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
 {
     assert(vd);
+    assert(info);
 
     if (!info)
     {
@@ -58,6 +59,8 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
 
 vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
 {
+    assert(vd);
+
     vcap_fmt_itr itr = { 0 };
     itr.vd = vd;
     itr.index = 0;
@@ -78,6 +81,7 @@ vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
 bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info)
 {
     assert(itr);
+    assert(info);
 
     if (!info)
     {
@@ -112,6 +116,7 @@ vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
 bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size)
 {
     assert(itr);
+    assert(size);
 
     if (!size)
     {
@@ -147,6 +152,7 @@ vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
 {
     assert(itr);
+    assert(rate);
 
     if (!rate)
     {
@@ -168,6 +174,7 @@ bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
 int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
 {
     assert(vd);
+    assert(size);
 
     if (!fmt || !size)
     {
@@ -229,6 +236,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
 {
     assert(vd);
+    assert(rate);
 
     if (!rate)
     {
@@ -276,6 +284,9 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
 
 static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
 {
+    assert(vd);
+    assert(info);
+
     struct v4l2_fmtdesc fmtd;
 
     VCAP_CLEAR(fmtd);
@@ -309,6 +320,7 @@ static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
 static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index)
 {
     assert(vd);
+    assert(size);
 
     struct v4l2_frmsizeenum fenum;
 
@@ -341,6 +353,7 @@ static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint3
 static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index)
 {
     assert(vd);
+    assert(rate);
 
     struct v4l2_frmivalenum frenum;
 

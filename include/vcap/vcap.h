@@ -64,24 +64,10 @@ typedef uint32_t vcap_fmt_id;
 #include <stdint.h>
 #include <stdio.h>
 
-typedef struct
-{
-    size_t size;
-    void* data;
-} vcap_buffer;
-
-typedef struct
-{
-    int fd;
-    char path[512];
-    char error_msg[2048];
-    bool open;
-    bool streaming;
-    bool convert;
-    int buffer_count;
-    vcap_buffer* buffers;
-    struct v4l2_capability caps;
-} vcap_dev;
+///
+/// \brief Device handle
+///
+typedef struct vcap_dev vcap_dev;
 
 ///
 /// \brief Video capture device infomation
@@ -241,10 +227,19 @@ enum
     VCAP_ENUM_ERROR    = -3    ///< Error enumerating item
 };
 
-// Generic iterator error test
+///
+/// \brief Generic iterator error test
+///
 #define vcap_itr_error(itr) (VCAP_ENUM_ERROR == (itr)->result)
 
+///
+/// \brief Memory allocation function type
+///
 typedef void* (*vcap_malloc_fn)(size_t size); ///< Custom malloc function type
+
+///
+/// \brief Memory deallocation function type
+///
 typedef void  (*vcap_free_fn)(void* ptr);     ///< Custom free function type
 
 //------------------------------------------------------------------------------
@@ -357,59 +352,6 @@ size_t vcap_get_buffer_size(vcap_dev* vd);
 /// \returns -1 on error and 0 otherwise
 ///
 int vcap_grab(vcap_dev* vd, size_t buffer_size, uint8_t* buffer);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Get cropping bounds
-///
-/// Retrieves a rectangle that determines the valid cropping area for the
-/// specified frame grabber.
-///
-/// \param  vd     Pointer to the frame grabber
-/// \param  rect   Pointer to the rectangle
-///
-/// \returns -1 on error and 0 otherwise
-///
-int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Resets cropping rectangle
-///
-/// Resets the cropping rectange to its default dimensions.
-///
-/// \param  vd  Pointer to the frame grabber
-///
-/// \returns -1 on error and 0 otherwise
-///
-int vcap_reset_crop(vcap_dev* vd);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Get the current cropping rectangle
-///
-/// Retrieves the current cropping rectangle for the specified frame grabber
-/// and stores it in 'rect'.
-///
-/// \param  vd    Pointer to the frame grabber
-/// \param  rect  Pointer to rectangle
-///
-/// \returns -1 on error and 0 otherwise
-///
-int vcap_get_crop(vcap_dev* vd, vcap_rect* rect);
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Sets the cropping rectangle
-///
-/// Sets the cropping rectangle for the specified frame grabber.
-///
-/// \param  vd    Pointer to the frame grabber
-/// \param  rect  Pointer to rectangle
-///
-/// \returns -1 on error and 0 otherwise
-///
-int vcap_set_crop(vcap_dev* vd, vcap_rect rect);
 
 //------------------------------------------------------------------------------
 ///
@@ -703,6 +645,59 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl);
 /// \returns -1 on error and 0 otherwise
 ///
 int vcap_reset_all_ctrls(vcap_dev* vd);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Get cropping bounds
+///
+/// Retrieves a rectangle that determines the valid cropping area for the
+/// specified frame grabber.
+///
+/// \param  vd     Pointer to the frame grabber
+/// \param  rect   Pointer to the rectangle
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Resets cropping rectangle
+///
+/// Resets the cropping rectange to its default dimensions.
+///
+/// \param  vd  Pointer to the frame grabber
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_reset_crop(vcap_dev* vd);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Get the current cropping rectangle
+///
+/// Retrieves the current cropping rectangle for the specified frame grabber
+/// and stores it in 'rect'.
+///
+/// \param  vd    Pointer to the frame grabber
+/// \param  rect  Pointer to rectangle
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_get_crop(vcap_dev* vd, vcap_rect* rect);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Sets the cropping rectangle
+///
+/// Sets the cropping rectangle for the specified frame grabber.
+///
+/// \param  vd    Pointer to the frame grabber
+/// \param  rect  Pointer to rectangle
+///
+/// \returns -1 on error and 0 otherwise
+///
+int vcap_set_crop(vcap_dev* vd, vcap_rect rect);
 
 #ifdef __cplusplus
 }

@@ -39,17 +39,23 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-#define VCAP_CID_CAMERA_CLASS_LAST (V4L2_CID_CAMERA_CLASS_BASE+35)
+
 
 // Clear data structure
 #define VCAP_CLEAR(arg) memset(&(arg), 0, sizeof(arg))
 
+///
+/// \brief Memory mapped buffer defintion
+///
 typedef struct
 {
     size_t size;
     void* data;
 } vcap_buffer;
 
+///
+/// \brief Video device definition
+///
 struct vcap_dev
 {
     int fd;
@@ -62,6 +68,10 @@ struct vcap_dev
     vcap_buffer* buffers;
     struct v4l2_capability caps;
 };
+
+//==============================================================================
+// Internal function declarations
+//==============================================================================
 
 // Internal malloc
 static void* vcap_malloc(size_t size);
@@ -147,6 +157,9 @@ static vcap_malloc_fn global_malloc_fp = malloc;
 // Global free function pointer
 static vcap_free_fn global_free_fp = free;
 
+//==============================================================================
+// Public API implementation
+//==============================================================================
 
 void vcap_set_alloc(vcap_malloc_fn malloc_fp, vcap_free_fn free_fp)
 {
@@ -438,6 +451,7 @@ int vcap_open(vcap_dev* vd)
         }
     }
 
+    // Enables/disables format conversion
     if (vd->convert)
         vd->fd = v4l2_fd_open(vd->fd, 0);
     else
@@ -489,6 +503,7 @@ int vcap_start_stream(vcap_dev* vd)
         if (vcap_init_stream(vd) == -1)
             return -1;
 
+        // Turn stream on
     	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
         if (vcap_ioctl(vd->fd, VIDIOC_STREAMON, &type) == -1)
@@ -515,6 +530,7 @@ int vcap_stop_stream(vcap_dev* vd)
 
     if (vd->buffer_count > 0)
     {
+        // Turn stream off
     	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
         if (vcap_ioctl(vd->fd, VIDIOC_STREAMOFF, &type) == -1)
@@ -523,6 +539,7 @@ int vcap_stop_stream(vcap_dev* vd)
             return -1;
         }
 
+        // Disables and
         if (vcap_shutdown_stream(vd) == -1)
             return -1;
 
@@ -609,6 +626,9 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
         vcap_set_error(vd, "Parameter can't be null");
         return VCAP_FMT_ERROR;
     }
+
+    // NOTE: Unfortunately there is no V4L2 function that returns information on
+    // a format without enumerating them, as is done below.
 
     int result, i = 0;
 
@@ -752,6 +772,7 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
         return -1;
     }
 
+    // Get format
     struct v4l2_format gfmt;
 
     VCAP_CLEAR(gfmt);
@@ -763,10 +784,16 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
         return -1;
     }
 
-    *fmt = gfmt.fmt.pix.pixelformat;
+    // Get format ID, if requested
+    if (fmt)
+        *fmt = gfmt.fmt.pix.pixelformat;
 
-    size->width = gfmt.fmt.pix.width;
-    size->height = gfmt.fmt.pix.height;
+    // Get size, if requested
+    if (size)
+    {
+        size->width = gfmt.fmt.pix.width;
+        size->height = gfmt.fmt.pix.height;
+    }
 
     return 0;
 }
@@ -774,6 +801,11 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
 int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 {
     assert(vd);
+
+    // NOTE: Some cameras return a device busy signal when attempting to set
+    // the format on a device that has already been streaming. The only viable
+    // solution is to close the camera, open it, set the format, and restart the
+    // stream (if applicable).
 
     bool streaming = vcap_is_streaming(vd);
 
@@ -783,6 +815,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     if (vcap_open(vd) == -1)
         return -1;
 
+    // Specify desired format
     struct v4l2_format sfmt;
 
     sfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -791,6 +824,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     sfmt.fmt.pix.pixelformat = fmt;
     sfmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
 
+    // Set format
     if (vcap_ioctl(vd->fd, VIDIOC_S_FMT, &sfmt) == -1)
     {
         vcap_set_error_errno(vd, "Unable to set format on %s", vd->path);
@@ -814,6 +848,7 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
         return -1;
     }
 
+    // Get frame rate
     struct v4l2_streamparm parm;
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
@@ -835,6 +870,7 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
 {
     assert(vd);
 
+    // Set frame rate
     struct v4l2_streamparm parm;
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
@@ -867,6 +903,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
         return VCAP_CTRL_ERROR;
     }
 
+    // Query specified control
     struct v4l2_queryctrl qctrl;
 
     VCAP_CLEAR(qctrl);
@@ -885,11 +922,13 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
         }
     }
 
+    // Test if control type is supported
     if (!vcap_type_supported(qctrl.type))
         return VCAP_CTRL_INVALID;
 
+    // Test if control is disabled
     if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
-        return VCAP_CTRL_INVALID;
+        return VCAP_CTRL_DISABLED;
 
     // Copy name
     vcap_ustrcpy(info->name, qctrl.name, sizeof(info->name));
@@ -922,6 +961,7 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
     assert(vd);
 
+    // Query specified control
     struct v4l2_queryctrl qctrl;
 
     VCAP_CLEAR(qctrl);
@@ -940,15 +980,19 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
         }
     }
 
+    // Test if control type is supported
     if (!vcap_type_supported(qctrl.type))
         return VCAP_CTRL_INVALID;
 
+    // Test if control is read only
     if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY || qctrl.flags & V4L2_CTRL_FLAG_GRABBED)
         return VCAP_CTRL_READ_ONLY;
 
+    // Test if control is disabled
     if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
         return VCAP_CTRL_DISABLED;
 
+    // Test if control is inactive
     if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE)
         return VCAP_CTRL_INACTIVE;
 
@@ -1055,12 +1099,14 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
 {
     assert(vd);
 
+    // Specify control and value
     struct v4l2_control sctrl;
 
     VCAP_CLEAR(sctrl);
     sctrl.id = ctrl;
     sctrl.value = value;
 
+    // Set control
     if (vcap_ioctl(vd->fd, VIDIOC_S_CTRL, &sctrl) == -1)
     {
         vcap_set_error_errno(vd, "Could not set control (%d) value on device %s", ctrl, vd->path);
@@ -1096,6 +1142,9 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
     return 0;
 }
 
+// Last camera control ID plus one
+#define VCAP_CID_CAMERA_CLASS_LASTP1 (V4L2_CID_CAMERA_CLASS_BASE+36)
+
 int vcap_reset_all_ctrls(vcap_dev* vd)
 {
     assert(vd);
@@ -1109,7 +1158,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
             return -1;
     }
 
-    for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl <= VCAP_CID_CAMERA_CLASS_LAST; ctrl++)
+    for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl < VCAP_CID_CAMERA_CLASS_LASTP1; ctrl++)
     {
         if (vcap_ctrl_status(vd, ctrl) != VCAP_CTRL_OK)
             continue;
@@ -1136,6 +1185,7 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
         return -1;
     }
 
+    // Get crop rectangle
     struct v4l2_cropcap cropcap;
 
     VCAP_CLEAR(cropcap);
@@ -1150,6 +1200,7 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
         }
     }
 
+    // Copy rectangle bounds
     rect->top = cropcap.bounds.top;
     rect->left = cropcap.bounds.left;
     rect->width = cropcap.bounds.width;
@@ -1372,6 +1423,7 @@ static void vcap_caps_to_info(const char* path, const struct v4l2_capability cap
             (caps.version >> 8) & 0xFF,
             (caps.version & 0xFF));
 
+    // Determines which output modes are available
     info->stream = caps.capabilities & V4L2_CAP_STREAMING;
     info->read = caps.capabilities & V4L2_CAP_READWRITE;
 }
@@ -1380,6 +1432,8 @@ static int vcap_request_buffers(vcap_dev* vd, int buffer_count)
 {
     assert(vd);
 
+    // Requests the specified number of buffers, returning the number of
+    // available buffers
     struct v4l2_requestbuffers req;
 
     VCAP_CLEAR(req);
@@ -1399,7 +1453,11 @@ static int vcap_request_buffers(vcap_dev* vd, int buffer_count)
         return -1;
     }
 
+    // Changes the number of buffer in the video device to match the number of
+    // available buffers
     vd->buffer_count = req.count;
+
+    // Allocates the buffer objects
     vd->buffers = vcap_malloc(req.count * sizeof(vcap_buffer));
 
     return 0;
@@ -1443,6 +1501,7 @@ static int vcap_map_buffers(vcap_dev* vd)
 
      for (int i = 0; i < vd->buffer_count; i++)
     {
+        // Query buffers, returning their size and other information
         struct v4l2_buffer buf;
 
         VCAP_CLEAR(buf);
@@ -1456,6 +1515,7 @@ static int vcap_map_buffers(vcap_dev* vd)
             return -1;
         }
 
+        // Map buffers
         vd->buffers[i].size = buf.length;
         vd->buffers[i].data = v4l2_mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, vd->fd, buf.m.offset);
 
@@ -1472,6 +1532,8 @@ static int vcap_map_buffers(vcap_dev* vd)
 static int vcap_unmap_buffers(vcap_dev* vd)
 {
     assert(vd);
+
+    // Unmap and free buffers
 
     for (int i = 0; i < vd->buffer_count; i++)
     {
@@ -1494,6 +1556,7 @@ static int vcap_queue_buffers(vcap_dev* vd)
 
     for (int i = 0; i < vd->buffer_count; i++)
     {
+        // Places a buffer in the queue
         struct v4l2_buffer buf;
 
         VCAP_CLEAR(buf);
@@ -1770,6 +1833,7 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
     return VCAP_ENUM_OK;
 }
 
+//TODO: DRY
 static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
 {
     assert(vd);
@@ -1793,7 +1857,7 @@ static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
             count++;
     }
 
-    for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl <= VCAP_CID_CAMERA_CLASS_LAST; ctrl++)
+    for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl < VCAP_CID_CAMERA_CLASS_LASTP1; ctrl++)
     {
         int result = vcap_get_ctrl_info(vd, ctrl, info);
 

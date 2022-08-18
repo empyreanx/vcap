@@ -54,7 +54,9 @@
 extern "C" {
 #endif
 
+///
 /// \brief Control ID type
+///
 typedef uint32_t vcap_ctrl_id;
 
 ///

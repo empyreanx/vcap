@@ -63,7 +63,10 @@ struct vcap_dev
     struct v4l2_capability caps;
 };
 
+// Internal malloc
 static void* vcap_malloc(size_t size);
+
+// Internal free
 static void vcap_free(void* ptr);
 
 // FOURCC character code to string
@@ -72,32 +75,78 @@ static void vcap_fourcc_string(uint32_t code, uint8_t* str);
 // Extended ioctl function
 static int vcap_ioctl(int fd, int request, void *arg);
 
-// Filters device list so that 'scandir' returns only video devices.
+// Query device capabilities, used in device enumeration
 static int vcap_query_caps(const char* path, struct v4l2_capability* caps);
+
+// Filters device list so that 'scandir' returns only video devices.
 static int vcap_video_device_filter(const struct dirent *a);
+
+// Convert device capabilities into device info struct
 static void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_dev_info* info);
+
+// Request a number of buffers for streaming
 static int vcap_request_buffers(vcap_dev* vd, int buffer_count);
+
+// Initialize streaming for the given device
 static int vcap_init_stream(vcap_dev* vd);
+
+// Shutdown stream for given device
 static int vcap_shutdown_stream(vcap_dev* vd);
+
+// Map memory buffers
 static int vcap_map_buffers(vcap_dev* vd);
+
+// Unmap memory buffers
 static int vcap_unmap_buffers(vcap_dev* vd);
+
+// Queue mapped buffers
 static int vcap_queue_buffers(vcap_dev* vd);
+
+// Grab a frame using memory-mapped buffers
 static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer);
+
+// Grab a frame using a direct read call
 static int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer);
+
+// Safe unsigned string copy
 static void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size);
+
+// Safe regular string copy
 static void vcap_strcpy(char* dst, const char* src, size_t size);
+
+// Set error message for specified device
 static void vcap_set_error(vcap_dev* vd, const char* fmt, ...);
+
+// Set error message (including errno infomation) for specified device
 static void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...);
+
+// Returns true if control type is supported
 static bool vcap_type_supported(uint32_t type);
+
+// Return string describing a control type
 static const char* vcap_type_str(vcap_ctrl_type type);
+
+// Enumerates formats
 static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index);
+
+// Enumerates frame sizes for the given format
 static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index);
+
+// Enumerates frame rates for the given format and frame size
 static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index);
+
+// Enumerates camera controls
 static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index);
+
+// Enumerates a menu for the given control
 static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index);
 
+// Global malloc function pointer
 static vcap_malloc_fn global_malloc_fp = malloc;
+
+// Global free function pointer
 static vcap_free_fn global_free_fp = free;
+
 
 void vcap_set_alloc(vcap_malloc_fn malloc_fp, vcap_free_fn free_fp)
 {
@@ -1615,7 +1664,6 @@ static const char* vcap_type_str(vcap_ctrl_type type)
     return "Unknown";
 }
 
-
 static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
 {
     assert(vd);
@@ -1783,7 +1831,7 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
         return VCAP_ENUM_ERROR;
     }
 
-    if (info.read_only)
+    if (info.read_only) // TODO: necessary? required?
     {
         vcap_set_error(vd, "Can't enumerate menu of a read-only control");
         return VCAP_ENUM_ERROR;

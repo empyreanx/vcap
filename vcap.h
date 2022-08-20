@@ -58,17 +58,17 @@ extern "C" {
 #endif
 
 ///
-/// \brief Control ID type (see CONTROLS.md)
+/// \brief Control ID type
 ///
 typedef uint32_t vcap_ctrl_id;
 
 ///
-/// \brief Control type ID (see CONTROLS.md)
+/// \brief Control type ID
 ///
 typedef uint8_t vcap_ctrl_type;
 
 ///
-/// \brief Format ID type (see FORMATS.md)
+/// \brief Format ID type
 ///
 typedef uint32_t vcap_fmt_id;
 

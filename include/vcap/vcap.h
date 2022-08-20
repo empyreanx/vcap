@@ -1,20 +1,20 @@
 /*! \file vcap.h
     \mainpage Vcap
-    \version  0.2.0
-    \author   James McLean <empyreanx@zoho.com>
-    \date     August 4, 2018
+    \version  1.0.0
+    \author   James McLean
+    \date     August 20, 2022
     \brief    An open source Video4Linux2 (V4L2) capture library written in C.
 
     \section About
+
     Vcap aims to provide a concise API for working with cameras and other video
     capture devices that have drivers implementing the V4L2 spec. It is built
-    on top of the libv4l userspace library (the only required dependency) which
+    on top of the libv4l userspace library (the only dependency) which
     provides seamless decoding for a variety of formats.
 
-    Vcap is built with performance in mind and thus eliminates the use of
-    dynamic memory allocation during frame grabbing. Vcap provides simple,
-    low-level access to device controls, enabling applications to make use of
-    the full range of functionality provided by V4L2.
+    Vcap provides simple, low-level access to device controls and formats,
+    enabling applications to make use of the full range of functionality
+    provided by V4L2.
 */
 
 //==============================================================================
@@ -117,9 +117,9 @@ typedef struct
     uint8_t fourcc[5];          ///< FourCC string
 } vcap_fmt_info;
 
-///
-/// \brief Control descriptor
-///
+//
+// \brief Control descriptor
+//
 typedef struct
 {
     vcap_ctrl_id id;            ///< Control ID
@@ -159,7 +159,9 @@ typedef struct
     int32_t height;             ///< Height of rectangle
 } vcap_rect;
 
+//
 // Control iterator
+//
 typedef struct
 {
     vcap_dev* vd;
@@ -168,7 +170,9 @@ typedef struct
     vcap_ctrl_info info;
 } vcap_ctrl_itr;
 
+//
 // Menu iterator
+//
 typedef struct
 {
     vcap_dev* vd;
@@ -178,6 +182,9 @@ typedef struct
     vcap_menu_item item;
 } vcap_menu_itr;
 
+//
+// Format iterator
+//
 typedef struct
 {
     vcap_dev* vd;
@@ -186,7 +193,9 @@ typedef struct
     vcap_fmt_info info;
 } vcap_fmt_itr;
 
+//
 // Size iterator
+//
 typedef struct
 {
     vcap_dev* vd;
@@ -196,7 +205,9 @@ typedef struct
     vcap_size size;
 } vcap_size_itr;
 
+//
 // Frame rate iterator
+//
 typedef struct
 {
     vcap_dev* vd;
@@ -269,7 +280,7 @@ void vcap_set_alloc(vcap_malloc_fn malloc_fp, vcap_free_fn free_fp);
 //------------------------------------------------------------------------------
 ///
 /// \brief  Returns a device specific string containing the last error message
-/// \param  vd    Pointer to the video device
+/// \param  vd  Pointer to the video device
 ///
 const char* vcap_get_error(vcap_dev* vd);
 
@@ -310,14 +321,14 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info);
 ///
 /// \brief  Creates a new video device object
 ///
-/// \param  path          Path to system device handle
+/// \param  path          Path to system device
 /// \param  convert       Enables automatic format conversion
 /// \param  buffer_count  Number of streaming buffers if > 0, otherwise
 ///                       streaming is disabled
 ///
 /// \returns NULL on error and a pointer to a video device otherwise
 ///
-vcap_dev* vcap_create_device(const char* path, bool convert, int buffer_count);
+vcap_dev* vcap_create_device(const char* path, bool convert, unsigned buffer_count);
 
 //------------------------------------------------------------------------------
 ///
@@ -341,7 +352,7 @@ int vcap_open(vcap_dev* vd);
 ///
 /// \brief  Closes a video capture device
 ///
-/// Closes the device and deallocates the video device.
+/// Closes the device and deallocates the video device object.
 ///
 /// \param  vd  Pointer to the video device
 ///
@@ -353,7 +364,7 @@ int vcap_close(vcap_dev* vd);
 ///
 /// \brief  Starts the stream video stream on the specified device
 ///
-/// \param  vd Pointer to the video device
+/// \param  vd  Pointer to the video device
 ///
 /// \returns -1 on error and 0 otherwise
 ///
@@ -363,7 +374,7 @@ int vcap_start_stream(vcap_dev* vd);
 ///
 /// \brief  Stops the stream video stream on the specified device
 ///
-/// \param  vd Pointer to the video device
+/// \param  vd  Pointer to the video device
 ///
 /// \returns -1 on error and 0 otherwise
 ///
@@ -372,14 +383,14 @@ int vcap_stop_stream(vcap_dev* vd);
 //------------------------------------------------------------------------------
 ///
 /// \brief  Returns true if the device is open
-/// \param  vd Pointer to the video device
+/// \param  vd  Pointer to the video device
 ///
 bool vcap_is_open(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
 /// \brief  Returns true if the device is streaming
-/// \param  vd Pointer to the video device
+/// \param  vd  Pointer to the video device
 ///
 bool vcap_is_streaming(vcap_dev* vd);
 
@@ -403,6 +414,8 @@ int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info);
 ///         configuration
 ///
 /// \param  vd  Pointer to the video device
+///
+/// \return 0 on error and frame size otherwise
 ///
 size_t vcap_get_buffer_size(vcap_dev* vd);
 
@@ -428,7 +441,7 @@ int vcap_grab(vcap_dev* vd, size_t buffer_size, uint8_t* buffer);
 ///
 /// \param  vd    Pointer to the video device
 /// \param  fmt   The format ID
-/// \param  desc  Pointer to the format descriptor
+/// \param  info  Pointer to the format information
 ///
 /// \returns VCAP_FMT_OK      if the format descriptor was retrieved successfully,
 ///          VCAP_FMT_INVALID if the format ID is invalid
@@ -441,7 +454,7 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* desc);
 /// \brief  Creates a new format iterator
 ///
 /// Creates and initializes new format iterator for the specified video device.
-/// The iterator should be deallocated using 'vcap_free'.
+///
 /// \param  vd  Pointer to the video device
 ///
 /// \returns An initialized 'vcap_fmt_itr' struct
@@ -452,21 +465,22 @@ vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd);
 ///
 /// \brief  Advances the specified format iterator
 ///
-/// Copies the current format descriptor into 'desc' and advances the iterator.
+/// Copies the current format information into 'info' and advances the iterator.
 ///
 /// \param  itr   Pointer to iterator
-/// \param  desc  Pointer to the format descriptor
+/// \param  info  Pointer to the format information
 ///
-/// \returns 0 if there was an error or there are no more formats, and 1 otherwise
+/// \returns false if there was an error or there are no more formats, and true
+///          otherwise
 ///
-bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* desc);
+bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info);
 
 //------------------------------------------------------------------------------
 ///
 /// \brief  Creates a new frame size iterator
 ///
-/// Creates and initializes new frame size iterator for the specified frame
-/// grabber and format ID. The iterator should be deallocated using 'vcap_free'.
+/// Creates and initializes new frame size iterator for the specified device
+/// and format ID.
 ///
 /// \param  vd   Pointer to the video device
 /// \param  fmt  The format ID
@@ -484,7 +498,8 @@ vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt);
 /// \param  itr   Pointer to iterator
 /// \param  size  Pointer to the frame size
 ///
-/// \returns 0 if there was an error or there are no more sizes, and 1 otherwise
+/// \returns false if there was an error or there are no more sizes, and true
+///          otherwise
 ///
 bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size);
 
@@ -493,8 +508,7 @@ bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size);
 /// \brief  Creates a new frame rate iterator
 ///
 /// Creates and initializes new frame rate iterator for the specified frame
-/// grabber, format ID, and frame size. The iterator should be deallocated
-/// using 'vcap_free'.
+/// grabber, format ID, and frame size.
 ///
 /// \param  vd    Pointer to the video device
 /// \param  fmt   The format ID
@@ -513,7 +527,8 @@ vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
 /// \param  itr   Pointer to iterator
 /// \param  rate  Pointer to the frame rate
 ///
-/// \returns 0 if there was an error or there are no more sizes, and 1 otherwise
+/// \returns false if there was an error or there are no more sizes, and true
+///          otherwise
 ///
 bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate);
 
@@ -536,8 +551,7 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size);
 ///
 /// \brief  Sets the format and frame size
 ///
-/// Sets the format ID and frame size simultaneously for the specified frame
-/// grabber.
+/// Sets the format ID and frame size simultaneously for the specified device
 ///
 /// \param  vd    Pointer to the video device
 /// \param  fmt   The format ID
@@ -566,7 +580,7 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate);
 ///
 /// Sets the frame rate for the specified video device.
 ///
-/// \param  vd        Pointer to the video device
+/// \param  vd    Pointer to the video device
 /// \param  rate  The frame rate
 ///
 /// \returns -1 on error and 0 otherwise
@@ -584,7 +598,6 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate);
 /// \param  desc  Pointer to the control descriptor
 ///
 /// \returns VCAP_CTRL_OK       if the control descriptor was retrieved successfully,
-///          VCAP_CTRL_INACTIVE if the control ID is valid, but the control is inactive,
 ///          VCAP_CTRL_INVALID  if the control ID is invalid, and
 ///          VCAP_CTRL_ERROR    if getting the control descriptor failed
 ///
@@ -592,18 +605,19 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* desc);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Retrieves a control descriptor
+/// \brief  Returns the status of the control
 ///
 /// Retrieves the status of the control with the specified ID.
 ///
 /// \param  vd    Pointer to the video device
 /// \param  ctrl  The control ID
 ///
-/// \returns VCAP_CTRL_OK        if the control descriptor was retrieved successfully,
-///          VCAP_CTRL_INACTIVE  if the control ID is valid, but the control is inactive,
-///          VCAP_CTRL_READ_ONLY if the control is active but currently read-only,
-///          VCAP_CTRL_INVALID   if the control ID is invalid, and
-///          VCAP_CTRL_ERROR     if getting the control descriptor failed
+/// \returns VCAP_CTRL_OK            if the control descriptor was retrieved successfully,
+///          VCAP_CTRL_INACTIVE      if the control ID is valid, but the control is inactive,
+///          VCAP_CTRL_READ_ONLY     if the control is active but currently read-only,
+///          VCAP_CTRL_READ_DISABLED if the control is active but currently read-only,
+///          VCAP_CTRL_INVALID       if the control ID is invalid, and
+///          VCAP_CTRL_ERROR         if getting the control descriptor failed
 ///
 int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl);
 
@@ -611,8 +625,7 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl);
 ///
 /// \brief  Creates a new control iterator
 ///
-/// Creates and initializes new control iterator for the specified frame
-/// grabber. The iterator should be deallocated using 'vcap_free'.
+/// Creates and initializes new control iterator for the specified device.
 ///
 /// \param  vd  Pointer to the video device
 ///
@@ -629,16 +642,16 @@ vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd);
 /// \param  itr   Pointer to iterator
 /// \param  desc  Pointer to the control descriptor
 ///
-/// \returns 0 if there was an error or there are no more controls, and 1 otherwise
+/// \returns false if there was an error or there are no more controls, and true
+///          otherwise
 ///
 bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* desc);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Creates a new menu iterator
+/// \brief  Creates a new control menu iterator
 ///
-/// Creates and initializes a new menu iterator for the specified frame
-/// grabber and control ID. The iterator should be deallocated using 'vcap_free'.
+/// Creates and initializes a new control menu iterator for the specified device.
 ///
 /// \param  vd   Pointer to the video device
 /// \param  ctrl The control ID
@@ -656,7 +669,8 @@ vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl);
 /// \param  itr   Pointer to iterator
 /// \param  item  Pointer to the menu item
 ///
-/// \returns 0 if there was an error or there are no more controls, and 1 otherwise
+/// \returns false if there was an error or there are no more controls, and true
+///          otherwise
 ///
 bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item);
 

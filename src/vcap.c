@@ -61,7 +61,7 @@ struct vcap_dev
     bool open;
     bool streaming;
     bool convert;
-    int buffer_count;
+    unsigned buffer_count;
     vcap_buffer* buffers;
     struct v4l2_capability caps;
 };
@@ -346,7 +346,7 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info)
     return VCAP_ENUM_INVALID;
 }
 
-vcap_dev* vcap_create_device(const char* path, bool convert, int buffer_count)
+vcap_dev* vcap_create_device(const char* path, bool convert, unsigned buffer_count)
 {
     assert(path);
 
@@ -936,10 +936,6 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     // Test if control type is supported
     if (!vcap_type_supported(qctrl.type))
         return VCAP_CTRL_INVALID;
-
-    // Test if control is disabled
-    if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
-        return VCAP_CTRL_DISABLED;
 
     // Copy name
     vcap_ustrcpy(info->name, qctrl.name, sizeof(info->name));

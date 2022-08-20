@@ -129,11 +129,23 @@ static void vcap_set_error(vcap_dev* vd, const char* fmt, ...);
 // Set error message (including errno infomation) for specified device
 static void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...);
 
+// Converts a V4L2 control ID to VCAP control ID
+static vcap_ctrl_id vcap_convert_ctrl(uint32_t id);
+
+// Converts a VCAP control ID to the corresponding V4L2 control ID
+static uint32_t vcap_map_ctrl(vcap_ctrl_id id);
+
+// Converts a V4L2 control type ID to VCAP control type ID
+static vcap_ctrl_type vcap_convert_ctrl_type(uint32_t type);
+
+// Converts a VCAP type to the corresponding V4L2 type
+static uint32_t vcap_map_ctrl_type(vcap_ctrl_type id);
+
 // Returns true if control type is supported
-static bool vcap_type_supported(uint32_t type);
+static bool vcap_ctrl_type_supported(uint32_t type);
 
 // Return string describing a control type
-static const char* vcap_type_str(vcap_ctrl_type type);
+static const char* vcap_ctrl_type_str(vcap_ctrl_type id);
 
 // Enumerates formats
 static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index);
@@ -272,7 +284,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     {
         printf("   Name: %s, Type: %s\n", ctrl_info.name, ctrl_info.type_name);
 
-        if (ctrl_info.type == V4L2_CTRL_TYPE_MENU || ctrl_info.type == V4L2_CTRL_TYPE_INTEGER_MENU)
+        if (ctrl_info.type == VCAP_CTRL_TYPE_MENU || ctrl_info.type == VCAP_CTRL_TYPE_INTEGER_MENU)
         {
             printf("   Menu:\n");
 
@@ -284,7 +296,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
 
             while (vcap_menu_itr_next(&menu_itr, &menu_item))
             {
-                if (ctrl_info.type == V4L2_CTRL_TYPE_MENU)
+                if (ctrl_info.type == VCAP_CTRL_TYPE_MENU)
                     printf("      %i : %s\n", menu_item.index, menu_item.name);
                 else
                     printf("      %i : %li\n", menu_item.index, menu_item.value);
@@ -919,7 +931,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     struct v4l2_queryctrl qctrl;
 
     VCAP_CLEAR(qctrl);
-    qctrl.id = ctrl;
+    qctrl.id = vcap_map_ctrl(ctrl);
 
     if (vcap_ioctl(vd->fd, VIDIOC_QUERYCTRL, &qctrl) == -1)
     {
@@ -935,20 +947,20 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     }
 
     // Test if control type is supported
-    if (!vcap_type_supported(qctrl.type))
+    if (!vcap_ctrl_type_supported(qctrl.type))
         return VCAP_CTRL_INVALID;
 
     // Copy name
     vcap_ustrcpy(info->name, qctrl.name, sizeof(info->name));
 
     // Copy control ID
-    info->id = qctrl.id;
+    info->id = vcap_convert_ctrl(qctrl.id);
 
     // Copy type
-    info->type = qctrl.type;
+    info->type = vcap_convert_ctrl_type(qctrl.type);
 
     // Copy type string
-    vcap_ustrcpy(info->type_name, (uint8_t*)vcap_type_str(info->type), sizeof(info->type_name));
+    vcap_ustrcpy(info->type_name, (uint8_t*)vcap_ctrl_type_str(info->type), sizeof(info->type_name));
 
     // Min/Max/Step/Default
     info->min = qctrl.minimum;
@@ -990,7 +1002,7 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
     }
 
     // Test if control type is supported
-    if (!vcap_type_supported(qctrl.type))
+    if (!vcap_ctrl_type_supported(qctrl.type))
         return VCAP_CTRL_INVALID;
 
     // Test if control is read only
@@ -1092,7 +1104,7 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
     struct v4l2_control gctrl;
 
     VCAP_CLEAR(gctrl);
-    gctrl.id = ctrl;
+    gctrl.id = vcap_map_ctrl(ctrl);
 
     if (vcap_ioctl(vd->fd, VIDIOC_G_CTRL, &gctrl) == -1)
     {
@@ -1114,7 +1126,7 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
     struct v4l2_control sctrl;
 
     VCAP_CLEAR(sctrl);
-    sctrl.id = ctrl;
+    sctrl.id = vcap_map_ctrl(ctrl);
     sctrl.value = value;
 
     // Set control
@@ -1162,17 +1174,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
     assert(vd);
 
     // Loop over user class controlsa
-    for (vcap_ctrl_id ctrl = V4L2_CID_BASE; ctrl < V4L2_CID_LASTP1; ctrl++)
-    {
-        if (vcap_ctrl_status(vd, ctrl) != VCAP_CTRL_OK)
-            continue;
-
-        if (vcap_reset_ctrl(vd, ctrl) == -1)
-            return -1;
-    }
-
-    // Loop over camera controls
-    for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl < VCAP_CID_CAMERA_CLASS_LASTP1; ctrl++)
+    for (vcap_ctrl_id ctrl = VCAP_CTRL_BRIGHTNESS; ctrl < VCAP_CTRL_COUNT; ctrl++)
     {
         if (vcap_ctrl_status(vd, ctrl) != VCAP_CTRL_OK)
             continue;
@@ -1723,7 +1725,7 @@ static void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...)
 // Enumeration Functions
 //==============================================================================
 
-static bool vcap_type_supported(uint32_t type)
+static bool vcap_ctrl_type_supported(uint32_t type)
 {
     switch (type)
     {
@@ -1736,29 +1738,6 @@ static bool vcap_type_supported(uint32_t type)
     }
 
     return false;
-}
-
-static const char* vcap_type_str(vcap_ctrl_type type)
-{
-    switch (type)
-    {
-        case V4L2_CTRL_TYPE_INTEGER:
-            return "Integer";
-
-        case V4L2_CTRL_TYPE_BOOLEAN:
-            return "Boolean";
-
-        case V4L2_CTRL_TYPE_MENU:
-            return "Menu";
-
-        case V4L2_CTRL_TYPE_INTEGER_MENU:
-            return "Integer Menu";
-
-        case V4L2_CTRL_TYPE_BUTTON:
-            return "Button";
-    }
-
-    return "Unknown";
 }
 
 static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
@@ -1874,7 +1853,6 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
     return VCAP_ENUM_OK;
 }
 
-//TODO: DRY
 static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
 {
     assert(vd);
@@ -1883,24 +1861,7 @@ static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
     int count = 0;
 
     // Enuemrate user controls
-    for (vcap_ctrl_id ctrl = V4L2_CID_BASE; ctrl < V4L2_CID_LASTP1; ctrl++)
-    {
-        int result = vcap_get_ctrl_info(vd, ctrl, info);
-
-        if (result == VCAP_CTRL_ERROR)
-            return VCAP_ENUM_ERROR;
-
-        if (result == VCAP_CTRL_INVALID)
-            continue;
-
-        if (index == count)
-            return VCAP_ENUM_OK;
-        else
-            count++;
-    }
-
-    // Enumerate camera controls
-    for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl < VCAP_CID_CAMERA_CLASS_LASTP1; ctrl++)
+    for (vcap_ctrl_id ctrl = VCAP_CTRL_BASE; ctrl < VCAP_CTRL_COUNT; ctrl++)
     {
         int result = vcap_get_ctrl_info(vd, ctrl, info);
 
@@ -1944,7 +1905,7 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
         return VCAP_ENUM_ERROR;
     }
 
-    if (info.type != V4L2_CTRL_TYPE_MENU && info.type != V4L2_CTRL_TYPE_INTEGER_MENU)
+    if (info.type != VCAP_CTRL_TYPE_MENU && info.type != VCAP_CTRL_TYPE_INTEGER_MENU)
     {
         vcap_set_error(vd, "Control is not a menu");
         return VCAP_ENUM_ERROR;
@@ -1966,7 +1927,7 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
         struct v4l2_querymenu qmenu;
 
         VCAP_CLEAR(qmenu);
-        qmenu.id = ctrl;
+        qmenu.id = vcap_map_ctrl(ctrl);
         qmenu.index = i;
 
         if (vcap_ioctl(vd->fd, VIDIOC_QUERYMENU, &qmenu) == -1)
@@ -1986,7 +1947,7 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
         {
             item->index = i;
 
-            if (info.type == V4L2_CTRL_TYPE_MENU)
+            if (info.type == VCAP_CTRL_TYPE_MENU)
                 vcap_ustrcpy(item->name, qmenu.name, sizeof(item->name));
             else
                 item->value = qmenu.value;
@@ -2002,3 +1963,114 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
     return VCAP_ENUM_INVALID;
 }
 
+static uint32_t ctrl_map[] = {
+    V4L2_CID_BRIGHTNESS,                  // Integer
+    V4L2_CID_CONTRAST,                    // Integer
+    V4L2_CID_SATURATION,                  // Integer
+    V4L2_CID_HUE,                         // Integer
+    V4L2_CID_AUTO_WHITE_BALANCE,          // Boolean
+    V4L2_CID_DO_WHITE_BALANCE,            // Button
+    V4L2_CID_RED_BALANCE,                 // Integer
+    V4L2_CID_BLUE_BALANCE,                // Integer
+    V4L2_CID_GAMMA,                       // Integer
+    V4L2_CID_EXPOSURE,                    // Integer
+    V4L2_CID_AUTOGAIN,                    // Boolean
+    V4L2_CID_GAIN,                        // Integer
+    V4L2_CID_HFLIP,                       // Boolean
+    V4L2_CID_VFLIP,                       // Boolean
+    V4L2_CID_POWER_LINE_FREQUENCY,        // Enum
+    V4L2_CID_HUE_AUTO,                    // Boolean
+    V4L2_CID_WHITE_BALANCE_TEMPERATURE,   // Integer
+    V4L2_CID_SHARPNESS,                   // Integer
+    V4L2_CID_BACKLIGHT_COMPENSATION,      // Integer
+    V4L2_CID_CHROMA_AGC,                  // Boolean
+    V4L2_CID_CHROMA_GAIN,                 // Integer
+    V4L2_CID_COLOR_KILLER,                // Boolean
+    V4L2_CID_AUTOBRIGHTNESS,              // Boolean
+    V4L2_CID_ROTATE,                      // Integer
+    V4L2_CID_BG_COLOR,                    // Integer
+    V4L2_CID_ILLUMINATORS_1,              // Boolean
+    V4L2_CID_ILLUMINATORS_2,              // Boolean
+    V4L2_CID_ALPHA_COMPONENT,             // Integer
+    V4L2_CID_EXPOSURE_AUTO,               // Enum
+    V4L2_CID_EXPOSURE_ABSOLUTE,           // Integer
+    V4L2_CID_EXPOSURE_AUTO_PRIORITY,      // Boolean
+    V4L2_CID_AUTO_EXPOSURE_BIAS,          // Integer Menu
+    V4L2_CID_EXPOSURE_METERING,           // Enum
+    V4L2_CID_PAN_RELATIVE,                // Integer
+    V4L2_CID_TILT_RELATIVE,               // Integer
+    V4L2_CID_PAN_RESET,                   // Button
+    V4L2_CID_TILT_RESET,                  // Button
+    V4L2_CID_PAN_ABSOLUTE,                // Integer
+    V4L2_CID_TILT_ABSOLUTE,               // Integer
+    V4L2_CID_FOCUS_ABSOLUTE,              // Integer
+    V4L2_CID_FOCUS_RELATIVE,              // Integer
+    V4L2_CID_FOCUS_AUTO,                  // Boolean
+    V4L2_CID_AUTO_FOCUS_START,            // Button
+    V4L2_CID_AUTO_FOCUS_STOP,             // Button
+    V4L2_CID_AUTO_FOCUS_RANGE,            // Enum
+    V4L2_CID_ZOOM_ABSOLUTE,               // Integer
+    V4L2_CID_ZOOM_RELATIVE,               // Integer
+    V4L2_CID_ZOOM_CONTINUOUS,             // Integer
+    V4L2_CID_IRIS_ABSOLUTE,               // Integer
+    V4L2_CID_IRIS_RELATIVE,               // Integer
+    V4L2_CID_BAND_STOP_FILTER,            // Integer
+    V4L2_CID_WIDE_DYNAMIC_RANGE,          // Boolean
+    V4L2_CID_IMAGE_STABILIZATION,         // Boolean
+    V4L2_CID_PAN_SPEED,                   // Integer
+    V4L2_CID_TILT_SPEED                   // Integer
+};
+
+static uint32_t ctrl_type_map[] = {
+    V4L2_CTRL_TYPE_INTEGER,
+    V4L2_CTRL_TYPE_BOOLEAN,
+    V4L2_CTRL_TYPE_MENU,
+    V4L2_CTRL_TYPE_INTEGER_MENU,
+    V4L2_CTRL_TYPE_BUTTON
+};
+
+static char* ctrl_type_name_map[] = {
+    "Integer",
+    "Boolean",
+    "Menu",
+    "Integer Menu",
+    "Button",
+    "Unknown"
+};
+
+static vcap_ctrl_id vcap_convert_ctrl(uint32_t id)
+{
+    for (int i = VCAP_CTRL_BASE; i < VCAP_CTRL_COUNT; i++)
+    {
+        if (ctrl_map[i] == id)
+            return (vcap_ctrl_id)i;
+    }
+
+    return VCAP_CTRL_UNKNOWN;
+}
+
+static uint32_t vcap_map_ctrl(vcap_ctrl_id id)
+{
+    return ctrl_map[id];
+}
+
+static vcap_ctrl_type vcap_convert_ctrl_type(uint32_t type)
+{
+    for (int i = 0; i < VCAP_CTRL_TYPE_UNKNOWN; i++)
+    {
+        if (ctrl_type_map[i] == type)
+            return (vcap_ctrl_type)i;
+    }
+
+    return VCAP_CTRL_TYPE_UNKNOWN;
+}
+
+static uint32_t vcap_map_ctrl_type(vcap_ctrl_type id)
+{
+    return ctrl_type_map[id];
+}
+
+static const char* vcap_ctrl_type_str(vcap_ctrl_type id)
+{
+    return ctrl_type_name_map[id];
+}

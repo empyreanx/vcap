@@ -91,9 +91,7 @@ int main(int argc, char** argv)
 
     vcap_size size = { 640, 480 };
 
-    // Note that the pixel format uses a V4L2 constant
-
-    if (vcap_set_fmt(vd, V4L2_PIX_FMT_RGB24, size) == -1)
+    if (vcap_set_fmt(vd, VCAP_FMT_RGB24, size) == -1)
     {
         printf("%s\n", vcap_get_error(vd));
         vcap_destroy_device(vd);

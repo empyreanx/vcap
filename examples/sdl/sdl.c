@@ -205,6 +205,7 @@ static sdl_context_t* sdl_create_context(int width, int height)
     return ctx;
 }
 
+// Releases all resources held by the SDL context
 void sdl_destroy_context(sdl_context_t* ctx)
 {
     SDL_DestroyWindow(ctx->window);

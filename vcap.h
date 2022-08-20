@@ -410,14 +410,16 @@ int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Returns the size of the frame buffer for the current video device
-///         configuration
+/// \brief  Returns the size of the frame buffer
+///
+/// Return the size of the frame buffer for the current video device and
+/// configuration (format/frame size).
 ///
 /// \param  vd  Pointer to the video device
 ///
 /// \return 0 on error and frame size otherwise
 ///
-size_t vcap_get_buffer_size(vcap_dev* vd);
+size_t vcap_get_image_size(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -425,13 +427,13 @@ size_t vcap_get_buffer_size(vcap_dev* vd);
 ///
 /// Grabs a frame from a video capture device using the specified video device.
 ///
-/// \param  vd           Pointer to the video device
-/// \param  buffer_size  Size of frame buffer in bytes
-/// \param  buffer       Buffer to read into
+/// \param  vd    Pointer to the video device
+/// \param  size  Size of frame buffer in bytes
+/// \param  data  Frame data to read into
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_grab(vcap_dev* vd, size_t buffer_size, uint8_t* buffer);
+int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data);
 
 //------------------------------------------------------------------------------
 ///
@@ -507,8 +509,8 @@ bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size);
 ///
 /// \brief  Creates a new frame rate iterator
 ///
-/// Creates and initializes new frame rate iterator for the specified frame
-/// grabber, format ID, and frame size.
+/// Creates and initializes new frame rate iterator for the specified video device,
+/// format ID, and frame size.
 ///
 /// \param  vd    Pointer to the video device
 /// \param  fmt   The format ID

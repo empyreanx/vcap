@@ -85,8 +85,8 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    size_t buffer_size = vcap_get_buffer_size(vd);
-    uint8_t buffer[buffer_size];
+    size_t image_size = vcap_get_image_size(vd);
+    uint8_t image_data[image_size];
 
     sdl_ctx = sdl_init(size.width, size.height);
 
@@ -122,13 +122,13 @@ int main(int argc, char** argv)
             }
         }
 
-        if (vcap_grab(vd, buffer_size, buffer) == -1)
+        if (vcap_grab(vd, image_size, image_data) == -1)
         {
             printf("%s\n", vcap_get_error(vd));
             break;
         }
 
-        if (sdl_display(sdl_ctx, buffer) == -1)
+        if (sdl_display(sdl_ctx, image_data) == -1)
         {
             printf("Error displaying frame\n");
             break;

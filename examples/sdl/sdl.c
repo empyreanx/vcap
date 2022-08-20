@@ -55,6 +55,7 @@ int main(int argc, char** argv)
 {
     int index = 0;
 
+    // First argument is device index
     if (argc == 2)
         index = atoi(argv[1]);
 

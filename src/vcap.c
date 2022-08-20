@@ -22,15 +22,14 @@
 // SOFTWARE.
 //==============================================================================
 
-#include <linux/videodev2.h>
-#include <libv4l2.h>
-
 #include <vcap/vcap.h>
 
 #include <assert.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <libv4l2.h>
+#include <linux/videodev2.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -38,8 +37,6 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-
-
 
 // Clear data structure
 #define VCAP_CLEAR(arg) memset(&(arg), 0, sizeof(arg))
@@ -304,14 +301,13 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     return 0;
 }
 
+// NOTE: This function requires the "free" function
 int vcap_enum_devices(unsigned index, vcap_dev_info* info)
 {
     assert(info);
 
     if (!info)
         return VCAP_ENUM_ERROR;
-
-    int count = 0;
 
     struct dirent **names;
     int n = scandir("/dev", &names, vcap_video_device_filter, alphasort);
@@ -320,6 +316,9 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info)
         return VCAP_ENUM_ERROR;
 
     char path[512];
+
+    // Loop through all valid entries in the "/dev" directory until count == index
+    int count = 0;
 
     for (int i = 0; i < n; i++)
     {
@@ -390,14 +389,14 @@ int vcap_open(vcap_dev* vd)
     // Device must exist
     if (stat(vd->path, &st) == -1)
     {
-        vcap_set_error_errno(vd, "Video device %s does not exist", vd->path);
+        vcap_set_error_errno(vd, "Device %s does not exist", vd->path);
         return -1;
     }
 
     // Device must be a character device
     if (!S_ISCHR(st.st_mode))
     {
-        vcap_set_error_errno(vd, "Video device %s is not a character device", vd->path);
+        vcap_set_error_errno(vd, "Device %s is not a character device", vd->path);
         return -1;
     }
 
@@ -406,7 +405,7 @@ int vcap_open(vcap_dev* vd)
 
     if (vd->fd == -1)
     {
-        vcap_set_error_errno(vd, "Opening video device %s failed", vd->path);
+        vcap_set_error_errno(vd, "Opening device %s failed", vd->path);
         return -1;
     }
 
@@ -416,7 +415,7 @@ int vcap_open(vcap_dev* vd)
     // Obtain device capabilities
     if (vcap_ioctl(vd->fd, VIDIOC_QUERYCAP, &caps) == -1)
     {
-        vcap_set_error_errno(vd, "Querying video device %s capabilities failed", vd->path);
+        vcap_set_error_errno(vd, "Querying device %s capabilities failed", vd->path);
         v4l2_close(vd->fd);
         return -1;
     }
@@ -424,7 +423,7 @@ int vcap_open(vcap_dev* vd)
     // Ensure video capture is supported
     if (!(caps.capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
-        vcap_set_error(vd, "Video device %s does not support video capture", vd->path);
+        vcap_set_error(vd, "Device %s does not support video capture", vd->path);
         v4l2_close(vd->fd);
         return -1;
     }
@@ -435,7 +434,7 @@ int vcap_open(vcap_dev* vd)
         // Ensure streaming is supported
         if (!(caps.capabilities & V4L2_CAP_STREAMING))
         {
-            vcap_set_error(vd, "Video device %s does not support streaming", vd->path);
+            vcap_set_error(vd, "Device %s does not support streaming", vd->path);
             v4l2_close(vd->fd);
             return -1;
         }
@@ -494,7 +493,7 @@ int vcap_start_stream(vcap_dev* vd)
 
     if (vcap_is_streaming(vd))
     {
-        vcap_set_error(vd, "Unable to start stream on %s, device is already streaming", vd->path);
+        vcap_set_error(vd, "Device %s is already streaming", vd->path);
         return -1;
     }
 
@@ -1139,6 +1138,7 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
             return -1;
     }
 
+    //TODO: is this the proper code for disabled/inactive controls?
     return 0;
 }
 
@@ -1149,6 +1149,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
 {
     assert(vd);
 
+    // Loop over user class controlsa
     for (vcap_ctrl_id ctrl = V4L2_CID_BASE; ctrl < V4L2_CID_LASTP1; ctrl++)
     {
         if (vcap_ctrl_status(vd, ctrl) != VCAP_CTRL_OK)
@@ -1158,6 +1159,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
             return -1;
     }
 
+    // Loop over camera controls
     for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl < VCAP_CID_CAMERA_CLASS_LASTP1; ctrl++)
     {
         if (vcap_ctrl_status(vd, ctrl) != VCAP_CTRL_OK)
@@ -1534,7 +1536,6 @@ static int vcap_unmap_buffers(vcap_dev* vd)
     assert(vd);
 
     // Unmap and free buffers
-
     for (int i = 0; i < vd->buffer_count; i++)
     {
         if (v4l2_munmap(vd->buffers[i].data, vd->buffers[i].size) == -1)
@@ -1587,7 +1588,7 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 
     struct v4l2_buffer buf;
 
-	//dequeue buffer
+	// Dequeue buffer
     VCAP_CLEAR(buf);
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_MMAP;
@@ -1600,6 +1601,7 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
 
     memcpy(buffer, vd->buffers[buf.index].data, buffer_size);
 
+    // Requeue buffer
     if (vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf) == -1) {
         vcap_set_error_errno(vd, "Could not requeue buffer on %s", vd->path);
         return -1;
@@ -1732,6 +1734,7 @@ static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
     assert(vd);
     assert(info);
 
+    // Enumerate formats
     struct v4l2_fmtdesc fmtd;
 
     VCAP_CLEAR(fmtd);
@@ -1751,6 +1754,7 @@ static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
         }
     }
 
+    // Copy description
     vcap_ustrcpy(info->name, fmtd.description, sizeof(info->name));
 
     // Convert FOURCC code
@@ -1767,6 +1771,7 @@ static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint3
     assert(vd);
     assert(size);
 
+    // Enumerate frame sizes
     struct v4l2_frmsizeenum fenum;
 
     VCAP_CLEAR(fenum);
@@ -1800,6 +1805,7 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
     assert(vd);
     assert(rate);
 
+    // Enumerate frame rates
     struct v4l2_frmivalenum frenum;
 
     VCAP_CLEAR(frenum);
@@ -1841,6 +1847,7 @@ static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
 
     int count = 0;
 
+    // Enuemrate user controls
     for (vcap_ctrl_id ctrl = V4L2_CID_BASE; ctrl < V4L2_CID_LASTP1; ctrl++)
     {
         int result = vcap_get_ctrl_info(vd, ctrl, info);
@@ -1857,6 +1864,7 @@ static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
             count++;
     }
 
+    // Enumerate camera controls
     for (vcap_ctrl_id ctrl = V4L2_CID_CAMERA_CLASS_BASE; ctrl < VCAP_CID_CAMERA_CLASS_LASTP1; ctrl++)
     {
         int result = vcap_get_ctrl_info(vd, ctrl, info);
@@ -1907,17 +1915,18 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
         return VCAP_ENUM_ERROR;
     }
 
-    if (index > info.max)
+    if (index < info.min || index > info.max)
     {
         return VCAP_ENUM_INVALID;
     }
 
-    // Query menu
+    // Loop through all entries in the menu until count == index
 
     uint32_t count = 0;
 
     for (int32_t i = info.min; i <= info.max; i += info.step)
     {
+        // Query menu
         struct v4l2_querymenu qmenu;
 
         VCAP_CLEAR(qmenu);

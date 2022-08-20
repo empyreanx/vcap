@@ -40,15 +40,15 @@ int main(int argc, char** argv)
 
     vcap_dev_info info = { 0 };
 
-    int ret = vcap_enum_devices(index, &info);
+    int result = vcap_enum_devices(index, &info);
 
-    if (ret == VCAP_ENUM_ERROR)
+    if (result == VCAP_ENUM_ERROR)
     {
         printf("Error while enumerating devices\n");
         return -1;
     }
 
-    if (ret == VCAP_ENUM_INVALID)
+    if (result == VCAP_ENUM_INVALID)
     {
         printf("Error: Unable to find a video capture device\n");
         return -1;
@@ -57,9 +57,9 @@ int main(int argc, char** argv)
     vcap_dev* vd = vcap_create_device(info.path, true, 0);
 
     // Open device
-    ret = vcap_open(vd);
+    result = vcap_open(vd);
 
-    if (ret == -1)
+    if (result == -1)
     {
         printf("%s\n", vcap_get_error(vd));
         return -1;
@@ -68,9 +68,6 @@ int main(int argc, char** argv)
     // Dump info
     if (vcap_dump_info(vd, stdout) == -1)
         printf("%s\n", vcap_get_error(vd));
-
-    // Close device
-    vcap_close(vd);
 
     vcap_destroy_device(vd);
 

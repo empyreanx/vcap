@@ -18,9 +18,9 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 //==============================================================================
 
-#include <vcap/vcap.h>
+#include <vcap.h>
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +29,7 @@ typedef struct
 {
     int width;
     int height;
+    SDL_Window  *window;
     SDL_Surface *screen;
     SDL_Surface *image;
 } sdl_context_t;
@@ -44,93 +45,102 @@ int main(int argc, char** argv)
     if (argc == 2)
         index = atoi(argv[1]);
 
-    vcap_device device;
+    vcap_dev_info dev_info;
 
     // Find first video capture device
-    int ret = vcap_enum_devices(&device, index);
+    int result = vcap_enum_devices(index, &dev_info);
 
-    if (ret == VCAP_ENUM_ERROR)
+    if (result == VCAP_ENUM_ERROR)
     {
-        printf("%s\n", vcap_get_error());
+        printf("Error while enumerating devices\n");
         return -1;
     }
 
-    if (ret == VCAP_ENUM_INVALID)
+    if (result == VCAP_ENUM_INVALID)
     {
-        printf("Error: Unable to find a video capture device\n");
+        printf("Unable to find specified capture device\n");
         return -1;
     }
+
+    // Create device
+    vcap_dev* vd = vcap_create_device(dev_info.path, true, 3);
 
     // Open device
-    vcap_fg* fg = vcap_open(&device);
+    result = vcap_open(vd);
 
-    if (!fg)
+    if (result == -1)
     {
-        printf("%s\n", vcap_get_error());
+        printf("%s\n", vcap_get_error(vd));
+        vcap_destroy_device(vd);
         return -1;
     }
 
-    FILE* file = NULL;
-    vcap_frame* frame = NULL;
     vcap_size size = { 640, 480 };
     sdl_context_t* sdl_ctx = NULL;
 
-    if (vcap_set_fmt(fg, VCAP_FMT_RGB24, size) == -1)
+    if (vcap_set_fmt(vd, V4L2_PIX_FMT_RGB24, size) == -1)
     {
-        printf("%s\n", vcap_get_error());
-        goto error;
+        printf("%s\n", vcap_get_error(vd));
+        vcap_destroy_device(vd);
+        return -1;
     }
 
-    frame = vcap_alloc_frame(fg);
+    size_t buffer_size = vcap_get_buffer_size(vd);
+    uint8_t buffer[buffer_size];
 
-    if (!frame)
-    {
-        printf("%s\n", vcap_get_error());
-        goto error;
-    }
-
-    sdl_ctx = sdl_init(frame->size.width, frame->size.height);
+    sdl_ctx = sdl_init(size.width, size.height);
 
     if (!sdl_ctx)
-        goto error;
-
-    SDL_Event event;
-
-    while (SDL_PollEvent(&event) >= 0)
     {
-        if (event.type == SDL_QUIT)
-            break;
-
-        if (vcap_grab(fg, frame) == -1)
-        {
-            printf("%s\n", vcap_get_error());
-            goto error;
-        }
-
-        if (sdl_display(sdl_ctx, frame->data) == -1)
-            goto error;
+        vcap_destroy_device(vd);
+        return -1;
     }
 
-    sdl_cleanup(sdl_ctx);
-    vcap_free_frame(frame);
-    vcap_close(fg);
+    bool done = false;
 
-    return 0;
+    vcap_start_stream(vd);
 
-error:
+    while (!done)
+    {
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
+                case SDL_QUIT:
+                    done = true;
+                    break;
+
+                case SDL_KEYDOWN:
+                    switch (event.key.keysym.sym)
+                    {
+                        case SDLK_ESCAPE:
+                            done = true;
+                            break;
+                    }
+                    break;
+            }
+        }
+
+        if (vcap_grab(vd, buffer_size, buffer) == -1)
+        {
+            printf("%s\n", vcap_get_error(vd));
+            break;
+        }
+
+        if (sdl_display(sdl_ctx, buffer) == -1)
+        {
+            printf("Error displaying frame\n");
+            break;
+        }
+    }
 
     if (sdl_ctx)
         sdl_cleanup(sdl_ctx);
 
-    if (file)
-        fclose(file);
+    vcap_destroy_device(vd);
 
-    if (frame)
-        vcap_free_frame(frame);
-
-    vcap_close(fg);
-
-    return -1;
+    return 0;
 }
 
 /*
@@ -145,13 +155,18 @@ sdl_context_t* sdl_init(int width, int height)
     ctx->width = width;
     ctx->height = height;
 
-    ctx->screen = SDL_SetVideoMode(width, height, 24, SDL_DOUBLEBUF);
+    ctx->window = SDL_CreateWindow("Vcap Example",
+                                   SDL_WINDOWPOS_CENTERED,
+                                   SDL_WINDOWPOS_CENTERED,
+                                   width, height, 0);
 
-    if (ctx->screen == NULL)
+    if (ctx->window == NULL)
     {
-        printf("Unable to set video mode: %s\n", SDL_GetError());
+        printf("Unable to set create window: %s\n", SDL_GetError());
         return NULL;
     }
+
+    ctx->screen = SDL_GetWindowSurface(ctx->window);
 
     uint32_t rmask, gmask, bmask;
 
@@ -172,7 +187,8 @@ sdl_context_t* sdl_init(int width, int height)
 
 void sdl_cleanup(sdl_context_t* ctx)
 {
-    SDL_FreeSurface(ctx->screen);
+    //SDL_FreeSurface(ctx->screen);
+    SDL_DestroyWindow(ctx->window);
     SDL_FreeSurface(ctx->image);
     free(ctx);
 }
@@ -196,7 +212,7 @@ int sdl_display(sdl_context_t* ctx, uint8_t* image)
     /*
      * Update the display
      */
-    SDL_Flip(ctx->screen);
+    SDL_UpdateWindowSurface(ctx->window);
 
     return 0;
 }

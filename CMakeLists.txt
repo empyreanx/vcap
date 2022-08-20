@@ -8,19 +8,10 @@ project (vcap C)
 
 # Declare options
 option(BUILD_GRAB_EXAMPLE "Build an example that grabs and saves a frame" OFF)
-option(BUILD_INFO_EXAMPLE "Build an example that dumps info about a camera to stdout" OFF)
-option(BUILD_JPEG_EXAMPLE "Build an example that grabs and saves a frame to a PNG file" OFF)
-option(BUILD_PNG_EXAMPLE "Build an example that grabs and saves a frame to a JPEG file" OFF)
-option(BUILD_SDL_EXAMPLE "Build an example that streams frames using SDL 1.2" OFF)
-option(BUILD_JSON_EXAMPLE "Buid an example that exports/imports device settings" OFF)
-option(SUPPORT_JSON "Input/export camera settings to/from JSON" ON)
-option(SUPPORT_PNG "Save frames to PNG" ON)
-option(SUPPORT_JPEG "Save frames to JPEG" ON)
+option(BUILD_INFO_EXAMPLE "Build an example that prints camera info" OFF)
+option(BUILD_SDL_EXAMPLE  "Build an example that streams frames using SDL2" OFF)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-
-# Add include directory
-include_directories(include)
 
 # Add definitions
 if(NOT DEFINED ${CMAKE_BUILD_TYPE})
@@ -37,9 +28,8 @@ add_definitions(-Wall -std=c99 -D_GNU_SOURCE)
 
 # Add souce files
 file(GLOB SOURCE_FILES
-    include/vcap/vcap.h
-    src/*.h
-    src/*.c
+    vcap.h
+    vcap.c
 )
 
 set(LIBRARY_OUTPUT_PATH lib)
@@ -61,14 +51,14 @@ target_include_directories(vcap PUBLIC ${V4L2_INCLUDE_DIR})
 add_subdirectory(examples)
 
 # Installation
-install(DIRECTORY include/vcap DESTINATION include)
+install(FILES vcap.h DESTINATION include)
 install(TARGETS vcap DESTINATION lib)
 
 # Documentation
 find_package(Doxygen)
 
 if(DOXYGEN_FOUND)
-    configure_file(${PROJECT_SOURCE_DIR}/include/vcap/vcap.h ${CMAKE_CURRENT_BINARY_DIR}/vcap.h COPYONLY)
+    configure_file(${PROJECT_SOURCE_DIR}/vcap.h ${CMAKE_CURRENT_BINARY_DIR}/vcap.h COPYONLY)
 
     add_custom_target(docs
         COMMAND ${DOXYGEN_EXECUTABLE} ${PROJECT_SOURCE_DIR}/doxygen.conf

@@ -22,7 +22,7 @@
 // SOFTWARE.
 //==============================================================================
 
-#include <vcap/vcap.h>
+#include "vcap.h"
 
 #include <assert.h>
 #include <dirent.h>

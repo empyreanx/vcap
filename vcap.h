@@ -972,6 +972,7 @@ enum
     VCAP_FMT_Z16,           ///< Depth data 16-bit
     VCAP_FMT_MT21C,         ///< Mediatek compressed block mode
     VCAP_FMT_INZI,          ///< Intel Planar Greyscale 10-bit and Depth 16-bit
+    VCAP_FMT_COUNT,
     VCAP_FMT_UNKNOWN
 };
 

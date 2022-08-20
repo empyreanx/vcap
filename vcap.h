@@ -58,17 +58,17 @@ extern "C" {
 #endif
 
 ///
-/// \brief Control ID type
+/// \brief Control ID type (see CONTROLS.md)
 ///
 typedef uint32_t vcap_ctrl_id;
 
 ///
-/// \brief Control type ID
+/// \brief Control type ID (see CONTROLS.md)
 ///
 typedef uint8_t vcap_ctrl_type;
 
 ///
-/// \brief Format ID type
+/// \brief Format ID type (see FORMATS.md)
 ///
 typedef uint32_t vcap_fmt_id;
 
@@ -413,10 +413,11 @@ int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Returns the size of the frame buffer
+/// \brief  Returns the size of the device's frame buffer
 ///
 /// Return the size of the frame buffer for the current video device and
-/// configuration (format/frame size).
+/// configuration (format/frame size). This size is used with the function
+/// `vcap_grab`
 ///
 /// \param  vd  Pointer to the video device
 ///
@@ -431,8 +432,8 @@ size_t vcap_get_image_size(vcap_dev* vd);
 /// Grabs a frame from a video capture device.
 ///
 /// \param  vd    Pointer to the video device
-/// \param  size  Size of frame buffer in bytes
-/// \param  data  Frame data to read into
+/// \param  size  Size of the frame in bytes
+/// \param  data  Previously allocated buffer to read into
 ///
 /// \returns -1 on error and 0 otherwise
 ///

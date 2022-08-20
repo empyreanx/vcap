@@ -824,7 +824,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     if (vcap_open(vd) == -1)
         return -1;
 
-    // Specify desired format
+    // Specify desired format and set
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-fmt.html
     struct v4l2_format sfmt;
 
@@ -834,7 +834,6 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     sfmt.fmt.pix.pixelformat = fmt;
     sfmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
 
-    // Set format
     if (vcap_ioctl(vd->fd, VIDIOC_S_FMT, &sfmt) == -1)
     {
         vcap_set_error_errno(vd, "Unable to set format on %s", vd->path);

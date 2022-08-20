@@ -428,7 +428,7 @@ size_t vcap_get_image_size(vcap_dev* vd);
 ///
 /// \brief  Grabs a frame
 ///
-/// Grabs a frame from a video capture device using the specified video device.
+/// Grabs a frame from a video capture device.
 ///
 /// \param  vd    Pointer to the video device
 /// \param  size  Size of frame buffer in bytes

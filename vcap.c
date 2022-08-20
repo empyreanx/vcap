@@ -1600,12 +1600,12 @@ static int vcap_queue_buffers(vcap_dev* vd)
 	return 0;
 }
 
-static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
+static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
 {
     assert(vd);
-    assert(buffer);
+    assert(data);
 
-    if (!buffer)
+    if (!data)
     {
         vcap_set_error(vd, "Parameter can't be null");
         return -1;
@@ -1625,7 +1625,7 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
         return -1;
     }
 
-    memcpy(buffer, vd->buffers[buf.index].data, buffer_size);
+    memcpy(data, vd->buffers[buf.index].data, size);
 
     // Requeue buffer
 	// https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-qbuf.html
@@ -1637,14 +1637,20 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
     return 0;
 }
 
-static int vcap_grab_read(vcap_dev* vd, size_t buffer_size, uint8_t* buffer)
+static int vcap_grab_read(vcap_dev* vd, size_t size, uint8_t* data)
 {
     assert(vd);
-    assert(buffer);
+    assert(data);
+
+    if (!data)
+    {
+        vcap_set_error(vd, "Parameter can't be null");
+        return -1;
+    }
 
     while (true)
     {
-        if (v4l2_read(vd->fd, buffer, buffer_size) == -1)
+        if (v4l2_read(vd->fd, data, size) == -1)
         {
             if (errno == EAGAIN)
             {

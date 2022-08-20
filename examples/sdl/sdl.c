@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Consolidate SDL constructs
+// Consolidate SDL constructs in internal context
 typedef struct
 {
     int width;
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
 
     if (!sdl_ctx)
     {
-        printf("Unable to create SDL context\n");
+        printf("Unable to create internal SDL context\n");
         vcap_destroy_device(vd);
         return -1;
     }
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
     return 0;
 }
 
-// Initializes the display contexgt
+// Initializes the display context
 static sdl_context_t* sdl_create_context(int width, int height)
 {
     atexit(SDL_Quit);

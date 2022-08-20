@@ -1,21 +1,28 @@
 //==============================================================================
-// Vcap - A Video4Linux2 capture library
+// This is free and unencumbered software released into the public domain.
 //
-// Copyright (C) 2018 James McLean
+// Anyone is free to copy, modify, publish, use, compile, sell, or
+// distribute this software, either in source code form or as a compiled
+// binary, for any purpose, commercial or non-commercial, and by any
+// means.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// In jurisdictions that recognize copyright laws, the author or authors
+// of this software dedicate any and all copyright interest in the
+// software to the public domain. We make this dedication for the benefit
+// of the public at large and to the detriment of our heirs and
+// successors. We intend this dedication to be an overt act of
+// relinquishment in perpetuity of all present and future rights to this
+// software under copyright law.
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// Lesser General Public License for more details.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+// OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+// For more information, please refer to <http://unlicense.org/>
 //==============================================================================
 
 #include <vcap/vcap.h>
@@ -33,15 +40,15 @@ int main(int argc, char** argv)
     vcap_device device;
 
     // Find first video capture device
-    int ret = vcap_enum_devices(&device, index);
+    int result = vcap_enum_devices(&device, index);
 
-    if (ret == VCAP_ENUM_ERROR)
+    if (result == VCAP_ENUM_ERROR)
     {
         printf("%s\n", vcap_get_error());
         return -1;
     }
 
-    if (ret == VCAP_ENUM_INVALID)
+    if (result == VCAP_ENUM_INVALID)
     {
         printf("Error: Unable to find a video capture device\n");
         return -1;
@@ -56,7 +63,7 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    FILE* file = NULL;
+
     vcap_frame* frame = NULL;
     vcap_size size = { 640, 480 };
 

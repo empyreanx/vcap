@@ -39,6 +39,9 @@
     Vcap provides simple, low-level access to device controls and formats,
     enabling applications to make easy use of the full range of functionality
     provided by V4L2.
+
+    You can find the V4L2 documentation here:
+    https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/v4l2.html
 */
 
 #ifndef VCAP_H

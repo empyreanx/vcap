@@ -1,21 +1,28 @@
 //==============================================================================
-// Vcap - A Video4Linux2 capture library
+// This is free and unencumbered software released into the public domain.
 //
-// Copyright (C) 2018 James McLean
+// Anyone is free to copy, modify, publish, use, compile, sell, or
+// distribute this software, either in source code form or as a compiled
+// binary, for any purpose, commercial or non-commercial, and by any
+// means.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// In jurisdictions that recognize copyright laws, the author or authors
+// of this software dedicate any and all copyright interest in the
+// software to the public domain. We make this dedication for the benefit
+// of the public at large and to the detriment of our heirs and
+// successors. We intend this dedication to be an overt act of
+// relinquishment in perpetuity of all present and future rights to this
+// software under copyright law.
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// Lesser General Public License for more details.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+// OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+// For more information, please refer to <http://unlicense.org/>
 //==============================================================================
 
 #include <vcap.h>
@@ -25,6 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// Consolidate SDL constructs
 typedef struct
 {
     int width;
@@ -34,9 +42,14 @@ typedef struct
     SDL_Surface *image;
 } sdl_context_t;
 
-sdl_context_t* sdl_init(int width, int height);
-int sdl_display(sdl_context_t* ctx, uint8_t* image);
-void sdl_cleanup(sdl_context_t* ctx);
+// Opens window, get's window surface, allocates image
+static sdl_context_t* sdl_create_context(int width, int height);
+
+// Displays the image
+static int sdl_display_image(sdl_context_t* ctx, uint8_t* image);
+
+// Clean up, free context
+static void sdl_destroy_context(sdl_context_t* ctx);
 
 int main(int argc, char** argv)
 {
@@ -76,7 +89,8 @@ int main(int argc, char** argv)
     }
 
     vcap_size size = { 640, 480 };
-    sdl_context_t* sdl_ctx = NULL;
+
+    // Note that the pixel format uses a V4L2 constant
 
     if (vcap_set_fmt(vd, V4L2_PIX_FMT_RGB24, size) == -1)
     {
@@ -88,17 +102,21 @@ int main(int argc, char** argv)
     size_t image_size = vcap_get_image_size(vd);
     uint8_t image_data[image_size];
 
-    sdl_ctx = sdl_init(size.width, size.height);
+    sdl_context_t* sdl_ctx = sdl_create_context(size.width, size.height);
 
     if (!sdl_ctx)
     {
+        printf("Unable to create SDL context\n");
         vcap_destroy_device(vd);
         return -1;
     }
 
-    bool done = false;
+    // Use streaming if the device supports it
+    if (dev_info.stream)
+        vcap_start_stream(vd);
 
-    vcap_start_stream(vd);
+    // Main loop
+    bool done = false;
 
     while (!done)
     {
@@ -122,31 +140,33 @@ int main(int argc, char** argv)
             }
         }
 
+        // Grab an image from the device
         if (vcap_grab(vd, image_size, image_data) == -1)
         {
             printf("%s\n", vcap_get_error(vd));
             break;
         }
 
-        if (sdl_display(sdl_ctx, image_data) == -1)
+        // Display image
+        if (sdl_display_image(sdl_ctx, image_data) == -1)
         {
             printf("Error displaying frame\n");
             break;
         }
     }
 
+    // Clean up
+
     if (sdl_ctx)
-        sdl_cleanup(sdl_ctx);
+        sdl_destroy_context(sdl_ctx);
 
     vcap_destroy_device(vd);
 
     return 0;
 }
 
-/*
- * Initializes the display contexgt
- */
-sdl_context_t* sdl_init(int width, int height)
+// Initializes the display contexgt
+static sdl_context_t* sdl_create_context(int width, int height)
 {
     atexit(SDL_Quit);
 
@@ -185,33 +205,26 @@ sdl_context_t* sdl_init(int width, int height)
     return ctx;
 }
 
-void sdl_cleanup(sdl_context_t* ctx)
+void sdl_destroy_context(sdl_context_t* ctx)
 {
-    //SDL_FreeSurface(ctx->screen);
     SDL_DestroyWindow(ctx->window);
     SDL_FreeSurface(ctx->image);
     free(ctx);
 }
 
-/*
- * Displays an image using SDL
- */
-int sdl_display(sdl_context_t* ctx, uint8_t* image)
+// Displays an image using SDL
+int sdl_display_image(sdl_context_t* ctx, uint8_t* image)
 {
     memcpy(ctx->image->pixels, image, 3 * ctx->width * ctx->height);
 
-    /*
-     * Apply the image to the display
-     */
+    //Apply the image to the display
     if (SDL_BlitSurface(ctx->image, NULL, ctx->screen, NULL) != 0)
     {
         printf("SDL_BlitSurface() Failed: %s\n", SDL_GetError());
         return -1;
     }
 
-    /*
-     * Update the display
-     */
+    // Update the display
     SDL_UpdateWindowSurface(ctx->window);
 
     return 0;

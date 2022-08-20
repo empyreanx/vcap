@@ -25,7 +25,7 @@
 // For more information, please refer to <http://unlicense.org/>
 //==============================================================================
 
-#include <vcap/vcap.h>
+#include <vcap.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,90 +34,86 @@ int main(int argc, char** argv)
 {
     int index = 0;
 
+    // First argument specifies device index
     if (argc == 2)
         index = atoi(argv[1]);
 
-    vcap_device device;
+    vcap_dev_info dev_info;
 
     // Find first video capture device
-    int result = vcap_enum_devices(&device, index);
+    int result = vcap_enum_devices(index, &dev_info);
 
     if (result == VCAP_ENUM_ERROR)
     {
-        printf("%s\n", vcap_get_error());
+        printf("Error while enumerating devices\n");
         return -1;
     }
 
     if (result == VCAP_ENUM_INVALID)
     {
-        printf("Error: Unable to find a video capture device\n");
+        printf("Unable to find specified capture device\n");
         return -1;
     }
+
+    // Create device
+    vcap_dev* vd = vcap_create_device(dev_info.path, true, 0); // force read
 
     // Open device
-    vcap_fg* fg = vcap_open(&device);
+    result = vcap_open(vd);
 
-    if (!fg)
+    if (result == -1)
     {
-        printf("%s\n", vcap_get_error());
+        printf("%s\n", vcap_get_error(vd));
+        vcap_destroy_device(vd);
         return -1;
     }
 
-
-    vcap_frame* frame = NULL;
     vcap_size size = { 640, 480 };
 
-    if (vcap_set_fmt(fg, VCAP_FMT_RGB24, size) == -1)
+    // Note that the pixel format uses a V4L2 constant
+
+    if (vcap_set_fmt(vd, V4L2_PIX_FMT_RGB24, size) == -1)
     {
-        printf("%s\n", vcap_get_error());
-        goto error;
+        printf("%s\n", vcap_get_error(vd));
+        vcap_destroy_device(vd);
+        return -1;
     }
 
-    frame = vcap_alloc_frame(fg);
+    size_t image_size = vcap_get_image_size(vd);
+    uint8_t image_data[image_size];
 
-    if (!frame)
+    // Grab an image from the device
+    if (vcap_grab(vd, image_size, image_data) == -1)
     {
-        printf("%s\n", vcap_get_error());
-        goto error;
+        printf("%s\n", vcap_get_error(vd));
+        vcap_destroy_device(vd);
+        return -1;
     }
 
-    if (vcap_grab(fg, frame) == -1)
-    {
-        printf("%s\n", vcap_get_error());
-        goto error;
-    }
-
-    file = fopen("out.raw", "wb");
+    // Open output file
+    FILE* file = fopen("rgb.raw", "wb");
 
     if (!file)
     {
         perror("Cannot open image");
-        goto error;
+        vcap_destroy_device(vd);
+        return -1;
     }
 
-    fwrite(frame->data, frame->length, 1, file);
+    // Write image to file
+    fwrite(image_data, image_size, 1, file);
 
     if (ferror(file))
     {
         perror("Unable to write to file");
-        goto error;
+        fclose(file);
+        vcap_destroy_device(vd);
+        return -1;
     }
 
+    // Clean up
     fclose(file);
-    vcap_free_frame(frame);
-    vcap_close(fg);
+    vcap_destroy_device(vd);
 
     return 0;
-
-error:
-
-    if (file)
-        fclose(file);
-
-    if (frame)
-        vcap_free_frame(frame);
-
-    vcap_close(fg);
-
-    return -1;
 }

@@ -1,22 +1,3 @@
-/*! \file vcap.h
-    \mainpage Vcap
-    \version  1.0.0
-    \author   James McLean
-    \date     August 20, 2022
-    \brief    An open source Video4Linux2 (V4L2) capture library written in C.
-
-    \section About
-
-    Vcap aims to provide a concise API for working with cameras and other video
-    capture devices that have drivers implementing the V4L2 spec. It is built
-    on top of the libv4l userspace library (the only dependency) which
-    provides seamless decoding for a variety of formats.
-
-    Vcap provides simple, low-level access to device controls and formats,
-    enabling applications to make use of the full range of functionality
-    provided by V4L2.
-*/
-
 //==============================================================================
 // MIT License
 //

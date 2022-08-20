@@ -61,10 +61,10 @@ if(DOXYGEN_FOUND)
     configure_file(${PROJECT_SOURCE_DIR}/vcap.h ${CMAKE_CURRENT_BINARY_DIR}/vcap.h COPYONLY)
 
     add_custom_target(docs
-        COMMAND ${DOXYGEN_EXECUTABLE} ${PROJECT_SOURCE_DIR}/doxygen.conf
+        COMMAND ${DOXYGEN_EXECUTABLE} ${PROJECT_SOURCE_DIR}/Doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating API documentation with Doxygen"
         VERBATIM)
 
-    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "doc")
+    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "docs")
 endif()

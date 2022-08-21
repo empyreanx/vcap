@@ -88,7 +88,7 @@ typedef struct
     uint8_t bus_info[32];       ///< Bus info
     uint32_t version;           ///< Driver version
     uint8_t version_str[16];    ///< Driver version str
-    bool stream;                ///< True if device supports streaming, false otherwise
+    bool streaming;             ///< True if device supports streaming, false otherwise
     bool read;                  ///< True if device supports direct read, false otherwise
 } vcap_dev_info;
 

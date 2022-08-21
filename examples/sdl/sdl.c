@@ -77,7 +77,9 @@ int main(int argc, char** argv)
     }
 
     // Create device
-    vcap_dev* vd = vcap_create_device(dev_info.path, true, 3);
+
+    unsigned buffer_count = dev_info.streaming ? 3 : 0;
+    vcap_dev* vd = vcap_create_device(dev_info.path, true, buffer_count);
 
     // Open device
     result = vcap_open(vd);
@@ -110,9 +112,11 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    // Use streaming if the device supports it
-    if (dev_info.stream)
-        vcap_start_stream(vd);
+    if (vcap_start_stream(vd) == -1)
+    {
+        printf("Error starting stream\n");
+        return -1;
+    }
 
     // Main loop
     bool done = false;

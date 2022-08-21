@@ -214,9 +214,9 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     fprintf(file, "Bus Info: %s\n", info.bus_info);
     fprintf(file, "------------------------------------------------\n");
 
-    fprintf(file, "Stream: ");
+    fprintf(file, "Streaming: ");
 
-    if (info.stream)
+    if (info.streaming)
         fprintf(file, "Supported\n");
     else
         fprintf(file, "Not supported\n");
@@ -1483,7 +1483,7 @@ static void vcap_caps_to_info(const char* path, const struct v4l2_capability cap
             (caps.version & 0xFF));
 
     // Determines which output modes are available
-    info->stream = caps.capabilities & V4L2_CAP_STREAMING;
+    info->streaming = caps.capabilities & V4L2_CAP_STREAMING;
     info->read = caps.capabilities & V4L2_CAP_READWRITE;
 }
 

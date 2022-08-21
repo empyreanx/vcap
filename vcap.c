@@ -139,7 +139,7 @@ static uint32_t vcap_map_ctrl(vcap_ctrl_id id);
 static vcap_ctrl_type vcap_convert_ctrl_type(uint32_t type);
 
 // Converts a VCAP type to the corresponding V4L2 type
-static uint32_t vcap_map_ctrl_type(vcap_ctrl_type id);
+//static uint32_t vcap_map_ctrl_type(vcap_ctrl_type id);
 
 // Returns true if control type is supported
 static bool vcap_ctrl_type_supported(uint32_t type);
@@ -515,14 +515,14 @@ int vcap_start_stream(vcap_dev* vd)
 {
     assert(vd);
 
-    if (vcap_is_streaming(vd))
-    {
-        vcap_set_error(vd, "Device %s is already streaming", vd->path);
-        return -1;
-    }
-
     if (vd->buffer_count > 0)
     {
+        if (vcap_is_streaming(vd))
+        {
+            vcap_set_error(vd, "Device %s is already streaming", vd->path);
+            return -1;
+        }
+
         if (vcap_init_stream(vd) == -1)
             return -1;
 
@@ -546,14 +546,14 @@ int vcap_stop_stream(vcap_dev* vd)
 {
     assert(vd);
 
-    if (!vcap_is_streaming(vd))
-    {
-        vcap_set_error(vd, "Unable to stop stream on %s, device is not streaming", vd->path);
-        return -1;
-    }
-
     if (vd->buffer_count > 0)
     {
+        if (!vcap_is_streaming(vd))
+        {
+            vcap_set_error(vd, "Unable to stop stream on %s, device is not streaming", vd->path);
+            return -1;
+        }
+
         // Turn stream off
         // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-streamon.html
     	enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -2035,7 +2035,7 @@ static uint32_t ctrl_type_map[] = {
     V4L2_CTRL_TYPE_BUTTON
 };
 
-static char* ctrl_type_name_map[] = {
+static char* ctrl_type_str_map[] = {
     "Integer",
     "Boolean",
     "Menu",
@@ -2071,14 +2071,15 @@ static vcap_ctrl_type vcap_convert_ctrl_type(uint32_t type)
     return VCAP_CTRL_TYPE_UNKNOWN;
 }
 
-static uint32_t vcap_map_ctrl_type(vcap_ctrl_type id)
+/*static uint32_t vcap_map_ctrl_type(vcap_ctrl_type id)
 {
     return ctrl_type_map[id];
 }
+*/
 
 static const char* vcap_ctrl_type_str(vcap_ctrl_type id)
 {
-    return ctrl_type_name_map[id];
+    return ctrl_type_str_map[id];
 }
 
 static uint32_t fmt_map[] = {

@@ -824,6 +824,8 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
 int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 {
     assert(vd);
+
+    // Ensure format ID is within the proper range
     assert(0 <= fmt && fmt < VCAP_FMT_COUNT);
 
     if (fmt < 0 || fmt >= VCAP_FMT_COUNT)
@@ -928,6 +930,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     assert(vd);
     assert(info);
 
+    // Ensure control ID is within the proper range
     assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
 
     if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
@@ -997,6 +1000,7 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
     assert(vd);
 
+    // Ensure control ID is within the proper range
     assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
 
     if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
@@ -1118,6 +1122,7 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
     assert(vd);
     assert(value);
 
+    // Ensure control ID is within the proper range
     assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
 
     if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
@@ -1153,6 +1158,7 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
 {
     assert(vd);
 
+    // Ensure control ID is within the proper range
     assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
 
     if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
@@ -1202,12 +1208,8 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
             return VCAP_ERROR;
     }
 
-    //TODO: is this the proper code for disabled/inactive controls?
     return VCAP_OK;
 }
-
-// Last camera control ID plus one
-#define VCAP_CID_CAMERA_CLASS_LASTP1 (V4L2_CID_CAMERA_CLASS_BASE+36)
 
 int vcap_reset_all_ctrls(vcap_dev* vd)
 {
@@ -1672,6 +1674,7 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
         return VCAP_ERROR;
     }
 
+    // Copy buffer data
     memcpy(data, vd->buffers[buf.index].data, size);
 
     // Requeue buffer
@@ -1830,6 +1833,7 @@ static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint3
     assert(vd);
     assert(size);
 
+    // Ensure format ID is within the proper range
     assert(0 <= fmt && fmt < VCAP_FMT_COUNT);
 
     if (fmt < 0 || fmt >= VCAP_FMT_COUNT)
@@ -1873,6 +1877,7 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
     assert(vd);
     assert(rate);
 
+    // Ensure format ID is within the proper range
     assert(0 <= fmt && fmt < VCAP_FMT_COUNT);
 
     if (fmt < 0 || fmt >= VCAP_FMT_COUNT)
@@ -1948,6 +1953,7 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
     assert(vd);
     assert(item);
 
+    // Ensure control ID is within the proper range
     assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
 
     if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
@@ -1957,7 +1963,7 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
     }
 
     // Check if supported and a menu
-    vcap_ctrl_info info;
+    vcap_ctrl_info info = { 0 };
 
     int result = vcap_get_ctrl_info(vd, ctrl, &info);
 
@@ -1967,12 +1973,6 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
     if (result == VCAP_CTRL_INVALID)
     {
         vcap_set_error(vd, "Can't enumerate menu of an invalid control");
-        return VCAP_ERROR;
-    }
-
-    if (info.read_only) // TODO: necessary? required?
-    {
-        vcap_set_error(vd, "Can't enumerate menu of a read-only control");
         return VCAP_ERROR;
     }
 

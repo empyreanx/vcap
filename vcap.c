@@ -993,12 +993,20 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
     assert(vd);
 
+    assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
+
+    if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
+    {
+        vcap_set_error(vd, "Invalid argument (out of range)");
+        return -1;
+    }
+
     // Query specified control.
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-queryctrl.html
     struct v4l2_queryctrl qctrl;
 
     VCAP_CLEAR(qctrl);
-    qctrl.id = ctrl;
+    qctrl.id = vcap_map_ctrl(ctrl);
 
     if (vcap_ioctl(vd->fd, VIDIOC_QUERYCTRL, &qctrl) == -1)
     {
@@ -1202,7 +1210,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
     assert(vd);
 
     // Loop over user class controlsa
-    for (vcap_ctrl_id ctrl = VCAP_CTRL_BRIGHTNESS; ctrl < VCAP_CTRL_COUNT; ctrl++)
+    for (vcap_ctrl_id ctrl = 0; ctrl < VCAP_CTRL_COUNT; ctrl++)
     {
         if (vcap_ctrl_status(vd, ctrl) != VCAP_CTRL_OK)
             continue;

@@ -486,29 +486,21 @@ int vcap_open(vcap_dev* vd)
     return 0;
 }
 
-int vcap_close(vcap_dev* vd)
+void vcap_close(vcap_dev* vd)
 {
     assert(vd);
 
     if (!vcap_is_open(vd))
-    {
-        vcap_set_error(vd, "Unable to close %s, device is not open", vd->path);
-        return -1;
-    }
+        return;
 
-    if (vd->buffer_count > 0)
-    {
-        if (vcap_is_streaming(vd) && vcap_stop_stream(vd) == -1) //TODO: close device anyway?
-            return -1;
-    }
+    // No-op if device is not streaming, ignore errors
+    vcap_stop_stream(vd);
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/func-close.html
     if (vd->fd >= 0)
         v4l2_close(vd->fd);
 
     vd->open = false;
-
-    return 0;
 }
 
 int vcap_start_stream(vcap_dev* vd)
@@ -836,8 +828,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 
     bool streaming = vcap_is_streaming(vd);
 
-    if (vcap_is_open(vd) && vcap_close(vd) == -1)
-        return -1;
+    vcap_close(vd);
 
     if (vcap_open(vd) == -1)
         return -1;

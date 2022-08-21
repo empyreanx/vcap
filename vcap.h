@@ -361,7 +361,7 @@ int vcap_open(vcap_dev* vd);
 ///
 /// \returns -1 on error and 0 otherwise
 ///
-int vcap_close(vcap_dev* vd);
+void vcap_close(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///

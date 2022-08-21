@@ -1648,6 +1648,12 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
         return -1;
     }
 
+    if (!vcap_is_streaming(vd))
+    {
+        vcap_set_error(vd, "Stream on %s must be active in order to grab frame", vd->path);
+        return -1;
+    }
+
     struct v4l2_buffer buf;
 
 	// Dequeue buffer
@@ -1666,7 +1672,8 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
 
     // Requeue buffer
 	// https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-qbuf.html
-    if (vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf) == -1) {
+    if (vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf) == -1)
+    {
         vcap_set_error_errno(vd, "Could not requeue buffer on %s", vd->path);
         return -1;
     }

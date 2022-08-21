@@ -42,13 +42,13 @@ int main(int argc, char** argv)
 
     int result = vcap_enum_devices(index, &info);
 
-    if (result == VCAP_ENUM_ERROR)
+    if (result == VCAP_ERROR)
     {
         printf("Error while enumerating devices\n");
         return -1;
     }
 
-    if (result == VCAP_ENUM_INVALID)
+    if (result == VCAP_INVALID)
     {
         printf("Error: Unable to find video capture device\n");
         return -1;

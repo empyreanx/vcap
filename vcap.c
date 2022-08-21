@@ -327,13 +327,13 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info)
     assert(info);
 
     if (!info)
-        return VCAP_ENUM_ERROR;
+        return VCAP_ERROR;
 
     struct dirent **names;
     int n = scandir("/dev", &names, vcap_video_device_filter, alphasort);
 
     if (n < 0)
-        return VCAP_ENUM_ERROR;
+        return VCAP_ERROR;
 
     char path[512];
 
@@ -352,7 +352,7 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info)
             {
                 vcap_caps_to_info(path, caps, info);
                 free(names);
-                return VCAP_ENUM_OK;
+                return VCAP_OK;
             }
             else
             {
@@ -363,7 +363,7 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info)
 
     free(names);
 
-    return VCAP_ENUM_INVALID;
+    return VCAP_INVALID;
 }
 
 vcap_dev* vcap_create_device(const char* path, bool convert, unsigned buffer_count)
@@ -658,13 +658,13 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
     {
         result = vcap_enum_fmts(vd, info, i);
 
-        if (result == VCAP_ENUM_ERROR)
+        if (result == VCAP_ERROR)
             return VCAP_ERROR;
 
-        if (result == VCAP_ENUM_OK && info->id == fmt)
+        if (result == VCAP_OK && info->id == fmt)
             return VCAP_OK;
 
-    } while (result != VCAP_ENUM_INVALID && ++i);
+    } while (result != VCAP_INVALID && ++i);
 
     return VCAP_INVALID;
 }
@@ -680,7 +680,7 @@ vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
     if (!vd)
     {
         vcap_set_error(vd, "Parameter can't be null");
-        itr.result = VCAP_ENUM_ERROR;
+        itr.result = VCAP_ERROR;
     }
     else
     {
@@ -698,11 +698,11 @@ bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info)
     if (!info)
     {
         vcap_set_error(itr->vd, "Parameter can't be null");
-        itr->result = VCAP_ENUM_ERROR;
+        itr->result = VCAP_ERROR;
         return false;
     }
 
-    if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
+    if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
         return false;
 
     *info = itr->info;
@@ -733,11 +733,11 @@ bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size)
     if (!size)
     {
         vcap_set_error(itr->vd, "Parameter can't be null");
-        itr->result = VCAP_ENUM_ERROR;
+        itr->result = VCAP_ERROR;
         return false;
     }
 
-    if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
+    if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
         return false;
 
     *size = itr->size;
@@ -769,11 +769,11 @@ bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
     if (!rate)
     {
         vcap_set_error(itr->vd, "Parameter can't be null");
-        itr->result = VCAP_ENUM_ERROR;
+        itr->result = VCAP_ERROR;
         return false;
     }
 
-    if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
+    if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
         return false;
 
     *rate = itr->rate;
@@ -1064,11 +1064,11 @@ bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info)
     if (!info)
     {
         vcap_set_error(itr->vd, "Parameter can't be null");
-        itr->result = VCAP_ENUM_ERROR;
+        itr->result = VCAP_ERROR;
         return false;
     }
 
-    if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
+    if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
         return false;
 
     *info = itr->info;
@@ -1099,11 +1099,11 @@ bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
     if (!item)
     {
         vcap_set_error(itr->vd, "Parameter can't be null");
-        itr->result = VCAP_ENUM_ERROR;
+        itr->result = VCAP_ERROR;
         return false;
     }
 
-    if (itr->result == VCAP_ENUM_INVALID || itr->result == VCAP_ENUM_ERROR)
+    if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
         return false;
 
     *item = itr->item;
@@ -1804,12 +1804,12 @@ static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
     {
         if (errno == EINVAL)
         {
-            return VCAP_ENUM_INVALID;
+            return VCAP_INVALID;
         }
         else
         {
             vcap_set_error_errno(vd, "Unable to enumerate formats on device %s", vd->path);
-            return VCAP_ENUM_ERROR;
+            return VCAP_ERROR;
         }
     }
 
@@ -1822,7 +1822,7 @@ static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
     // Copy pixel format
     info->id = vcap_convert_fmt(fmtd.pixelformat);
 
-    return VCAP_ENUM_OK;
+    return VCAP_OK;
 }
 
 static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index)
@@ -1835,7 +1835,7 @@ static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint3
     if (fmt < 0 || fmt >= VCAP_FMT_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
-        return VCAP_ENUM_ERROR;
+        return VCAP_ERROR;
     }
 
     // Enumerate frame sizes
@@ -1850,22 +1850,22 @@ static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint3
     {
         if (errno == EINVAL)
         {
-            return VCAP_ENUM_INVALID;
+            return VCAP_INVALID;
         } else
         {
             vcap_set_error_errno(vd, "Unable to enumerate sizes on device '%s'", vd->path);
-            return VCAP_ENUM_ERROR;
+            return VCAP_ERROR;
         }
     }
 
     // Only discrete sizes are supported
     if (fenum.type != V4L2_FRMSIZE_TYPE_DISCRETE)
-        return VCAP_ENUM_DISABLED;
+        return VCAP_INVALID;
 
     size->width  = fenum.discrete.width;
     size->height = fenum.discrete.height;
 
-    return VCAP_ENUM_OK;
+    return VCAP_OK;
 }
 
 static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index)
@@ -1878,7 +1878,7 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
     if (fmt < 0 || fmt >= VCAP_FMT_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
-        return VCAP_ENUM_ERROR;
+        return VCAP_ERROR;
     }
 
     // Enumerate frame rates
@@ -1895,25 +1895,25 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
     {
         if (errno == EINVAL)
         {
-            return VCAP_ENUM_INVALID;
+            return VCAP_INVALID;
         }
         else
         {
             vcap_set_error_errno(vd, "Unable to enumerate frame rates on device %s", vd->path);
-            return VCAP_ENUM_ERROR;
+            return VCAP_ERROR;
         }
     }
 
     // Only discrete frame rates are supported
     if (frenum.type != V4L2_FRMIVAL_TYPE_DISCRETE)
-        return VCAP_ENUM_DISABLED;
+        return VCAP_INVALID;
 
     // NOTE: We swap the numerator and denominator because Vcap uses frame rates
     // instead of intervals.
     rate->numerator = frenum.discrete.denominator;
     rate->denominator = frenum.discrete.numerator;
 
-    return VCAP_ENUM_OK;
+    return VCAP_OK;
 }
 
 static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
@@ -1929,18 +1929,18 @@ static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
         int result = vcap_get_ctrl_info(vd, ctrl, info);
 
         if (result == VCAP_CTRL_ERROR)
-            return VCAP_ENUM_ERROR;
+            return VCAP_ERROR;
 
         if (result == VCAP_CTRL_INVALID)
             continue;
 
         if (index == count)
-            return VCAP_ENUM_OK;
+            return VCAP_OK;
         else
             count++;
     }
 
-    return VCAP_ENUM_INVALID;
+    return VCAP_INVALID;
 }
 
 static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index)
@@ -1953,7 +1953,7 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
     if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
-        return VCAP_ENUM_ERROR;
+        return VCAP_ERROR;
     }
 
     // Check if supported and a menu
@@ -1962,29 +1962,29 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
     int result = vcap_get_ctrl_info(vd, ctrl, &info);
 
     if (result == VCAP_CTRL_ERROR)
-        return VCAP_ENUM_ERROR;
+        return VCAP_ERROR;
 
     if (result == VCAP_CTRL_INVALID)
     {
         vcap_set_error(vd, "Can't enumerate menu of an invalid control");
-        return VCAP_ENUM_ERROR;
+        return VCAP_ERROR;
     }
 
     if (info.read_only) // TODO: necessary? required?
     {
         vcap_set_error(vd, "Can't enumerate menu of a read-only control");
-        return VCAP_ENUM_ERROR;
+        return VCAP_ERROR;
     }
 
     if (info.type != VCAP_CTRL_TYPE_MENU && info.type != VCAP_CTRL_TYPE_INTEGER_MENU)
     {
         vcap_set_error(vd, "Control is not a menu");
-        return VCAP_ENUM_ERROR;
+        return VCAP_ERROR;
     }
 
     if (index < info.min || index > info.max)
     {
-        return VCAP_ENUM_INVALID;
+        return VCAP_INVALID;
     }
 
     // Loop through all entries in the menu until count == index
@@ -2010,7 +2010,7 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
             else
             {
                 vcap_set_error_errno(vd, "Unable to enumerate menu on device %s", vd->path);
-                return VCAP_ENUM_ERROR;
+                return VCAP_ERROR;
             }
         }
 
@@ -2023,7 +2023,7 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
             else
                 item->value = qmenu.value;
 
-            return VCAP_ENUM_OK;
+            return VCAP_OK;
         }
         else
         {
@@ -2031,7 +2031,7 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
         }
     }
 
-    return VCAP_ENUM_INVALID;
+    return VCAP_INVALID;
 }
 
 static uint32_t ctrl_map[] = {

@@ -245,20 +245,9 @@ enum
 };
 
 ///
-/// \brief Enumeration handling status codes
-///
-enum
-{
-    VCAP_ENUM_OK       =  0,   ///< Successfully enumerated item (valid index)
-    VCAP_ENUM_INVALID  = -1,   ///< Invalid index
-    VCAP_ENUM_DISABLED = -2,   ///< Valid index, but item is disabled
-    VCAP_ENUM_ERROR    = -3    ///< Error enumerating item
-};
-
-///
 /// \brief Generic iterator error test
 ///
-#define vcap_itr_error(itr) (VCAP_ENUM_ERROR == (itr)->result)
+#define vcap_itr_error(itr) (VCAP_ERROR == (itr)->result)
 
 ///
 /// \brief Custom malloc function type

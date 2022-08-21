@@ -820,6 +820,13 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
 int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 {
     assert(vd);
+    assert(0 <= fmt && fmt < VCAP_FMT_COUNT);
+
+    if (fmt < 0 || fmt >= VCAP_FMT_COUNT)
+    {
+        vcap_set_error(vd, "Invalid argument (out of range)");
+        return -1;
+    }
 
     // NOTE: Some cameras return a device busy signal when attempting to set
     // the format on a device that has already been streaming. The only viable
@@ -916,6 +923,14 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
 {
     assert(vd);
     assert(info);
+
+    assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
+
+    if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
+    {
+        vcap_set_error(vd, "Invalid argument (out of range)");
+        return -1;
+    }
 
     if (!info)
     {
@@ -1091,6 +1106,14 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
     assert(vd);
     assert(value);
 
+    assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
+
+    if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
+    {
+        vcap_set_error(vd, "Invalid argument (out of range)");
+        return -1;
+    }
+
     if (!value)
     {
         vcap_set_error(vd, "Parameter can't be null");
@@ -1117,6 +1140,14 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
 int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
 {
     assert(vd);
+
+    assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
+
+    if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
+    {
+        vcap_set_error(vd, "Invalid argument (out of range)");
+        return -1;
+    }
 
     // Specify control and value
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-ctrl.html
@@ -1780,6 +1811,14 @@ static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint3
     assert(vd);
     assert(size);
 
+    assert(0 <= fmt && fmt < VCAP_FMT_COUNT);
+
+    if (fmt < 0 || fmt >= VCAP_FMT_COUNT)
+    {
+        vcap_set_error(vd, "Invalid argument (out of range)");
+        return -1;
+    }
+
     // Enumerate frame sizes
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-enum-framesizes.html
     struct v4l2_frmsizeenum fenum;
@@ -1814,6 +1853,14 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
 {
     assert(vd);
     assert(rate);
+
+    assert(0 <= fmt && fmt < VCAP_FMT_COUNT);
+
+    if (fmt < 0 || fmt >= VCAP_FMT_COUNT)
+    {
+        vcap_set_error(vd, "Invalid argument (out of range)");
+        return -1;
+    }
 
     // Enumerate frame rates
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-enum-frameintervals.html
@@ -1881,6 +1928,14 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
 {
     assert(vd);
     assert(item);
+
+    assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
+
+    if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
+    {
+        vcap_set_error(vd, "Invalid argument (out of range)");
+        return -1;
+    }
 
     // Check if supported and a menu
     vcap_ctrl_info info;

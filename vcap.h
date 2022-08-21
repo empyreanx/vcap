@@ -222,6 +222,15 @@ typedef struct
 } vcap_rate_itr;
 
 ///
+/// \brief Return status codes
+///
+enum
+{
+    VCAP_OK    =  0           ///< Function executed without error
+    VCAP_ERROR = -1           ///< Error while executing function
+}
+
+///
 /// \brief Format handling status codes
 ///
 enum

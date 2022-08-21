@@ -318,7 +318,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     if (vcap_itr_error(&ctrl_itr))
         return -1;
 
-    return 0;
+    return VCAP_OK;
 }
 
 // NOTE: This function requires the "free" function
@@ -487,7 +487,7 @@ int vcap_open(vcap_dev* vd)
     vd->caps = caps;
     vd->open = true;
 
-    return 0;
+    return VCAP_OK;
 }
 
 void vcap_close(vcap_dev* vd)
@@ -535,7 +535,7 @@ int vcap_start_stream(vcap_dev* vd)
         vd->streaming = true;
     }
 
-    return 0;
+    return VCAP_OK;
 }
 
 int vcap_stop_stream(vcap_dev* vd)
@@ -567,7 +567,7 @@ int vcap_stop_stream(vcap_dev* vd)
         vd->streaming = false;
     }
 
-    return 0;
+    return VCAP_OK;
 }
 
 bool vcap_is_open(vcap_dev* vd)
@@ -595,7 +595,7 @@ int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info)
 
     vcap_caps_to_info(vd->path, vd->caps, info);
 
-    return 0;
+    return VCAP_OK;
 }
 
 size_t vcap_get_image_size(vcap_dev* vd)
@@ -818,7 +818,7 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
         size->height = gfmt.fmt.pix.height;
     }
 
-    return 0;
+    return VCAP_OK;
 }
 
 int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
@@ -863,7 +863,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     if (streaming && vcap_start_stream(vd) == -1)
         return -1;
 
-    return 0;
+    return VCAP_OK;
 }
 
 int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
@@ -893,7 +893,7 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
     rate->numerator = parm.parm.capture.timeperframe.denominator;
     rate->denominator = parm.parm.capture.timeperframe.numerator;
 
-    return 0;
+    return VCAP_OK;
 }
 
 int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
@@ -916,7 +916,7 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
         return -1;
     }
 
-    return 0;
+    return VCAP_OK;
 }
 
 //==============================================================================
@@ -1146,7 +1146,7 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
 
     *value = gctrl.value;
 
-    return 0;
+    return VCAP_OK;
 }
 
 int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
@@ -1176,7 +1176,7 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
         return -1;
     }
 
-    return 0;
+    return VCAP_OK;
 }
 
 int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
@@ -1203,7 +1203,7 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
     }
 
     //TODO: is this the proper code for disabled/inactive controls?
-    return 0;
+    return VCAP_OK;
 }
 
 // Last camera control ID plus one
@@ -1223,7 +1223,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
             return -1;
     }
 
-    return 0;
+    return VCAP_OK;
 }
 
 //==============================================================================
@@ -1263,7 +1263,7 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
     rect->width = cropcap.bounds.width;
     rect->height = cropcap.bounds.height;
 
-    return 0;
+    return VCAP_OK;
 }
 
 int vcap_reset_crop(vcap_dev* vd)
@@ -1298,7 +1298,7 @@ int vcap_reset_crop(vcap_dev* vd)
         return -1;
     }
 
-    return 0;
+    return VCAP_OK;
 }
 
 int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
@@ -1337,7 +1337,7 @@ int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
     rect->width = crop.c.width;
     rect->height = crop.c.height;
 
-    return 0;
+    return VCAP_OK;
 }
 
 int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
@@ -1372,7 +1372,7 @@ int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
         }
     }
 
-    return 0;
+    return VCAP_OK;
 }
 
 //==============================================================================
@@ -1455,7 +1455,7 @@ static int vcap_query_caps(const char* path, struct v4l2_capability* caps)
 
     v4l2_close(fd);
 
-    return 0;
+    return VCAP_OK;
 }
 
 static int vcap_video_device_filter(const struct dirent* a)
@@ -1524,7 +1524,7 @@ static int vcap_request_buffers(vcap_dev* vd, int buffer_count)
     // Allocates the buffer objects
     vd->buffers = vcap_malloc(req.count * sizeof(vcap_buffer));
 
-    return 0;
+    return VCAP_OK;
 }
 
 static int vcap_init_stream(vcap_dev* vd)
@@ -1543,7 +1543,7 @@ static int vcap_init_stream(vcap_dev* vd)
             return -1;
     }
 
-    return 0;
+    return VCAP_OK;
 }
 
 static int vcap_shutdown_stream(vcap_dev* vd)
@@ -1556,7 +1556,7 @@ static int vcap_shutdown_stream(vcap_dev* vd)
             return -1;
     }
 
-    return 0;
+    return VCAP_OK;
 }
 
 static int vcap_map_buffers(vcap_dev* vd)
@@ -1592,7 +1592,7 @@ static int vcap_map_buffers(vcap_dev* vd)
         }
     }
 
-    return 0;
+    return VCAP_OK;
 }
 
 static int vcap_unmap_buffers(vcap_dev* vd)
@@ -1613,7 +1613,7 @@ static int vcap_unmap_buffers(vcap_dev* vd)
     vcap_free(vd->buffers);
     vd->buffer_count = 0;
 
-    return 0;
+    return VCAP_OK;
 }
 
 static int vcap_queue_buffers(vcap_dev* vd)
@@ -1638,7 +1638,7 @@ static int vcap_queue_buffers(vcap_dev* vd)
         }
 	}
 
-	return 0;
+	return VCAP_OK;
 }
 
 static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
@@ -1682,7 +1682,7 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
         return -1;
     }
 
-    return 0;
+    return VCAP_OK;
 }
 
 static int vcap_grab_read(vcap_dev* vd, size_t size, uint8_t* data)
@@ -1711,7 +1711,7 @@ static int vcap_grab_read(vcap_dev* vd, size_t size, uint8_t* data)
             }
         }
 
-        return 0; // Break out of loop
+        return VCAP_OK; // Break out of loop
     }
 }
 

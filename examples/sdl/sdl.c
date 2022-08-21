@@ -77,9 +77,14 @@ int main(int argc, char** argv)
     }
 
     // Create device
-
     unsigned buffer_count = dev_info.streaming ? 3 : 0;
     vcap_dev* vd = vcap_create_device(dev_info.path, true, buffer_count);
+
+    if (!vd)
+    {
+        printf("Error while creating device\n");
+        return -1;
+    }
 
     // Open device
     result = vcap_open(vd);

@@ -371,6 +371,10 @@ vcap_dev* vcap_create_device(const char* path, bool convert, unsigned buffer_cou
     assert(path);
 
     vcap_dev* vd = vcap_malloc(sizeof(vcap_dev));
+
+    if (!vd)
+        return NULL;
+
     memset(vd, 0, sizeof(vcap_dev));
 
     vd->fd = -1;

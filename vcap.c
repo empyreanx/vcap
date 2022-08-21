@@ -519,7 +519,7 @@ int vcap_start_stream(vcap_dev* vd)
             return VCAP_ERROR;
         }
 
-        if (vcap_init_stream(vd) == -1)
+        if (vcap_init_stream(vd) == VCAP_ERROR)
             return VCAP_ERROR;
 
         // Turn stream on
@@ -561,7 +561,7 @@ int vcap_stop_stream(vcap_dev* vd)
         }
 
         // Disables and
-        if (vcap_shutdown_stream(vd) == -1)
+        if (vcap_shutdown_stream(vd) == VCAP_ERROR)
             return VCAP_ERROR;
 
         vd->streaming = false;
@@ -841,7 +841,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 
     vcap_close(vd);
 
-    if (vcap_open(vd) == -1)
+    if (vcap_open(vd) == VCAP_ERROR)
         return VCAP_ERROR;
 
     // Specify desired format and set
@@ -860,7 +860,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
         return VCAP_ERROR;
     }
 
-    if (streaming && vcap_start_stream(vd) == -1)
+    if (streaming && vcap_start_stream(vd) == VCAP_ERROR)
         return VCAP_ERROR;
 
     return VCAP_OK;
@@ -1198,7 +1198,7 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
 
     if (result == VCAP_CTRL_OK)
     {
-        if (vcap_set_ctrl(vd, ctrl, info.default_value) == -1)
+        if (vcap_set_ctrl(vd, ctrl, info.default_value) == VCAP_ERROR)
             return VCAP_ERROR;
     }
 
@@ -1533,13 +1533,13 @@ static int vcap_init_stream(vcap_dev* vd)
 
     if (vd->buffer_count > 0)
     {
-        if (vcap_request_buffers(vd, vd->buffer_count) == -1)
+        if (vcap_request_buffers(vd, vd->buffer_count) == VCAP_ERROR)
             return VCAP_ERROR;
 
-        if (vcap_map_buffers(vd) == -1)
+        if (vcap_map_buffers(vd) == VCAP_ERROR)
             return VCAP_ERROR;
 
-        if (vcap_queue_buffers(vd) == -1)
+        if (vcap_queue_buffers(vd) == VCAP_ERROR)
             return VCAP_ERROR;
     }
 
@@ -1552,7 +1552,7 @@ static int vcap_shutdown_stream(vcap_dev* vd)
 
     if (vd->buffer_count > 0)
     {
-        if (vcap_unmap_buffers(vd) == -1)
+        if (vcap_unmap_buffers(vd) == VCAP_ERROR)
             return VCAP_ERROR;
     }
 

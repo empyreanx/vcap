@@ -263,19 +263,19 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             }
 
             if (vcap_itr_error(&rate_itr))
-                return -1;
+                return VCAP_ERROR;
 
             fprintf(file, ")\n");
         }
 
         // Check for errors during frame size iteration
         if (vcap_itr_error(&size_itr))
-            return -1;
+            return VCAP_ERROR;
     }
 
     // Check for errors during format iteration
     if (vcap_itr_error(&fmt_itr))
-        return -1;
+        return VCAP_ERROR;
 
     //==========================================================================
     // Enumerate controls
@@ -310,13 +310,13 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
 
             // Check for errors during menu iteration
             if (vcap_itr_error(&menu_itr))
-                return -1;
+                return VCAP_ERROR;
         }
     }
 
     // Check for errors during control iteration
     if (vcap_itr_error(&ctrl_itr))
-        return -1;
+        return VCAP_ERROR;
 
     return VCAP_OK;
 }
@@ -404,7 +404,7 @@ int vcap_open(vcap_dev* vd)
     if (vcap_is_open(vd))
     {
         vcap_set_error(vd, "Device %s is already open", vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     struct stat st;
@@ -414,14 +414,14 @@ int vcap_open(vcap_dev* vd)
     if (stat(vd->path, &st) == -1)
     {
         vcap_set_error_errno(vd, "Device %s does not exist", vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     // Device must be a character device
     if (!S_ISCHR(st.st_mode))
     {
         vcap_set_error_errno(vd, "Device %s is not a character device", vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     // Open the video device
@@ -431,7 +431,7 @@ int vcap_open(vcap_dev* vd)
     if (vd->fd == -1)
     {
         vcap_set_error_errno(vd, "Opening device %s failed", vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     // Ensure child processes dont't inherit the video device
@@ -443,7 +443,7 @@ int vcap_open(vcap_dev* vd)
     {
         vcap_set_error_errno(vd, "Querying device %s capabilities failed", vd->path);
         v4l2_close(vd->fd);
-        return -1;
+        return VCAP_ERROR;
     }
 
     // Ensure video capture is supported
@@ -451,7 +451,7 @@ int vcap_open(vcap_dev* vd)
     {
         vcap_set_error(vd, "Device %s does not support video capture", vd->path);
         v4l2_close(vd->fd);
-        return -1;
+        return VCAP_ERROR;
     }
 
     // Check I/O capabilities
@@ -462,7 +462,7 @@ int vcap_open(vcap_dev* vd)
         {
             vcap_set_error(vd, "Device %s does not support streaming", vd->path);
             v4l2_close(vd->fd);
-            return -1;
+            return VCAP_ERROR;
         }
     }
     else
@@ -472,7 +472,7 @@ int vcap_open(vcap_dev* vd)
         {
             vcap_set_error(vd, "Video device %s does not support read/write", vd->path);
             v4l2_close(vd->fd);
-            return -1;
+            return VCAP_ERROR;
         }
     }
 
@@ -516,11 +516,11 @@ int vcap_start_stream(vcap_dev* vd)
         if (vcap_is_streaming(vd))
         {
             vcap_set_error(vd, "Device %s is already streaming", vd->path);
-            return -1;
+            return VCAP_ERROR;
         }
 
         if (vcap_init_stream(vd) == -1)
-            return -1;
+            return VCAP_ERROR;
 
         // Turn stream on
         // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-streamon.html
@@ -529,7 +529,7 @@ int vcap_start_stream(vcap_dev* vd)
         if (vcap_ioctl(vd->fd, VIDIOC_STREAMON, &type) == -1)
         {
             vcap_set_error_errno(vd, "Unable to start stream on %s", vd->path);
-            return -1;
+            return VCAP_ERROR;
         }
 
         vd->streaming = true;
@@ -547,7 +547,7 @@ int vcap_stop_stream(vcap_dev* vd)
         if (!vcap_is_streaming(vd))
         {
             vcap_set_error(vd, "Unable to stop stream on %s, device is not streaming", vd->path);
-            return -1;
+            return VCAP_ERROR;
         }
 
         // Turn stream off
@@ -557,12 +557,12 @@ int vcap_stop_stream(vcap_dev* vd)
         if (vcap_ioctl(vd->fd, VIDIOC_STREAMOFF, &type) == -1)
         {
             vcap_set_error_errno(vd, "Unable to stop stream on %s", vd->path);
-            return -1;
+            return VCAP_ERROR;
         }
 
         // Disables and
         if (vcap_shutdown_stream(vd) == -1)
-            return -1;
+            return VCAP_ERROR;
 
         vd->streaming = false;
     }
@@ -590,7 +590,7 @@ int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info)
     if (!info)
     {
         vcap_set_error(vd, "Parameter can't be null");
-        return -1;
+        return VCAP_ERROR;
     }
 
     vcap_caps_to_info(vd->path, vd->caps, info);
@@ -625,7 +625,7 @@ int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data)
     if (!data)
     {
         vcap_set_error(vd, "Parameter can't be null");
-        return -1;
+        return VCAP_ERROR;
     }
 
     if (vd->buffer_count > 0)
@@ -791,7 +791,7 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
     if (!fmt || !size)
     {
         vcap_set_error(vd, "Parameter can't be null");
-        return -1;
+        return VCAP_ERROR;
     }
 
     // Get format
@@ -804,7 +804,7 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
     if (vcap_ioctl(vd->fd, VIDIOC_G_FMT, &gfmt))
     {
         vcap_set_error_errno(vd, "Unable to get format on device %s", vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     // Get format ID, if requested
@@ -829,7 +829,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     if (fmt < 0 || fmt >= VCAP_FMT_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
-        return -1;
+        return VCAP_ERROR;
     }
 
     // NOTE: Some cameras return a device busy signal when attempting to set
@@ -842,7 +842,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     vcap_close(vd);
 
     if (vcap_open(vd) == -1)
-        return -1;
+        return VCAP_ERROR;
 
     // Specify desired format and set
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-fmt.html
@@ -857,11 +857,11 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     if (vcap_ioctl(vd->fd, VIDIOC_S_FMT, &sfmt) == -1)
     {
         vcap_set_error_errno(vd, "Unable to set format on %s", vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     if (streaming && vcap_start_stream(vd) == -1)
-        return -1;
+        return VCAP_ERROR;
 
     return VCAP_OK;
 }
@@ -874,7 +874,7 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
     if (!rate)
     {
         vcap_set_error(vd, "Parameter can't be null");
-        return -1;
+        return VCAP_ERROR;
     }
 
     // Get frame rate
@@ -885,7 +885,7 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
     if (vcap_ioctl(vd->fd, VIDIOC_G_PARM, &parm) == -1)
     {
         vcap_set_error_errno(vd, "Unable to get frame rate on device %s", vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     // NOTE: We swap the numerator and denominator because Vcap uses frame rates
@@ -913,7 +913,7 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
     if(vcap_ioctl(vd->fd, VIDIOC_S_PARM, &parm) == -1)
     {
         vcap_set_error_errno(vd, "Unable to set framerate on device %s", vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     return VCAP_OK;
@@ -933,7 +933,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
-        return -1;
+        return VCAP_ERROR;
     }
 
     if (!info)
@@ -1002,7 +1002,7 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
     if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
-        return -1;
+        return VCAP_ERROR;
     }
 
     // Query specified control.
@@ -1123,13 +1123,13 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
     if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
-        return -1;
+        return VCAP_ERROR;
     }
 
     if (!value)
     {
         vcap_set_error(vd, "Parameter can't be null");
-        return -1;
+        return VCAP_ERROR;
     }
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-ctrl.html
@@ -1141,7 +1141,7 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
     if (vcap_ioctl(vd->fd, VIDIOC_G_CTRL, &gctrl) == -1)
     {
         vcap_set_error_errno(vd, "Could not get control (%d) value on device %s", ctrl, vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     *value = gctrl.value;
@@ -1158,7 +1158,7 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
     if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
-        return -1;
+        return VCAP_ERROR;
     }
 
     // Specify control and value
@@ -1173,7 +1173,7 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
     if (vcap_ioctl(vd->fd, VIDIOC_S_CTRL, &sctrl) == -1)
     {
         vcap_set_error_errno(vd, "Could not set control (%d) value on device %s", ctrl, vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     return VCAP_OK;
@@ -1188,18 +1188,18 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
     int result = vcap_get_ctrl_info(vd, ctrl, &info);
 
     if (result == VCAP_CTRL_ERROR)
-        return -1;
+        return VCAP_ERROR;
 
     if (result == VCAP_CTRL_INVALID)
     {
         vcap_set_error(vd, "Invalid control");
-        return -1;
+        return VCAP_ERROR;
     }
 
     if (result == VCAP_CTRL_OK)
     {
         if (vcap_set_ctrl(vd, ctrl, info.default_value) == -1)
-            return -1;
+            return VCAP_ERROR;
     }
 
     //TODO: is this the proper code for disabled/inactive controls?
@@ -1220,7 +1220,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
             continue;
 
         if (vcap_reset_ctrl(vd, ctrl) == -1)
-            return -1;
+            return VCAP_ERROR;
     }
 
     return VCAP_OK;
@@ -1238,7 +1238,7 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
     if (!rect)
     {
         vcap_set_error(vd, "Parameter can't be null");
-        return -1;
+        return VCAP_ERROR;
     }
 
     // Get crop rectangle
@@ -1253,7 +1253,7 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
         if (errno == ENODATA || errno == EINVAL)
         {
             vcap_set_error(vd, "Cropping is not supported on device '%s'", vd->path);
-            return -1;
+            return VCAP_ERROR;
         }
     }
 
@@ -1281,7 +1281,7 @@ int vcap_reset_crop(vcap_dev* vd)
         if (errno == ENODATA || errno == EINVAL)
         {
             vcap_set_error(vd, "Cropping is not supported on device '%s'", vd->path);
-            return -1;
+            return VCAP_ERROR;
         }
     }
 
@@ -1295,7 +1295,7 @@ int vcap_reset_crop(vcap_dev* vd)
     if (vcap_ioctl(vd->fd, VIDIOC_S_CROP, &crop) == -1)
     {
         vcap_set_error_errno(vd, "Unable to set crop window on device '%s'", vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     return VCAP_OK;
@@ -1309,7 +1309,7 @@ int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
     if (!rect)
     {
         vcap_set_error(vd, "Parameter can't be null");
-        return -1;
+        return VCAP_ERROR;
     }
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-crop.html
@@ -1323,12 +1323,12 @@ int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
         if (errno == ENODATA || errno == EINVAL)
         {
             vcap_set_error(vd, "Cropping is not supported on device %s", vd->path);
-            return -1;
+            return VCAP_ERROR;
         }
         else
         {
             vcap_set_error(vd, "Unable to get crop window on device %s", vd->path);
-            return -1;
+            return VCAP_ERROR;
         }
     }
 
@@ -1345,7 +1345,7 @@ int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
     if (!vd)
     {
         vcap_set_error(vd, "Parameter can't be null");
-        return -1;
+        return VCAP_ERROR;
     }
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-crop.html
@@ -1363,12 +1363,12 @@ int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
         if (errno == ENODATA || errno == EINVAL)
         {
             vcap_set_error(vd, "Cropping is not supported on device %s", vd->path);
-            return -1;
+            return VCAP_ERROR;
         }
         else
         {
             vcap_set_error(vd, "Unable to set crop window on device %s", vd->path);
-            return -1;
+            return VCAP_ERROR;
         }
     }
 
@@ -1427,30 +1427,30 @@ static int vcap_query_caps(const char* path, struct v4l2_capability* caps)
 
     // Device must exist
     if (stat(path, &st) == -1)
-       return -1;
+       return VCAP_ERROR;
 
     // Device must be a character device
     if (!S_ISCHR(st.st_mode))
-        return -1;
+        return VCAP_ERROR;
 
     // Open the video device
     fd = v4l2_open(path, O_RDWR | O_NONBLOCK, 0);
 
     if (fd == -1)
-        return -1;
+        return VCAP_ERROR;
 
     // Obtain device capabilities
     if (vcap_ioctl(fd, VIDIOC_QUERYCAP, caps) == -1)
     {
         v4l2_close(fd);
-        return -1;
+        return VCAP_ERROR;
     }
 
     // Ensure video capture is supported
     if (!(caps->capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
         v4l2_close(fd);
-        return -1;
+        return VCAP_ERROR;
     }
 
     v4l2_close(fd);
@@ -1508,13 +1508,13 @@ static int vcap_request_buffers(vcap_dev* vd, int buffer_count)
 	if (vcap_ioctl(vd->fd, VIDIOC_REQBUFS, &req) == -1)
 	{
     	vcap_set_error_errno(vd, "Unable to request buffers on %s", vd->path);
-		return -1;
+		return VCAP_ERROR;
     }
 
     if (req.count == 0)
     {
         vcap_set_error(vd, "Invalid buffer count on %s", vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     // Changes the number of buffer in the video device to match the number of
@@ -1534,13 +1534,13 @@ static int vcap_init_stream(vcap_dev* vd)
     if (vd->buffer_count > 0)
     {
         if (vcap_request_buffers(vd, vd->buffer_count) == -1)
-            return -1;
+            return VCAP_ERROR;
 
         if (vcap_map_buffers(vd) == -1)
-            return -1;
+            return VCAP_ERROR;
 
         if (vcap_queue_buffers(vd) == -1)
-            return -1;
+            return VCAP_ERROR;
     }
 
     return VCAP_OK;
@@ -1553,7 +1553,7 @@ static int vcap_shutdown_stream(vcap_dev* vd)
     if (vd->buffer_count > 0)
     {
         if (vcap_unmap_buffers(vd) == -1)
-            return -1;
+            return VCAP_ERROR;
     }
 
     return VCAP_OK;
@@ -1577,7 +1577,7 @@ static int vcap_map_buffers(vcap_dev* vd)
         if (vcap_ioctl(vd->fd, VIDIOC_QUERYBUF, &buf) == -1)
         {
             vcap_set_error_errno(vd, "Unable to query buffers on %s", vd->path);
-            return -1;
+            return VCAP_ERROR;
         }
 
         // Map buffers
@@ -1588,7 +1588,7 @@ static int vcap_map_buffers(vcap_dev* vd)
         if (vd->buffers[i].data == MAP_FAILED)
         {
             vcap_set_error(vd, "MMAP failed on %s", vd->path);
-            return -1;
+            return VCAP_ERROR;
         }
     }
 
@@ -1606,7 +1606,7 @@ static int vcap_unmap_buffers(vcap_dev* vd)
         if (v4l2_munmap(vd->buffers[i].data, vd->buffers[i].size) == -1)
         {
             vcap_set_error_errno(vd, "Unmapping buffers failed on %s", vd->path);
-            return -1;
+            return VCAP_ERROR;
         }
     }
 
@@ -1634,7 +1634,7 @@ static int vcap_queue_buffers(vcap_dev* vd)
         if (vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf) == -1)
         {
             vcap_set_error_errno(vd, "Unable to queue buffers on device %s", vd->path);
-            return -1;
+            return VCAP_ERROR;
         }
 	}
 
@@ -1649,13 +1649,13 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
     if (!data)
     {
         vcap_set_error(vd, "Parameter can't be null");
-        return -1;
+        return VCAP_ERROR;
     }
 
     if (!vcap_is_streaming(vd))
     {
         vcap_set_error(vd, "Stream on %s must be active in order to grab frame", vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     struct v4l2_buffer buf;
@@ -1669,7 +1669,7 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
     if (vcap_ioctl(vd->fd, VIDIOC_DQBUF, &buf) == -1)
     {
         vcap_set_error_errno(vd, "Could not dequeue buffer on %s", vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     memcpy(data, vd->buffers[buf.index].data, size);
@@ -1679,7 +1679,7 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
     if (vcap_ioctl(vd->fd, VIDIOC_QBUF, &buf) == -1)
     {
         vcap_set_error_errno(vd, "Could not requeue buffer on %s", vd->path);
-        return -1;
+        return VCAP_ERROR;
     }
 
     return VCAP_OK;
@@ -1693,7 +1693,7 @@ static int vcap_grab_read(vcap_dev* vd, size_t size, uint8_t* data)
     if (!data)
     {
         vcap_set_error(vd, "Parameter can't be null");
-        return -1;
+        return VCAP_ERROR;
     }
 
     while (true)
@@ -1707,7 +1707,7 @@ static int vcap_grab_read(vcap_dev* vd, size_t size, uint8_t* data)
             else
             {
                 vcap_set_error_errno(vd, "Reading from device %s failed", vd->path);
-                return -1;
+                return VCAP_ERROR;
             }
         }
 
@@ -1835,7 +1835,7 @@ static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint3
     if (fmt < 0 || fmt >= VCAP_FMT_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
-        return -1;
+        return VCAP_ENUM_ERROR;
     }
 
     // Enumerate frame sizes
@@ -1878,7 +1878,7 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
     if (fmt < 0 || fmt >= VCAP_FMT_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
-        return -1;
+        return VCAP_ENUM_ERROR;
     }
 
     // Enumerate frame rates
@@ -1953,7 +1953,7 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
     if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
-        return -1;
+        return VCAP_ENUM_ERROR;
     }
 
     // Check if supported and a menu

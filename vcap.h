@@ -226,9 +226,9 @@ typedef struct
 ///
 enum
 {
-    VCAP_OK    =  0           ///< Function executed without error
+    VCAP_OK    =  0,          ///< Function executed without error
     VCAP_ERROR = -1           ///< Error while executing function
-}
+};
 
 ///
 /// \brief Format handling status codes

@@ -1867,7 +1867,7 @@ static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
     int count = 0;
 
     // Enuemrate user controls
-    for (vcap_ctrl_id ctrl = VCAP_CTRL_BASE; ctrl < VCAP_CTRL_COUNT; ctrl++)
+    for (vcap_ctrl_id ctrl = 0; ctrl < VCAP_CTRL_COUNT; ctrl++)
     {
         int result = vcap_get_ctrl_info(vd, ctrl, info);
 
@@ -2046,7 +2046,7 @@ static char* ctrl_type_name_map[] = {
 
 static vcap_ctrl_id vcap_convert_ctrl(uint32_t id)
 {
-    for (int i = VCAP_CTRL_BASE; i < VCAP_CTRL_COUNT; i++)
+    for (int i = 0; i < VCAP_CTRL_COUNT; i++)
     {
         if (ctrl_map[i] == id)
             return (vcap_ctrl_id)i;

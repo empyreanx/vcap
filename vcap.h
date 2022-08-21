@@ -988,7 +988,6 @@ enum
 
 enum
 {
-    VCAP_CTRL_BASE,
     VCAP_CTRL_BRIGHTNESS,                  ///< Integer
     VCAP_CTRL_CONTRAST,                    ///< Integer
     VCAP_CTRL_SATURATION,                  ///< Integer

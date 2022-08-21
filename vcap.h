@@ -58,6 +58,16 @@ extern "C" {
 #endif
 
 ///
+/// \brief Return status codes
+///
+enum
+{
+    VCAP_OK      =  0,        ///< Function executed without error
+    VCAP_ERROR   = -1,        ///< Error while executing function
+    VCAP_INVALID = -2         ///< Argument is invalid
+};
+
+///
 /// \brief Control ID type
 ///
 typedef uint32_t vcap_ctrl_id;
@@ -222,29 +232,6 @@ typedef struct
 } vcap_rate_itr;
 
 ///
-/// \brief Return status codes
-///
-enum
-{
-    VCAP_OK      =  0,        ///< Function executed without error
-    VCAP_ERROR   = -1,        ///< Error while executing function
-    VCAP_INVALID = -2         ///< Argument is invalid
-};
-
-///
-/// \brief Control status codes
-///
-enum
-{
-    VCAP_CTRL_OK        =  0,  ///< Control is supported
-    VCAP_CTRL_INACTIVE  = -1,  ///< Control is supported, but inactive
-    VCAP_CTRL_READ_ONLY = -2,  ///< Control is presently read-only
-    VCAP_CTRL_DISABLED  = -3,  ///< Control is supported, but disabled
-    VCAP_CTRL_INVALID   = -4,  ///< Control is not supported
-    VCAP_CTRL_ERROR     = -5   ///< Error reading control descriptor
-};
-
-///
 /// \brief Generic iterator error test
 ///
 #define vcap_itr_error(itr) (VCAP_ERROR == (itr)->result)
@@ -303,9 +290,9 @@ int vcap_dump_info(vcap_dev* vd, FILE* file);
 /// \param  device  Pointer to the device info struct
 /// \param  index   The index of the device to query
 ///
-/// \returns VCAP_ENUM_OK      if the device information was retrieved successfully,
-///          VCAP_ENUM_INVALID if the index is invalid, and
-///          VCAP_ENUM_ERROR   if querying the device failed.
+/// \returns VCAP_OK      if the device information was retrieved successfully,
+///          VCAP_INVALID if the index is invalid, and
+///          VCAP_ERROR   if querying the device failed.
 ///
 int vcap_enum_devices(unsigned index, vcap_dev_info* info);
 
@@ -598,6 +585,19 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate);
 ///
 int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* desc);
 
+///
+/// \brief Control status codes
+///
+enum
+{
+    VCAP_CTRL_OK        =  0,  ///< Control is supported
+    VCAP_CTRL_INACTIVE  = -1,  ///< Control is supported, but inactive
+    VCAP_CTRL_READ_ONLY = -2,  ///< Control is presently read-only
+    VCAP_CTRL_DISABLED  = -3,  ///< Control is supported, but disabled
+    VCAP_CTRL_INVALID   = -4,  ///< Control is not supported
+    VCAP_CTRL_ERROR     = -5   ///< Error reading control descriptor
+};
+
 //------------------------------------------------------------------------------
 ///
 /// \brief  Returns the status of the control
@@ -775,6 +775,9 @@ int vcap_get_crop(vcap_dev* vd, vcap_rect* rect);
 ///
 int vcap_set_crop(vcap_dev* vd, vcap_rect rect);
 
+///
+/// \brief Pixel format IDs
+///
 enum
 {
     /* RGB formats */
@@ -965,6 +968,9 @@ enum
     VCAP_FMT_UNKNOWN
 };
 
+///
+/// \brief Camera control types
+///
 enum
 {
     VCAP_CTRL_TYPE_INTEGER,
@@ -975,6 +981,9 @@ enum
     VCAP_CTRL_TYPE_UNKNOWN
 };
 
+///
+/// \brief Camera control IDs
+///
 enum
 {
     VCAP_CTRL_BRIGHTNESS,                  ///< Integer

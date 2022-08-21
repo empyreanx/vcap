@@ -47,9 +47,7 @@
 #ifndef VCAP_H
 #define VCAP_H
 
-#include <linux/videodev2.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
 
@@ -131,7 +129,7 @@ typedef struct
 } vcap_fmt_info;
 
 //
-// \brief Control descriptor
+// \brief Control info
 //
 typedef struct
 {
@@ -284,8 +282,10 @@ int vcap_dump_info(vcap_dev* vd, FILE* file);
 /// \brief  Enumerates video capture devices
 ///
 /// Retrieves the video capture device at the specified 'index' and stores
-/// the corresponding device information in the 'vcap_device' struct pointed to
-/// by the 'device' parameter.
+/// the corresponding device information in the 'vcap_dev_info' struct pointed
+/// to by the 'device' parameter. NOTE: this function calls a system function
+/// that uses the default 'malloc' internally. Unfortunately this is
+/// unavoidable.
 ///
 /// \param  device  Pointer to the device info struct
 /// \param  index   The index of the device to query
@@ -417,19 +417,19 @@ int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Retrieves a format descriptor
+/// \brief  Retrieves format info
 ///
-/// Retrieves a format descriptor for the specified format ID.
+/// Retrieves format info for the specified format ID.
 ///
 /// \param  vd    Pointer to the video device
 /// \param  fmt   The format ID
 /// \param  info  Pointer to the format information
 ///
-/// \returns VCAP_FMT_OK      if the format descriptor was retrieved successfully,
+/// \returns VCAP_FMT_OK      if the format info was retrieved successfully,
 ///          VCAP_FMT_INVALID if the format ID is invalid
-///          VCAP_FMT_ERROR   if getting the format descriptor failed
+///          VCAP_FMT_ERROR   if getting the format info failed
 ///
-int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* desc);
+int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info);
 
 //------------------------------------------------------------------------------
 ///
@@ -571,19 +571,19 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Retrieves a control descriptor
+/// \brief  Retrieves control info
 ///
-/// Retrieves the control descriptor for the specified control ID.
+/// Retrieves control info for the specified control ID.
 ///
 /// \param  vd    Pointer to the video device
 /// \param  ctrl  The control ID
-/// \param  desc  Pointer to the control descriptor
+/// \param  info  Pointer to the control info
 ///
-/// \returns VCAP_CTRL_OK       if the control descriptor was retrieved successfully,
+/// \returns VCAP_CTRL_OK       if the control info was retrieved successfully,
 ///          VCAP_CTRL_INVALID  if the control ID is invalid, and
-///          VCAP_CTRL_ERROR    if getting the control descriptor failed
+///          VCAP_CTRL_ERROR    if getting the control info failed
 ///
-int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* desc);
+int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info);
 
 ///
 /// \brief Control status codes
@@ -595,7 +595,7 @@ enum
     VCAP_CTRL_READ_ONLY = -2,  ///< Control is presently read-only
     VCAP_CTRL_DISABLED  = -3,  ///< Control is supported, but disabled
     VCAP_CTRL_INVALID   = -4,  ///< Control is not supported
-    VCAP_CTRL_ERROR     = -5   ///< Error reading control descriptor
+    VCAP_CTRL_ERROR     = -5   ///< Error reading control info
 };
 
 //------------------------------------------------------------------------------
@@ -607,12 +607,12 @@ enum
 /// \param  vd    Pointer to the video device
 /// \param  ctrl  The control ID
 ///
-/// \returns VCAP_CTRL_OK            if the control descriptor was retrieved successfully,
+/// \returns VCAP_CTRL_OK            if the control info was retrieved successfully,
 ///          VCAP_CTRL_INACTIVE      if the control ID is valid, but the control is inactive,
 ///          VCAP_CTRL_READ_ONLY     if the control is active but currently read-only,
 ///          VCAP_CTRL_READ_DISABLED if the control is active but currently read-only,
 ///          VCAP_CTRL_INVALID       if the control ID is invalid, and
-///          VCAP_CTRL_ERROR         if getting the control descriptor failed
+///          VCAP_CTRL_ERROR         if getting the control info failed
 ///
 int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl);
 
@@ -632,15 +632,15 @@ vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd);
 ///
 /// \brief  Advances the specified control iterator
 ///
-/// Copies the current control descriptor into 'desc' and advances the iterator.
+/// Copies the current control information into 'info' and advances the iterator.
 ///
 /// \param  itr   Pointer to iterator
-/// \param  desc  Pointer to the control descriptor
+/// \param  info  Pointer to the control information
 ///
 /// \returns false if there was an error or there are no more controls, and true
 ///          otherwise
 ///
-bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* desc);
+bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info);
 
 //------------------------------------------------------------------------------
 ///

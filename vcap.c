@@ -138,9 +138,6 @@ static uint32_t vcap_map_ctrl(vcap_ctrl_id id);
 // Converts a V4L2 control type ID to VCAP control type ID
 static vcap_ctrl_type vcap_convert_ctrl_type(uint32_t type);
 
-// Converts a VCAP type to the corresponding V4L2 type
-//static uint32_t vcap_map_ctrl_type(vcap_ctrl_type id);
-
 // Returns true if control type is supported
 static bool vcap_ctrl_type_supported(uint32_t type);
 
@@ -652,11 +649,11 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
     // NOTE: Unfortunately there is no V4L2 function that returns information on
     // a format without enumerating them, as is done below.
 
-    int result, i = 0;
+    int result, index = 0;
 
     do
     {
-        result = vcap_enum_fmts(vd, info, i);
+        result = vcap_enum_fmts(vd, info, index);
 
         if (result == VCAP_ERROR)
             return VCAP_ERROR;
@@ -664,7 +661,7 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
         if (result == VCAP_OK && info->id == fmt)
             return VCAP_OK;
 
-    } while (result != VCAP_INVALID && ++i);
+    } while (result != VCAP_INVALID && ++index);
 
     return VCAP_INVALID;
 }
@@ -988,10 +985,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     info->default_value = qctrl.default_value;
 
     // Read-only flag
-    if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY)
-        info->read_only = true;
-    else
-        info->read_only = false;
+    info->read_only = (bool)(qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY);
 
     return VCAP_CTRL_OK;
 }
@@ -1344,11 +1338,7 @@ int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
 
 int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
 {
-    if (!vd)
-    {
-        vcap_set_error(vd, "Parameter can't be null");
-        return VCAP_ERROR;
-    }
+    assert(vd);
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-crop.html
     struct v4l2_crop crop;
@@ -1489,8 +1479,8 @@ static void vcap_caps_to_info(const char* path, const struct v4l2_capability cap
             (caps.version & 0xFF));
 
     // Determines which output modes are available
-    info->streaming = caps.capabilities & V4L2_CAP_STREAMING;
-    info->read = caps.capabilities & V4L2_CAP_READWRITE;
+    info->streaming = (bool)(caps.capabilities & V4L2_CAP_STREAMING);
+    info->read = (bool)(caps.capabilities & V4L2_CAP_READWRITE);
 }
 
 static int vcap_request_buffers(vcap_dev* vd, int buffer_count)
@@ -2135,12 +2125,6 @@ static vcap_ctrl_type vcap_convert_ctrl_type(uint32_t type)
 
     return VCAP_CTRL_TYPE_UNKNOWN;
 }
-
-/*static uint32_t vcap_map_ctrl_type(vcap_ctrl_type id)
-{
-    return ctrl_type_map[id];
-}
-*/
 
 static const char* vcap_ctrl_type_str(vcap_ctrl_type id)
 {

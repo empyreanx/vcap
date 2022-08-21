@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 
     if (result == VCAP_ENUM_INVALID)
     {
-        printf("Error: Unable to find a video capture device\n");
+        printf("Error: Unable to find video capture device\n");
         return -1;
     }
 
@@ -59,15 +59,18 @@ int main(int argc, char** argv)
     // Open device
     result = vcap_open(vd);
 
-    if (result == -1)
+    if (result == VCAP_ERROR)
     {
         printf("%s\n", vcap_get_error(vd));
         return -1;
     }
 
     // Dump info
-    if (vcap_dump_info(vd, stdout) == -1)
+    if (vcap_dump_info(vd, stdout) == VCAP_ERROR)
+    {
         printf("%s\n", vcap_get_error(vd));
+        return -1;
+    }
 
     vcap_destroy_device(vd);
 

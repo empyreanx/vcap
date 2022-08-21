@@ -72,7 +72,7 @@ int main(int argc, char** argv)
 
     if (result == VCAP_ENUM_INVALID)
     {
-        printf("Unable to find specified capture device\n");
+        printf("Unable to find capture device\n");
         return -1;
     }
 
@@ -89,7 +89,7 @@ int main(int argc, char** argv)
     // Open device
     result = vcap_open(vd);
 
-    if (result == -1)
+    if (result == VCAP_ERROR)
     {
         printf("%s\n", vcap_get_error(vd));
         vcap_destroy_device(vd);
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
 
     vcap_size size = { 640, 480 };
 
-    if (vcap_set_fmt(vd, VCAP_FMT_RGB24, size) == -1)
+    if (vcap_set_fmt(vd, VCAP_FMT_RGB24, size) == VCAP_ERROR)
     {
         printf("%s\n", vcap_get_error(vd));
         vcap_destroy_device(vd);
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    if (vcap_start_stream(vd) == -1)
+    if (vcap_start_stream(vd) == VCAP_ERROR)
     {
         printf("Error starting stream\n");
         return -1;
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
         }
 
         // Grab an image from the device
-        if (vcap_grab(vd, image_size, image_data) == -1)
+        if (vcap_grab(vd, image_size, image_data) == VCAP_ERROR)
         {
             printf("%s\n", vcap_get_error(vd));
             break;

@@ -646,7 +646,7 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
     if (!info)
     {
         vcap_set_error(vd, "Parameter can't be null");
-        return VCAP_FMT_ERROR;
+        return VCAP_ERROR;
     }
 
     // NOTE: Unfortunately there is no V4L2 function that returns information on
@@ -659,14 +659,14 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
         result = vcap_enum_fmts(vd, info, i);
 
         if (result == VCAP_ENUM_ERROR)
-            return VCAP_FMT_ERROR;
+            return VCAP_ERROR;
 
         if (result == VCAP_ENUM_OK && info->id == fmt)
-            return VCAP_FMT_OK;
+            return VCAP_OK;
 
     } while (result != VCAP_ENUM_INVALID && ++i);
 
-    return VCAP_FMT_INVALID;
+    return VCAP_INVALID;
 }
 
 vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)

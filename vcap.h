@@ -226,22 +226,13 @@ typedef struct
 ///
 enum
 {
-    VCAP_OK    =  0,          ///< Function executed without error
-    VCAP_ERROR = -1           ///< Error while executing function
+    VCAP_OK      =  0,        ///< Function executed without error
+    VCAP_ERROR   = -1,        ///< Error while executing function
+    VCAP_INVALID = -2         ///< Argument is invalid
 };
 
 ///
-/// \brief Format handling status codes
-///
-enum
-{
-    VCAP_FMT_OK      =  0,    ///< Format is supported
-    VCAP_FMT_INVALID = -1,    ///< Format is not supported
-    VCAP_FMT_ERROR   = -2     ///< Error reading format descriptor
-};
-
-///
-/// \brief Control handling status codes
+/// \brief Control status codes
 ///
 enum
 {

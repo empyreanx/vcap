@@ -939,7 +939,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     if (!info)
     {
         vcap_set_error(vd, "Parameter can't be null");
-        return VCAP_CTRL_ERROR;
+        return VCAP_ERROR;
     }
 
     // Query specified control
@@ -953,18 +953,18 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     {
         if (errno == EINVAL)
         {
-            return VCAP_CTRL_INVALID;
+            return VCAP_INVALID;
         }
         else
         {
-            vcap_set_error_errno(vd, "Unable to read control descriptor on device %s", vd->path);
-            return VCAP_CTRL_ERROR;
+            vcap_set_error_errno(vd, "Unable to read control info on device %s", vd->path);
+            return VCAP_ERROR;
         }
     }
 
     // Test if control type is supported
     if (!vcap_ctrl_type_supported(qctrl.type))
-        return VCAP_CTRL_INVALID;
+        return VCAP_INVALID;
 
     // Copy name
     vcap_ustrcpy(info->name, qctrl.name, sizeof(info->name));
@@ -987,7 +987,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     // Read-only flag
     info->read_only = (bool)(qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY);
 
-    return VCAP_CTRL_OK;
+    return VCAP_OK;
 }
 
 int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
@@ -1027,17 +1027,17 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
     if (!vcap_ctrl_type_supported(qctrl.type))
         return VCAP_CTRL_INVALID;
 
-    // Test if control is read only
-    if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY || qctrl.flags & V4L2_CTRL_FLAG_GRABBED)
-        return VCAP_CTRL_READ_ONLY;
+    // Test if control is inactive
+    if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE)
+        return VCAP_CTRL_INACTIVE;
 
     // Test if control is disabled
     if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
         return VCAP_CTRL_DISABLED;
 
-    // Test if control is inactive
-    if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE)
-        return VCAP_CTRL_INACTIVE;
+    // Test if control is read only
+    if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY || qctrl.flags & V4L2_CTRL_FLAG_GRABBED)
+        return VCAP_CTRL_READ_ONLY;
 
     return VCAP_CTRL_OK;
 }
@@ -1187,16 +1187,16 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
 
     int result = vcap_get_ctrl_info(vd, ctrl, &info);
 
-    if (result == VCAP_CTRL_ERROR)
+    if (result == VCAP_ERROR)
         return VCAP_ERROR;
 
-    if (result == VCAP_CTRL_INVALID)
+    if (result == VCAP_INVALID)
     {
         vcap_set_error(vd, "Invalid control");
         return VCAP_ERROR;
     }
 
-    if (result == VCAP_CTRL_OK)
+    if (result == VCAP_OK)
     {
         if (vcap_set_ctrl(vd, ctrl, info.default_value) == VCAP_ERROR)
             return VCAP_ERROR;
@@ -1923,10 +1923,10 @@ static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
     {
         int result = vcap_get_ctrl_info(vd, ctrl, info);
 
-        if (result == VCAP_CTRL_ERROR)
+        if (result == VCAP_ERROR)
             return VCAP_ERROR;
 
-        if (result == VCAP_CTRL_INVALID)
+        if (result == VCAP_INVALID)
             continue;
 
         if (index == count)
@@ -1957,10 +1957,10 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
 
     int result = vcap_get_ctrl_info(vd, ctrl, &info);
 
-    if (result == VCAP_CTRL_ERROR)
+    if (result == VCAP_ERROR)
         return VCAP_ERROR;
 
-    if (result == VCAP_CTRL_INVALID)
+    if (result == VCAP_INVALID)
     {
         vcap_set_error(vd, "Can't enumerate menu of an invalid control");
         return VCAP_ERROR;

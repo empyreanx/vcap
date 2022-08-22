@@ -76,6 +76,11 @@ typedef uint32_t vcap_ctrl_id;
 typedef uint8_t vcap_ctrl_type;
 
 ///
+/// \brief Control type ID
+///
+typedef uint16_t vcap_ctrl_status;
+
+///
 /// \brief Format ID type
 ///
 typedef uint32_t vcap_fmt_id;
@@ -590,12 +595,10 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info);
 ///
 enum
 {
-    VCAP_CTRL_OK        =  0,  ///< Control is supported
-    VCAP_CTRL_INACTIVE  = -1,  ///< Control is supported, but inactive
-    VCAP_CTRL_READ_ONLY = -2,  ///< Control is presently read-only
-    VCAP_CTRL_DISABLED  = -3,  ///< Control is supported, but disabled
-    VCAP_CTRL_INVALID   = -4,  ///< Control is not supported
-    VCAP_CTRL_ERROR     = -5   ///< Error reading control info
+    VCAP_CTRL_OK        = (0 << 0),  ///< Control is supported
+    VCAP_CTRL_INACTIVE  = (1 << 0),  ///< Control is supported, but inactive
+    VCAP_CTRL_READ_ONLY = (1 << 1),  ///< Control is presently read-only
+    VCAP_CTRL_DISABLED  = (1 << 2),  ///< Control is supported, but disabled
 };
 
 //------------------------------------------------------------------------------
@@ -614,7 +617,7 @@ enum
 ///          VCAP_CTRL_INVALID       if the control ID is invalid, and
 ///          VCAP_CTRL_ERROR         if getting the control info failed
 ///
-int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl);
+int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* status);
 
 //------------------------------------------------------------------------------
 ///

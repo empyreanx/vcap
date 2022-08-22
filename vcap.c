@@ -990,9 +990,10 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     return VCAP_OK;
 }
 
-int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
+int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* status)
 {
     assert(vd);
+    assert(status);
 
     // Ensure control ID is within the proper range
     assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
@@ -1000,6 +1001,12 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
     if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
+        return VCAP_ERROR;
+    }
+
+    if (!status)
+    {
+        vcap_set_error(vd, "Parameter can't be null");
         return VCAP_ERROR;
     }
 
@@ -1014,32 +1021,34 @@ int vcap_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl)
     {
         if (errno == EINVAL)
         {
-            return VCAP_CTRL_INVALID;
+            return VCAP_INVALID;
         }
         else
         {
             vcap_set_error_errno(vd, "Unable to check control status on device %s", vd->path);
-            return VCAP_CTRL_ERROR;
+            return VCAP_ERROR;
         }
     }
 
+    *status = VCAP_CTRL_OK;
+
     // Test if control type is supported
     if (!vcap_ctrl_type_supported(qctrl.type))
-        return VCAP_CTRL_INVALID;
+        return VCAP_INVALID;
 
     // Test if control is inactive
     if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE)
-        return VCAP_CTRL_INACTIVE;
+        *status |= VCAP_CTRL_INACTIVE;
 
     // Test if control is disabled
     if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
-        return VCAP_CTRL_DISABLED;
+        *status |= VCAP_CTRL_DISABLED;
 
     // Test if control is read only
     if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY || qctrl.flags & V4L2_CTRL_FLAG_GRABBED)
-        return VCAP_CTRL_READ_ONLY;
+        *status |= VCAP_CTRL_READ_ONLY;
 
-    return VCAP_CTRL_OK;
+    return VCAP_OK;
 }
 
 vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd)
@@ -1212,7 +1221,17 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
     // Loop over user class controlsa
     for (vcap_ctrl_id ctrl = 0; ctrl < VCAP_CTRL_COUNT; ctrl++)
     {
-        if (vcap_ctrl_status(vd, ctrl) != VCAP_CTRL_OK)
+        vcap_ctrl_status status = 0;
+
+        int result = vcap_get_ctrl_status(vd, ctrl, &status);
+
+        if (result == VCAP_ERROR)
+            return VCAP_ERROR;
+
+        if (result == VCAP_INVALID)
+            continue;
+
+        if (status != VCAP_CTRL_OK)
             continue;
 
         if (vcap_reset_ctrl(vd, ctrl) == -1)

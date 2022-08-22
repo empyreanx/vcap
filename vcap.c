@@ -40,9 +40,6 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-// Clear data structure
-#define VCAP_CLEAR(arg) memset(&(arg), 0, sizeof(arg))
-
 //
 // Memory mapped buffer defintion
 //
@@ -124,10 +121,10 @@ static void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size);
 static void vcap_strcpy(char* dst, const char* src, size_t size);
 
 // Set error message for specified device
-static void vcap_set_error(vcap_dev* vd, const char* fmt, ...);
+static void vcap_set_error_str(const char* func, int line, vcap_dev* vd, const char* fmt, ...);
 
 // Set error message (including errno infomation) for specified device
-static void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...);
+static void vcap_set_error_errno_str(const char* func, int line, vcap_dev* vd, const char* fmt, ...);
 
 // Converts a V4L2 control ID to VCAP control ID
 static vcap_ctrl_id vcap_convert_ctrl(uint32_t id);
@@ -170,6 +167,19 @@ static vcap_malloc_fn global_malloc_fp = malloc;
 
 // Global free function pointer
 static vcap_free_fn global_free_fp = free;
+
+//==============================================================================
+// Macros
+//==============================================================================
+
+// Clear data structure
+#define VCAP_CLEAR(arg) memset(&(arg), 0, sizeof(arg))
+
+// Set error message
+#define vcap_set_error(...) (vcap_set_error_str(__func__, __LINE__, __VA_ARGS__))
+
+// Set message with errno information
+#define vcap_set_error_errno(...) (vcap_set_error_errno_str( __func__, __LINE__,  __VA_ARGS__))
 
 //==============================================================================
 // Public API implementation
@@ -1743,15 +1753,15 @@ static void vcap_strcpy(char* dst, const char* src, size_t size)
     snprintf(dst, size, "%s", src);
 }
 
-static void vcap_set_error(vcap_dev* vd, const char* fmt, ...)
+static void vcap_set_error_str(const char* func, int line, vcap_dev* vd, const char* fmt, ...)
 {
     assert(vd);
     assert(fmt);
 
-    char error_msg1[1024];
-    char error_msg2[1024];
+    char error_msg1[512];
+    char error_msg2[512];
 
-    snprintf(error_msg1, sizeof(error_msg1), "[%s:%d]", __func__, __LINE__);
+    snprintf(error_msg1, sizeof(error_msg1), "[%s:%d]", func, line);
     assert(vd);
 
     va_list args;
@@ -1762,22 +1772,22 @@ static void vcap_set_error(vcap_dev* vd, const char* fmt, ...)
     snprintf(vd->error_msg, sizeof(vd->error_msg), "%s %s", error_msg1, error_msg2);
 }
 
-static void vcap_set_error_errno(vcap_dev* vd, const char* fmt, ...)
+static void vcap_set_error_errno_str(const char* func, int line, vcap_dev* vd, const char* fmt, ...)
 {
     assert(vd);
     assert(fmt);
 
-    char error_msg1[1024];
-    char error_msg2[1024];
+    char error_msg1[512];
+    char error_msg2[512];
 
-    snprintf(error_msg1, sizeof(error_msg1), "[%s:%d] (%s)", __func__, __LINE__, strerror(errno));
+    snprintf(error_msg1, sizeof(error_msg1), "[%s:%d]", func, line);
 
     va_list args;
     va_start(args, fmt);
     vsnprintf(error_msg2, sizeof(error_msg2), fmt, args);
     va_end(args);
 
-    snprintf(vd->error_msg, sizeof(vd->error_msg), "%s %s", error_msg1, error_msg2);
+    snprintf(vd->error_msg, sizeof(vd->error_msg), "%s %s (%s)", error_msg1, error_msg2, strerror(errno));
 }
 
 //==============================================================================

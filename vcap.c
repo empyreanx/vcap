@@ -683,16 +683,7 @@ vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
     vcap_fmt_itr itr = { 0 };
     itr.vd = vd;
     itr.index = 0;
-
-    if (!vd)
-    {
-        vcap_set_error(vd, "Parameter can't be null");
-        itr.result = VCAP_ERROR;
-    }
-    else
-    {
-        itr.result = vcap_enum_fmts(vd, &itr.info, 0);
-    }
+    itr.result = vcap_enum_fmts(vd, &itr.info, 0);
 
     return itr;
 }
@@ -1228,7 +1219,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
 {
     assert(vd);
 
-    // Loop over user class controlsa
+    // Loop over all controlsa
     for (vcap_ctrl_id ctrl = 0; ctrl < VCAP_CTRL_COUNT; ctrl++)
     {
         vcap_ctrl_status status = 0;

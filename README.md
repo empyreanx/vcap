@@ -60,7 +60,7 @@ Other examples are built similarly using `BUILD_GRAB_EXAMPLE` and `BUILD_SDL_EXA
 A minimal example (without error checking) of grabbing a frame:
 
 ```c
-#include <vcap/vcap.h>
+#include <vcap.h>
 #include <stdio.h>
 
 int main(int argc, char** argv)
@@ -97,5 +97,5 @@ int main(int argc, char** argv)
 I would like to thank Gavin Baker (author of [libfg](http://antonym.org/libfg/)) and Matthew Brush (author of [libfg2](https://github.com/codebrainz/libfg2)). Although Vcap is different in many ways, I found their approach inspiring.
 
 ## License
-Copyright (c) 2022 James McLean
+Copyright (c) 2022 James McLean <br/>
 Licensed under the MIT license.

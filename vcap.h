@@ -24,7 +24,7 @@
 
 /*! \file vcap.h
     \mainpage Vcap
-    \version  1.0.0
+    \version  3.0.0
     \author   James McLean
     \date     August 20, 2022
     \brief    An open source Video4Linux2 (V4L2) capture library written in C.

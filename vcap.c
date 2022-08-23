@@ -985,9 +985,6 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     info->step = qctrl.step;
     info->default_value = qctrl.default_value;
 
-    // Read-only flag
-    info->read_only = (bool)(qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY);
-
     return VCAP_OK;
 }
 

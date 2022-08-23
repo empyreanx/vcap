@@ -146,7 +146,6 @@ typedef struct
     int32_t max;                ///< The maximum value of the control
     int32_t step;               ///< The spacing between consecutive values
     int32_t default_value;      ///< The default value of the control (set when the driver is first loaded)
-    bool read_only;             ///< true if the control is permanently read-only and false if read/write
 } vcap_ctrl_info;
 
 ///

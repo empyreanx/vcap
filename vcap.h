@@ -62,7 +62,7 @@ enum
 {
     VCAP_OK      =  0,        ///< Function executed without error
     VCAP_ERROR   = -1,        ///< Error while executing function
-    VCAP_INVALID = -2         ///< Argument is invalid
+    VCAP_INVALID = -2,        ///< Argument is invalid
 };
 
 ///
@@ -76,7 +76,7 @@ typedef uint32_t vcap_ctrl_id;
 typedef uint8_t vcap_ctrl_type;
 
 ///
-/// \brief Control type ID
+/// \brief Control status
 ///
 typedef uint16_t vcap_ctrl_status;
 
@@ -299,7 +299,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file);
 ///          VCAP_INVALID if the index is invalid, and
 ///          VCAP_ERROR   if querying the device failed.
 ///
-int vcap_enum_devices(unsigned index, vcap_dev_info* info);
+int vcap_enum_devices(uint32_t index, vcap_dev_info* info);
 
 //------------------------------------------------------------------------------
 ///
@@ -312,7 +312,7 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info);
 ///
 /// \returns NULL on error and a pointer to a video device otherwise
 ///
-vcap_dev* vcap_create_device(const char* path, bool convert, unsigned buffer_count);
+vcap_dev* vcap_create_device(const char* path, bool convert, uint32_t buffer_count);
 
 //------------------------------------------------------------------------------
 ///
@@ -610,12 +610,7 @@ enum
 /// \param  vd    Pointer to the video device
 /// \param  ctrl  The control ID
 ///
-/// \returns VCAP_CTRL_OK            if the control info was retrieved successfully,
-///          VCAP_CTRL_INACTIVE      if the control ID is valid, but the control is inactive,
-///          VCAP_CTRL_READ_ONLY     if the control is active but currently read-only,
-///          VCAP_CTRL_READ_DISABLED if the control is active but currently read-only,
-///          VCAP_CTRL_INVALID       if the control ID is invalid, and
-///          VCAP_CTRL_ERROR         if getting the control info failed
+/// \returns A bitset indicating the control's status (see above)
 ///
 int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* status);
 
@@ -968,7 +963,7 @@ enum
     VCAP_FMT_MT21C,         ///< Mediatek compressed block mode
     VCAP_FMT_INZI,          ///< Intel Planar Greyscale 10-bit and Depth 16-bit
     VCAP_FMT_COUNT,
-    VCAP_FMT_UNKNOWN
+    VCAP_FMT_UNKNOWN,
 };
 
 ///
@@ -981,7 +976,7 @@ enum
     VCAP_CTRL_TYPE_MENU,
     VCAP_CTRL_TYPE_INTEGER_MENU,
     VCAP_CTRL_TYPE_BUTTON,
-    VCAP_CTRL_TYPE_UNKNOWN
+    VCAP_CTRL_TYPE_UNKNOWN,
 };
 
 ///
@@ -1045,7 +1040,7 @@ enum
     VCAP_CTRL_PAN_SPEED,                   ///< Integer
     VCAP_CTRL_TILT_SPEED,                  ///< Integer
     VCAP_CTRL_COUNT,
-    VCAP_CTRL_UNKNOWN
+    VCAP_CTRL_UNKNOWN,
 };
 
 #ifdef __cplusplus

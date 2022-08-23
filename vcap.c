@@ -60,7 +60,7 @@ struct vcap_dev
     bool open;
     bool streaming;
     bool convert;
-    unsigned buffer_count;
+    uint32_t buffer_count;
     vcap_buffer* buffers;
     struct v4l2_capability caps;
 };
@@ -91,7 +91,7 @@ static int vcap_video_device_filter(const struct dirent *a);
 static void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_dev_info* info);
 
 // Request a number of buffers for streaming
-static int vcap_request_buffers(vcap_dev* vd, int buffer_count);
+static int vcap_request_buffers(vcap_dev* vd, uint32_t buffer_count);
 
 // Initialize streaming for the given device
 static int vcap_init_stream(vcap_dev* vd);
@@ -329,7 +329,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
 }
 
 // NOTE: This function requires the "free" function
-int vcap_enum_devices(unsigned index, vcap_dev_info* info)
+int vcap_enum_devices(uint32_t index, vcap_dev_info* info)
 {
     assert(info);
 
@@ -345,7 +345,7 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info)
     char path[512];
 
     // Loop through all valid entries in the "/dev" directory until count == index
-    int count = 0;
+    uint32_t count = 0;
 
     for (int i = 0; i < n; i++)
     {
@@ -373,7 +373,7 @@ int vcap_enum_devices(unsigned index, vcap_dev_info* info)
     return VCAP_INVALID;
 }
 
-vcap_dev* vcap_create_device(const char* path, bool convert, unsigned buffer_count)
+vcap_dev* vcap_create_device(const char* path, bool convert, uint32_t buffer_count)
 {
     assert(path);
 
@@ -1503,7 +1503,7 @@ static void vcap_caps_to_info(const char* path, const struct v4l2_capability cap
     info->read = (bool)(caps.capabilities & V4L2_CAP_READWRITE);
 }
 
-static int vcap_request_buffers(vcap_dev* vd, int buffer_count)
+static int vcap_request_buffers(vcap_dev* vd, uint32_t buffer_count)
 {
     assert(vd);
 
@@ -1575,8 +1575,8 @@ static int vcap_map_buffers(vcap_dev* vd)
 {
     assert(vd);
 
-     for (int i = 0; i < vd->buffer_count; i++)
-    {
+     for (uint32_t i = 0; i < vd->buffer_count; i++)
+     {
         // Query buffers, returning their size and other information
         // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-querybuf.html
         struct v4l2_buffer buf;
@@ -1613,7 +1613,7 @@ static int vcap_unmap_buffers(vcap_dev* vd)
 
     // Unmap and free buffers
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/func-munmap.html
-    for (int i = 0; i < vd->buffer_count; i++)
+    for (uint32_t i = 0; i < vd->buffer_count; i++)
     {
         if (v4l2_munmap(vd->buffers[i].data, vd->buffers[i].size) == -1)
         {
@@ -1632,7 +1632,7 @@ static int vcap_queue_buffers(vcap_dev* vd)
 {
     assert(vd);
 
-    for (int i = 0; i < vd->buffer_count; i++)
+    for (uint32_t i = 0; i < vd->buffer_count; i++)
     {
         // Places a buffer in the queue
         // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-qbuf.html
@@ -2121,7 +2121,7 @@ static char* ctrl_type_str_map[] = {
 
 static vcap_ctrl_id vcap_convert_ctrl(uint32_t id)
 {
-    for (int i = 0; i < VCAP_CTRL_COUNT; i++)
+    for (size_t i = 0; i < VCAP_CTRL_COUNT; i++)
     {
         if (ctrl_map[i] == id)
             return (vcap_ctrl_id)i;
@@ -2137,7 +2137,7 @@ static uint32_t vcap_map_ctrl(vcap_ctrl_id id)
 
 static vcap_ctrl_type vcap_convert_ctrl_type(uint32_t type)
 {
-    for (int i = 0; i < VCAP_CTRL_TYPE_UNKNOWN; i++)
+    for (size_t i = 0; i < VCAP_CTRL_TYPE_UNKNOWN; i++)
     {
         if (ctrl_type_map[i] == type)
             return (vcap_ctrl_type)i;
@@ -2340,7 +2340,7 @@ static uint32_t fmt_map[] = {
 
 static vcap_fmt_id vcap_convert_fmt(uint32_t id)
 {
-    for (int i = 0; i < VCAP_FMT_COUNT; i++)
+    for (size_t i = 0; i < VCAP_FMT_COUNT; i++)
     {
         if (fmt_map[i] == id)
             return (vcap_fmt_id)i;

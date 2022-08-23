@@ -175,7 +175,7 @@ typedef struct
 } vcap_rect;
 
 //
-// Control iterator
+// Control iterator (internal use only)
 //
 typedef struct
 {
@@ -186,7 +186,7 @@ typedef struct
 } vcap_ctrl_itr;
 
 //
-// Menu iterator
+// Menu iterator (internal use only)
 //
 typedef struct
 {
@@ -198,7 +198,7 @@ typedef struct
 } vcap_menu_itr;
 
 //
-// Format iterator
+// Format iterator (internal use only)
 //
 typedef struct
 {
@@ -209,7 +209,7 @@ typedef struct
 } vcap_fmt_itr;
 
 //
-// Size iterator
+// Size iterator (internal use only)
 //
 typedef struct
 {
@@ -221,7 +221,7 @@ typedef struct
 } vcap_size_itr;
 
 //
-// Frame rate iterator
+// Frame rate iterator (internal use only)
 //
 typedef struct
 {
@@ -277,7 +277,7 @@ const char* vcap_get_error(vcap_dev* vd);
 /// \param  vd    Pointer to the video device
 /// \param  file  The file descriptor
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_dump_info(vcap_dev* vd, FILE* file);
 
@@ -315,7 +315,8 @@ vcap_dev* vcap_create_device(const char* path, bool convert, uint32_t buffer_cou
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Destroys a video device object, releasing all resources
+/// \brief  Destroys a video device object, stopping capure and
+///         releasing all resources
 ///
 /// \param  vd  Pointer to the video device
 ///
@@ -327,35 +328,33 @@ void vcap_destroy_device(vcap_dev* vd);
 ///
 /// \param  vd  Pointer to the video device
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_open(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Closes a video capture device
-///
-/// Closes the device and deallocates the video device object.
+/// \brief  Stops capture and closes the video capture device
 ///
 /// \param  vd  Pointer to the video device
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 void vcap_close(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Starts the stream video stream on the specified device
+/// \brief  Starts the video stream on the specified device
 ///
 /// \param  vd  Pointer to the video device
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_start_stream(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Stops the stream video stream on the specified device
+/// \brief  Stops the video stream on the specified device
 ///
 /// \param  vd  Pointer to the video device
 ///
@@ -366,6 +365,7 @@ int vcap_stop_stream(vcap_dev* vd);
 //------------------------------------------------------------------------------
 ///
 /// \brief  Returns true if the device is open
+///
 /// \param  vd  Pointer to the video device
 ///
 bool vcap_is_open(vcap_dev* vd);
@@ -373,6 +373,7 @@ bool vcap_is_open(vcap_dev* vd);
 //------------------------------------------------------------------------------
 ///
 /// \brief  Returns true if the device is streaming
+///
 /// \param  vd  Pointer to the video device
 ///
 bool vcap_is_streaming(vcap_dev* vd);
@@ -387,13 +388,13 @@ bool vcap_is_streaming(vcap_dev* vd);
 /// \param  path    The path of the device handle
 /// \param  device  Pointer to the struct in which to store the device info
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Returns the size of the device's frame buffer
+/// \brief  Returns the size of the device's frame buffer (image)
 ///
 /// Return the size of the frame buffer for the current video device and
 /// configuration (format/frame size). This size is used with the function
@@ -407,15 +408,15 @@ size_t vcap_get_image_size(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Grabs a frame
+/// \brief  Grabs a video frame (image)
 ///
-/// Grabs a frame from a video capture device.
+/// Grabs a frame from the video capture device.
 ///
 /// \param  vd    Pointer to the video device
 /// \param  size  Size of the frame in bytes
 /// \param  data  Previously allocated buffer to read into
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data);
 
@@ -429,9 +430,9 @@ int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data);
 /// \param  fmt   The format ID
 /// \param  info  Pointer to the format information
 ///
-/// \returns VCAP_FMT_OK      if the format info was retrieved successfully,
-///          VCAP_FMT_INVALID if the format ID is invalid
-///          VCAP_FMT_ERROR   if getting the format info failed
+/// \returns VCAP_OK      if the format info was retrieved successfully,
+///          VCAP_INVALID if the format ID is invalid
+///          VCAP_ERROR   if getting the format info failed
 ///
 int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info);
 
@@ -493,7 +494,7 @@ bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size);
 ///
 /// \brief  Creates a new frame rate iterator
 ///
-/// Creates and initializes new frame rate iterator for the specified video device,
+/// Creates and initializes new frame rate iterator for the specified device,
 /// format ID, and frame size.
 ///
 /// \param  vd    Pointer to the video device
@@ -526,10 +527,12 @@ bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate);
 /// specified video device.
 ///
 /// \param  vd    Pointer to the video device
-/// \param  fmt   Pointer to the format ID
-/// \param  size  Pointer to the frame size
+/// \param  fmt   Pointer to the format ID (output)
+/// \param  size  Pointer to the frame size (output)
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_OK       if the format was retrieved successfully,
+///          VCAP_INVALID  if the format ID is invalid, and
+///          VCAP_ERROR    if getting the format failed
 ///
 int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size);
 
@@ -543,7 +546,9 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size);
 /// \param  fmt   The format ID
 /// \param  size  The frame size
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_OK       if the format was set successfully,
+///          VCAP_INVALID  if the format ID is invalid, and
+///          VCAP_ERROR    if setting the format failed
 ///
 int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
 
@@ -556,7 +561,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
 /// \param  vd    Pointer to the video device
 /// \param  rate  Pointer to the frame rate
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_get_rate(vcap_dev* vd, vcap_rate* rate);
 
@@ -569,7 +574,7 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate);
 /// \param  vd    Pointer to the video device
 /// \param  rate  The frame rate
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_set_rate(vcap_dev* vd, vcap_rate rate);
 
@@ -583,9 +588,9 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate);
 /// \param  ctrl  The control ID
 /// \param  info  Pointer to the control info
 ///
-/// \returns VCAP_CTRL_OK       if the control info was retrieved successfully,
-///          VCAP_CTRL_INVALID  if the control ID is invalid, and
-///          VCAP_CTRL_ERROR    if getting the control info failed
+/// \returns VCAP_OK       if the control info was retrieved successfully,
+///          VCAP_INVALID  if the control ID is invalid, and
+///          VCAP_ERROR    if getting the control info failed
 ///
 int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info);
 
@@ -604,12 +609,16 @@ enum
 ///
 /// \brief  Returns the status of the control
 ///
-/// Retrieves the status of the control with the specified ID.
+/// Retrieves the status of the control with the specified ID and stores them
+/// in a bitset
 ///
 /// \param  vd    Pointer to the video device
 /// \param  ctrl  The control ID
+/// \param  ctrl  The control's status (output)
 ///
-/// \returns A bitset indicating the control's status (see above)
+/// \returns VCAP_OK       if the control status was retrieved successfully,
+///          VCAP_INVALID  if the control ID is invalid, and
+///          VCAP_ERROR    if getting the control status failed
 ///
 int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* status);
 
@@ -632,7 +641,7 @@ vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd);
 /// Copies the current control information into 'info' and advances the iterator.
 ///
 /// \param  itr   Pointer to iterator
-/// \param  info  Pointer to the control information
+/// \param  info  Pointer to the control information (output)
 ///
 /// \returns false if there was an error or there are no more controls, and true
 ///          otherwise
@@ -643,7 +652,8 @@ bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info);
 ///
 /// \brief  Creates a new control menu iterator
 ///
-/// Creates and initializes a new control menu iterator for the specified device.
+/// Creates and initializes a new control menu iterator for the specified
+/// device and control
 ///
 /// \param  vd   Pointer to the video device
 /// \param  ctrl The control ID
@@ -659,10 +669,10 @@ vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl);
 /// Copies the current menu item into 'item' and advances the iterator.
 ///
 /// \param  itr   Pointer to iterator
-/// \param  item  Pointer to the menu item
+/// \param  item  Pointer to the menu item (output)
 ///
-/// \returns false if there was an error or there are no more controls, and true
-///          otherwise
+/// \returns false if there was an error or there are no more menu items, and
+///          true otherwise
 ///
 bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item);
 
@@ -674,9 +684,11 @@ bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item);
 ///
 /// \param  vd     Pointer to the video device
 /// \param  ctrl   The control ID
-/// \param  value  The control value
+/// \param  value  The control value (output)
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_OK      if the control value was retrieved
+///          VCAP_INVALID if the control ID is invalid
+///          VCAP_ERROR   if an error occured
 ///
 int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value);
 
@@ -690,7 +702,10 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value);
 /// \param  ctrl   The control ID
 /// \param  value  The control value
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_OK      if the control value was set
+///          VCAP_INVALID if the control ID is invalid
+///          VCAP_ERROR   if an error occured
+///
 ///
 int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value);
 
@@ -703,7 +718,9 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value);
 /// \param  vd   Pointer to the video device
 /// \param  ctrl The control ID
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_OK      if the control value was reset
+///          VCAP_INVALID if the control ID is invalid
+///          VCAP_ERROR   if an error occured
 ///
 int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl);
 
@@ -715,7 +732,7 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl);
 ///
 /// \param  vd  Pointer to the video device
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_reset_all_ctrls(vcap_dev* vd);
 
@@ -729,7 +746,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd);
 /// \param  vd     Pointer to the video device
 /// \param  rect   Pointer to the rectangle
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect);
 
@@ -741,7 +758,7 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect);
 ///
 /// \param  vd  Pointer to the video device
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_reset_crop(vcap_dev* vd);
 
@@ -755,7 +772,7 @@ int vcap_reset_crop(vcap_dev* vd);
 /// \param  vd    Pointer to the video device
 /// \param  rect  Pointer to rectangle
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_get_crop(vcap_dev* vd, vcap_rect* rect);
 
@@ -768,7 +785,7 @@ int vcap_get_crop(vcap_dev* vd, vcap_rect* rect);
 /// \param  vd    Pointer to the video device
 /// \param  rect  Pointer to rectangle
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_set_crop(vcap_dev* vd, vcap_rect rect);
 

@@ -1271,9 +1271,9 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
     }
 
     // Copy rectangle bounds
-    rect->top = cropcap.bounds.top;
-    rect->left = cropcap.bounds.left;
-    rect->width = cropcap.bounds.width;
+    rect->top    = cropcap.bounds.top;
+    rect->left   = cropcap.bounds.left;
+    rect->width  = cropcap.bounds.width;
     rect->height = cropcap.bounds.height;
 
     return VCAP_OK;
@@ -1345,9 +1345,9 @@ int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
         }
     }
 
-    rect->left = crop.c.left;
-    rect->top = crop.c.top;
-    rect->width = crop.c.width;
+    rect->left   = crop.c.left;
+    rect->top    = crop.c.top;
+    rect->width  = crop.c.width;
     rect->height = crop.c.height;
 
     return VCAP_OK;

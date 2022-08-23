@@ -1706,8 +1706,35 @@ static int vcap_grab_read(vcap_dev* vd, size_t size, uint8_t* data)
         return VCAP_ERROR;
     }
 
+
+    fd_set fds;
+    struct timeval tv;
+
+    FD_ZERO(&fds);
+    FD_SET(vd->fd, &fds);
+
+    tv.tv_sec  = 1;
+    tv.tv_usec = 0;
+
     while (true)
     {
+        int result = select(vd->fd + 1, &fds, NULL, NULL, &tv);
+
+        if (result == -1)
+        {
+            if (EINTR == errno)
+                continue;
+
+            vcap_set_error_errno(vd, "Unable to read frame");
+            return VCAP_ERROR;
+        }
+
+        if (result == 0)
+        {
+            vcap_set_error(vd, "Timeout reached");
+            return VCAP_ERROR;
+        }
+
         if (v4l2_read(vd->fd, data, size) == -1)
         {
             if (errno == EAGAIN)
@@ -1723,6 +1750,8 @@ static int vcap_grab_read(vcap_dev* vd, size_t size, uint8_t* data)
 
         return VCAP_OK; // Break out of loop
     }
+
+    return VCAP_ERROR;
 }
 
 static void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size)

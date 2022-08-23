@@ -238,8 +238,8 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     //==========================================================================
     // Enumerate formats
     //==========================================================================
-    vcap_fmt_info fmt_info;
     vcap_fmt_itr fmt_itr = vcap_new_fmt_itr(vd);
+    vcap_fmt_info fmt_info;
 
     while (vcap_fmt_itr_next(&fmt_itr, &fmt_info))
     {
@@ -250,8 +250,8 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
         //======================================================================
         // Enumerate sizes
         //======================================================================
-        vcap_size size;
         vcap_size_itr size_itr = vcap_new_size_itr(vd, fmt_info.id);
+        vcap_size size;
 
         while (vcap_size_itr_next(&size_itr, &size))
         {
@@ -261,8 +261,8 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             //==================================================================
             // Enumerate frame rates
             //==================================================================
-            vcap_rate rate;
             vcap_rate_itr rate_itr = vcap_new_rate_itr(vd, fmt_info.id, size);
+            vcap_rate rate;
 
             while (vcap_rate_itr_next(&rate_itr, &rate))
             {
@@ -290,8 +290,8 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     fprintf(file, "------------------------------------------------\n");
     fprintf(file, "Controls:\n");
 
-    vcap_ctrl_info ctrl_info;
     vcap_ctrl_itr ctrl_itr = vcap_new_ctrl_itr(vd);
+    vcap_ctrl_info ctrl_info;
 
     while (vcap_ctrl_itr_next(&ctrl_itr, &ctrl_info))
     {
@@ -304,8 +304,8 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             //==================================================================
             // Enumerate menu
             //==================================================================
-            vcap_menu_item menu_item;
             vcap_menu_itr menu_itr = vcap_new_menu_itr(vd, ctrl_info.id);
+            vcap_menu_item menu_item;
 
             while (vcap_menu_itr_next(&menu_itr, &menu_item))
             {
@@ -596,7 +596,7 @@ int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info)
 
     if (!info)
     {
-        vcap_set_error(vd, "Parameter can't be null");
+        vcap_set_error(vd, "Argument can't be null");
         return VCAP_ERROR;
     }
 
@@ -631,7 +631,7 @@ int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data)
 
     if (!data)
     {
-        vcap_set_error(vd, "Parameter can't be null");
+        vcap_set_error(vd, "Argument can't be null");
         return VCAP_ERROR;
     }
 
@@ -652,7 +652,7 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
 
     if (!info)
     {
-        vcap_set_error(vd, "Parameter can't be null");
+        vcap_set_error(vd, "Argument can't be null");
         return VCAP_ERROR;
     }
 
@@ -695,7 +695,7 @@ bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info)
 
     if (!info)
     {
-        vcap_set_error(itr->vd, "Parameter can't be null");
+        vcap_set_error(itr->vd, "Argument can't be null");
         itr->result = VCAP_ERROR;
         return false;
     }
@@ -730,7 +730,7 @@ bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size)
 
     if (!size)
     {
-        vcap_set_error(itr->vd, "Parameter can't be null");
+        vcap_set_error(itr->vd, "Argument can't be null");
         itr->result = VCAP_ERROR;
         return false;
     }
@@ -766,7 +766,7 @@ bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
 
     if (!rate)
     {
-        vcap_set_error(itr->vd, "Parameter can't be null");
+        vcap_set_error(itr->vd, "Argument can't be null");
         itr->result = VCAP_ERROR;
         return false;
     }
@@ -788,7 +788,7 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
 
     if (!fmt || !size)
     {
-        vcap_set_error(vd, "Parameter can't be null");
+        vcap_set_error(vd, "Argument can't be null");
         return VCAP_ERROR;
     }
 
@@ -873,7 +873,7 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
 
     if (!rate)
     {
-        vcap_set_error(vd, "Parameter can't be null");
+        vcap_set_error(vd, "Argument can't be null");
         return VCAP_ERROR;
     }
 
@@ -939,7 +939,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
 
     if (!info)
     {
-        vcap_set_error(vd, "Parameter can't be null");
+        vcap_set_error(vd, "Argument can't be null");
         return VCAP_ERROR;
     }
 
@@ -1004,7 +1004,7 @@ int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* stat
 
     if (!status)
     {
-        vcap_set_error(vd, "Parameter can't be null");
+        vcap_set_error(vd, "Argument can't be null");
         return VCAP_ERROR;
     }
 
@@ -1068,7 +1068,7 @@ bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info)
 
     if (!info)
     {
-        vcap_set_error(itr->vd, "Parameter can't be null");
+        vcap_set_error(itr->vd, "Argument can't be null");
         itr->result = VCAP_ERROR;
         return false;
     }
@@ -1103,7 +1103,7 @@ bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
 
     if (!item)
     {
-        vcap_set_error(itr->vd, "Parameter can't be null");
+        vcap_set_error(itr->vd, "Argument can't be null");
         itr->result = VCAP_ERROR;
         return false;
     }
@@ -1134,7 +1134,7 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
 
     if (!value)
     {
-        vcap_set_error(vd, "Parameter can't be null");
+        vcap_set_error(vd, "Argument can't be null");
         return VCAP_ERROR;
     }
 
@@ -1250,7 +1250,7 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
 
     if (!rect)
     {
-        vcap_set_error(vd, "Parameter can't be null");
+        vcap_set_error(vd, "Argument can't be null");
         return VCAP_ERROR;
     }
 
@@ -1321,7 +1321,7 @@ int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
 
     if (!rect)
     {
-        vcap_set_error(vd, "Parameter can't be null");
+        vcap_set_error(vd, "Argument can't be null");
         return VCAP_ERROR;
     }
 
@@ -1657,7 +1657,7 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
 
     if (!data)
     {
-        vcap_set_error(vd, "Parameter can't be null");
+        vcap_set_error(vd, "Argument can't be null");
         return VCAP_ERROR;
     }
 
@@ -1702,7 +1702,7 @@ static int vcap_grab_read(vcap_dev* vd, size_t size, uint8_t* data)
 
     if (!data)
     {
-        vcap_set_error(vd, "Parameter can't be null");
+        vcap_set_error(vd, "Argument can't be null");
         return VCAP_ERROR;
     }
 

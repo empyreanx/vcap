@@ -51,9 +51,19 @@
 #include <stdio.h>
 #include <stdint.h>
 
+// Version information
+#define VCAP_VERSION_MAJOR 3
+#define VCAP_VERSION_MINOR 0
+#define VCAP_VERSION_PATCH 0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+//
+// NOTE: Format IDs, control IDs, and control types are located at the bottom of
+// this file.
+//
 
 ///
 /// \brief Return status codes

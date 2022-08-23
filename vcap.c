@@ -353,7 +353,7 @@ int vcap_enum_devices(uint32_t index, vcap_dev_info* info)
 
         struct v4l2_capability caps;
 
-        if (vcap_query_caps(path, &caps) == 0)
+        if (vcap_query_caps(path, &caps) == VCAP_OK)
         {
             if (index == count)
             {
@@ -380,7 +380,7 @@ vcap_dev* vcap_create_device(const char* path, bool convert, uint32_t buffer_cou
     vcap_dev* vd = vcap_malloc(sizeof(vcap_dev));
 
     if (!vd)
-        return NULL;
+        return NULL; // Out of memory
 
     memset(vd, 0, sizeof(vcap_dev));
 

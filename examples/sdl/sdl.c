@@ -87,9 +87,7 @@ int main(int argc, char** argv)
     }
 
     // Open device
-    result = vcap_open(vd);
-
-    if (result == VCAP_ERROR)
+    if (vcap_open(vd) == VCAP_ERROR)
     {
         printf("%s\n", vcap_get_error(vd));
         vcap_destroy_device(vd);

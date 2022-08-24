@@ -441,8 +441,8 @@ int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data);
 /// \param  info  Pointer to the format information
 ///
 /// \returns VCAP_OK      if the format info was retrieved successfully,
-///          VCAP_INVALID if the format ID is invalid
 ///          VCAP_ERROR   if getting the format info failed
+///          VCAP_INVALID if the format ID is invalid
 ///
 int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info);
 
@@ -541,7 +541,6 @@ bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate);
 /// \param  size  Pointer to the frame size (output)
 ///
 /// \returns VCAP_OK       if the format was retrieved successfully,
-///          VCAP_INVALID  if the format ID is invalid, and
 ///          VCAP_ERROR    if getting the format failed
 ///
 int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size);
@@ -557,7 +556,6 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size);
 /// \param  size  The frame size
 ///
 /// \returns VCAP_OK       if the format was set successfully,
-///          VCAP_INVALID  if the format ID is invalid, and
 ///          VCAP_ERROR    if setting the format failed
 ///
 int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
@@ -599,8 +597,8 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate);
 /// \param  info  Pointer to the control info
 ///
 /// \returns VCAP_OK       if the control info was retrieved successfully,
-///          VCAP_INVALID  if the control ID is invalid, and
 ///          VCAP_ERROR    if getting the control info failed
+///          VCAP_INVALID  if the control ID is invalid, and
 ///
 int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info);
 
@@ -627,8 +625,8 @@ enum
 /// \param  ctrl  The control's status (output)
 ///
 /// \returns VCAP_OK       if the control status was retrieved successfully,
-///          VCAP_INVALID  if the control ID is invalid, and
 ///          VCAP_ERROR    if getting the control status failed
+///          VCAP_INVALID  if the control ID is invalid, and
 ///
 int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* status);
 
@@ -697,7 +695,6 @@ bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item);
 /// \param  value  The control value (output)
 ///
 /// \returns VCAP_OK      if the control value was retrieved
-///          VCAP_INVALID if the control ID is invalid
 ///          VCAP_ERROR   if an error occured
 ///
 int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value);
@@ -713,7 +710,6 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value);
 /// \param  value  The control value
 ///
 /// \returns VCAP_OK      if the control value was set
-///          VCAP_INVALID if the control ID is invalid
 ///          VCAP_ERROR   if an error occured
 ///
 ///
@@ -729,7 +725,6 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value);
 /// \param  ctrl The control ID
 ///
 /// \returns VCAP_OK      if the control value was reset
-///          VCAP_INVALID if the control ID is invalid
 ///          VCAP_ERROR   if an error occured
 ///
 int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl);

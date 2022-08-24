@@ -66,13 +66,13 @@ int main(int argc, char** argv)
 
     if (result == VCAP_ERROR)
     {
-        printf("Error while enumerating devices\n");
+        printf("Error: Enumerating devices failed\n");
         return -1;
     }
 
     if (result == VCAP_INVALID)
     {
-        printf("Unable to find capture device\n");
+        printf("Error: Unable to find capture device\n");
         return -1;
     }
 

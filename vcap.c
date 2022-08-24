@@ -627,7 +627,7 @@ size_t vcap_get_image_size(vcap_dev* vd)
 int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data)
 {
     assert(vd);
-    assert(buffer);
+    assert(data);
 
     if (!data)
     {
@@ -673,6 +673,7 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
 
     } while (result != VCAP_INVALID && ++index);
 
+    vcap_set_error(vd, "Invalid format ID");
     return VCAP_INVALID;
 }
 
@@ -954,6 +955,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     {
         if (errno == EINVAL)
         {
+            vcap_set_error(vd, "Invalid control ID");
             return VCAP_INVALID;
         }
         else
@@ -965,7 +967,10 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
 
     // Test if control type is supported
     if (!vcap_ctrl_type_supported(qctrl.type))
+    {
+        vcap_set_error(vd, "Invalid control type");
         return VCAP_INVALID;
+    }
 
     // Copy name
     vcap_ustrcpy(info->name, qctrl.name, sizeof(info->name));
@@ -1019,6 +1024,7 @@ int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* stat
     {
         if (errno == EINVAL)
         {
+            vcap_set_error(vd, "Invalid control ID");
             return VCAP_INVALID;
         }
         else
@@ -1032,7 +1038,10 @@ int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* stat
 
     // Test if control type is supported
     if (!vcap_ctrl_type_supported(qctrl.type))
+    {
+        vcap_set_error(vd, "Invalid control type");
         return VCAP_INVALID;
+    }
 
     // Test if control is inactive
     if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE)
@@ -1194,14 +1203,8 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
 
     int result = vcap_get_ctrl_info(vd, ctrl, &info);
 
-    if (result == VCAP_ERROR)
+    if (result == VCAP_ERROR || result == VCAP_INVALID)
         return VCAP_ERROR;
-
-    if (result == VCAP_INVALID)
-    {
-        vcap_set_error(vd, "Invalid control");
-        return VCAP_ERROR;
-    }
 
     if (result == VCAP_OK)
     {

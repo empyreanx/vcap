@@ -118,6 +118,7 @@ int main(int argc, char** argv)
     if (vcap_start_stream(vd) == VCAP_ERROR)
     {
         printf("Error starting stream\n");
+        vcap_destroy_device(vd);
         return -1;
     }
 

@@ -57,9 +57,7 @@ int main(int argc, char** argv)
     vcap_dev* vd = vcap_create_device(info.path, true, 0);
 
     // Open device
-    result = vcap_open(vd);
-
-    if (result == VCAP_ERROR)
+    if (vcap_open(vd) == VCAP_ERROR)
     {
         printf("%s\n", vcap_get_error(vd));
         return -1;

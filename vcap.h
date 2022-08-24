@@ -432,7 +432,7 @@ int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Retrieves format info
+/// \brief  Retrieves format information
 ///
 /// Retrieves format info for the specified format ID.
 ///
@@ -588,7 +588,7 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Retrieves control info
+/// \brief  Retrieves control information
 ///
 /// Retrieves control info for the specified control ID.
 ///

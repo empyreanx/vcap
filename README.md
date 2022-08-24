@@ -85,7 +85,7 @@ int main(int argc, char** argv)
     uint8_t image_data[image_size];
 
     // Grab a frame
-    vcap_grab(vd, image_size, image_data)
+    vcap_grab(vd, image_size, image_data);
 
     // Do something with the image_data...
 

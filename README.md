@@ -25,9 +25,9 @@ This is the third iteration of Vcap, the previous versions were written in 2015 
 * The source and header files of the previous version have been consolidated into a single source and header file for easy integration into a build system. 
 * Code that relied on external dependencies for import/export of settings, and saving frames to PNG/JPEG has been removed for portability reasons.
 * Both streaming and read modes are now supported.
-* Code for allocating/manipulating structs containing image buffer data has been eliminated in favor of having using `vcap_get_image_size` to allocate the buffer (on the heap or stack) directly with the necessary size. .
+* Code for allocating/manipulating structs containing image buffer data has been eliminated in favor of direct allocation of image data buffers (on the stack or heap) using `vcap_get_image_size` to get the appropriate size.
 * Format/control iterators are no longer allocated on the heap.
-* Error messages are device specific.
+* Error messages are now device specific.
 
 ## Building and Installation
 
@@ -68,14 +68,17 @@ int main(int argc, char** argv)
     vcap_dev_info dev_info;
 
     // Find first device on the bus
-    vcap_enum_devices(index, &dev_info);
+    vcap_enum_devices(0, &dev_info);
+
+    // Create device
+    vcap_dev* vd = vcap_create_device(dev_info.path, true, 0); // Use read mode
 
     // Open device
-    vcap_dev* vd = vcap_create_device(dev_info.path, true, 0); // force read mode
+    vcap_open(vd);
 
     // Set format to RGB24
     vcap_size size = { 640, 480 };
-    vcap_set_fmt(vd, VCAP_FMT_RGB24, size)
+    vcap_set_fmt(vd, VCAP_FMT_RGB24, size);
 
     // Allocate a buffer for the image
     size_t image_size = vcap_get_image_size(vd);
@@ -86,8 +89,8 @@ int main(int argc, char** argv)
 
     // Do something with the image_data...
 
-    // Close and destroy device
-    vcap_destroy_device(vd);
+    // Close and destroy device 
+    vcap_destroy_device(vd); // Calls vcap_close and then deallocates resources
 
     return 0;
 }
@@ -98,4 +101,4 @@ I would like to thank Gavin Baker (author of [libfg](http://antonym.org/libfg/))
 
 ## License
 Copyright (c) 2022 James McLean <br/>
-Licensed under the MIT license.
+Licensed under the MIT license

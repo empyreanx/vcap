@@ -23,7 +23,7 @@ This is the third iteration of Vcap, the previous versions were written in 2015 
 
 * Vcap is now licensed under the MIT license.
 * The source and header files of the previous version have been consolidated into a single source and header file for easy integration into a build system. 
-* Code that relied on external dependencies for import/export of settings, and saving frames to PNG/JPEG has been removed for portability reasons.
+* Code that relied on external dependencies for import/export of settings, and saving frames to PNG/JPEG has been removed for portability and brevity.
 * Both streaming and read modes are now supported.
 * Code for allocating/manipulating structs containing image buffer data has been eliminated in favor of direct allocation of image data buffers (on the stack or heap) using `vcap_get_image_size` to get the appropriate size.
 * Format/control iterators are no longer allocated on the heap.

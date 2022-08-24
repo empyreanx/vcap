@@ -90,7 +90,7 @@ int main(int argc, char** argv)
     // Do something with the image_data...
 
     // Close and destroy device 
-    vcap_destroy_device(vd); // Calls vcap_close and then deallocates resources
+    vcap_destroy_device(vd); // Calls vcap_close and then deallocates memory associated with 'vcap_dev'
 
     return 0;
 }

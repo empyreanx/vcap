@@ -54,7 +54,14 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    // Create device
     vcap_dev* vd = vcap_create_device(info.path, true, 0);
+
+    if (!vd)
+    {
+        printf("Error: Failed to create device\n");
+        return -1;
+    }
 
     // Open device
     if (vcap_open(vd) == VCAP_ERROR)

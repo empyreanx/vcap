@@ -42,7 +42,7 @@ typedef struct
     SDL_Surface *image;
 } sdl_context_t;
 
-// Opens window, get's window surface, allocates image
+// Opens window, gets window surface, allocates image
 static sdl_context_t* sdl_create_context(int width, int height);
 
 // Displays the image
@@ -59,10 +59,10 @@ int main(int argc, char** argv)
     if (argc == 2)
         index = atoi(argv[1]);
 
-    vcap_dev_info dev_info;
+    vcap_dev_info info = { 0 };
 
     // Find first video capture device
-    int result = vcap_enum_devices(index, &dev_info);
+    int result = vcap_enum_devices(index, &info);
 
     if (result == VCAP_ERROR)
     {
@@ -77,56 +77,61 @@ int main(int argc, char** argv)
     }
 
     // Create device
-    unsigned buffer_count = dev_info.streaming ? 3 : 0;
-    vcap_dev* vd = vcap_create_device(dev_info.path, true, buffer_count);
+    uint32_t buffer_count = info.streaming ? 3 : 0;
+    vcap_dev* vd = vcap_create_device(info.path, true, buffer_count);
 
     if (!vd)
     {
-        printf("Error while creating device\n");
+        printf("Error: Failed to create device\n");
         return -1;
     }
 
     // Open device
     if (vcap_open(vd) == VCAP_ERROR)
     {
-        printf("%s\n", vcap_get_error(vd));
+        printf("Error: %s\n", vcap_get_error(vd));
         vcap_destroy_device(vd);
         return -1;
     }
 
+    // Set format
     vcap_size size = { 640, 480 };
 
     if (vcap_set_fmt(vd, VCAP_FMT_RGB24, size) == VCAP_ERROR)
     {
-        printf("%s\n", vcap_get_error(vd));
+        printf("Error: %s\n", vcap_get_error(vd));
         vcap_destroy_device(vd);
         return -1;
     }
 
+    // Create image buffer
     size_t image_size = vcap_get_image_size(vd);
     uint8_t image_data[image_size];
 
+    // Initialize SDL
     sdl_context_t* sdl_ctx = sdl_create_context(size.width, size.height);
 
     if (!sdl_ctx)
     {
-        printf("Unable to create internal SDL context\n");
+        printf("Error: Unable to create internal SDL context\n");
         vcap_destroy_device(vd);
         return -1;
     }
 
+    // Start stream (if applicable)
     if (vcap_start_stream(vd) == VCAP_ERROR)
     {
-        printf("Error starting stream\n");
+        printf("Error: %s\n", vcap_get_error(vd));
         vcap_destroy_device(vd);
         return -1;
     }
 
-    // Main loop
+    // Capture loop
     bool done = false;
 
     while (!done)
     {
+        // SDL event handling
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
@@ -137,12 +142,9 @@ int main(int argc, char** argv)
                     break;
 
                 case SDL_KEYDOWN:
-                    switch (event.key.keysym.sym)
-                    {
-                        case SDLK_ESCAPE:
-                            done = true;
-                            break;
-                    }
+                    if (event.key.keysym.sym == SDLK_ESCAPE)
+                        done = true;
+
                     break;
             }
         }
@@ -150,14 +152,14 @@ int main(int argc, char** argv)
         // Grab an image from the device
         if (vcap_grab(vd, image_size, image_data) == VCAP_ERROR)
         {
-            printf("%s\n", vcap_get_error(vd));
+            printf("Error: %s\n", vcap_get_error(vd));
             break;
         }
 
         // Display image
         if (sdl_display_image(sdl_ctx, image_data) == -1)
         {
-            printf("Error displaying frame\n");
+            printf("Error: Could not display frame\n");
             break;
         }
     }
@@ -175,6 +177,8 @@ int main(int argc, char** argv)
 // Initializes the display context
 static sdl_context_t* sdl_create_context(int width, int height)
 {
+    SDL_Init(SDL_INIT_VIDEO);
+
     atexit(SDL_Quit);
 
     sdl_context_t* ctx = malloc(sizeof(sdl_context_t));
@@ -189,7 +193,7 @@ static sdl_context_t* sdl_create_context(int width, int height)
 
     if (ctx->window == NULL)
     {
-        printf("Unable to set create window: %s\n", SDL_GetError());
+        printf("Error: Unable to set create window: %s\n", SDL_GetError());
         return NULL;
     }
 

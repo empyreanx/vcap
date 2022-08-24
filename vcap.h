@@ -368,7 +368,7 @@ int vcap_start_stream(vcap_dev* vd);
 ///
 /// \param  vd  Pointer to the video device
 ///
-/// \returns -1 on error and 0 otherwise
+/// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_stop_stream(vcap_dev* vd);
 

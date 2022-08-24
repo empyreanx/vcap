@@ -7,6 +7,8 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 project (vcap C)
 
 # Declare options
+option(BUILD_SHARED       "Build a shared library" ON)
+option(BUILD_STATIC       "Build a static library" OFF)
 option(BUILD_GRAB_EXAMPLE "Build an example that grabs and saves a frame" OFF)
 option(BUILD_INFO_EXAMPLE "Build an example that prints camera info" OFF)
 option(BUILD_SDL_EXAMPLE  "Build an example that streams frames using SDL2" OFF)
@@ -34,8 +36,15 @@ file(GLOB SOURCE_FILES
 
 set(LIBRARY_OUTPUT_PATH lib)
 
-# Add V4L2 library
-add_library(vcap SHARED ${SOURCE_FILES})
+# Build shared library
+if(BUILD_SHARED)
+    add_library(vcap SHARED ${SOURCE_FILES})
+endif()
+
+# Build static library
+if(BUILD_STATIC)
+    add_library(vcap-static STATIC ${SOURCE_FILES})
+endif()
 
 # Find V4L2
 find_package(V4L2 REQUIRED)

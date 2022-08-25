@@ -901,13 +901,17 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
 {
     assert(vd);
 
-    // FIXME
+    // Setting the format before changing the frame rate is a hack to avoid
+    // EBUSY on the on certain cameras
 
-    vcap_fmt_id fmt;
-    vcap_size size;
+    vcap_fmt_id fmt = 0;
+    vcap_size size = { 0 };
 
-    vcap_get_fmt(vd, &fmt, &size);
-    vcap_set_fmt(vd, fmt, size);
+    if (vcap_get_fmt(vd, &fmt, &size) == VCAP_ERROR)
+        return VCAP_ERROR;
+
+    if (vcap_set_fmt(vd, fmt, size) == VCAP_ERROR)
+        return VCAP_ERROR;
 
     // Set frame rate
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-parm.html

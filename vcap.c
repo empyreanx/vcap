@@ -901,6 +901,14 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
 {
     assert(vd);
 
+    // FIXME
+
+    vcap_fmt_id fmt;
+    vcap_size size;
+
+    vcap_get_fmt(vd, &fmt, &size);
+    vcap_set_fmt(vd, fmt, size);
+
     // Set frame rate
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-parm.html
     struct v4l2_streamparm parm;

@@ -172,9 +172,6 @@ static vcap_free_fn global_free_fp = free;
 // Macros
 //==============================================================================
 
-// Clear data structure
-#define VCAP_CLEAR(arg) memset(&(arg), 0, sizeof(arg))
-
 // Set error message
 #define vcap_set_error(...) (vcap_set_error_str(__func__, __LINE__, __VA_ARGS__))
 
@@ -610,9 +607,8 @@ size_t vcap_get_image_size(vcap_dev* vd)
     assert(vd);
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-fmt.html
-    struct v4l2_format fmt;
+    struct v4l2_format fmt = { 0 };
 
-    VCAP_CLEAR(fmt);
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (vcap_ioctl(vd->fd, VIDIOC_G_FMT, &fmt) == -1)
@@ -795,9 +791,8 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
 
     // Get format
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-fmt.html
-    struct v4l2_format gfmt;
+    struct v4l2_format gfmt = { 0 };
 
-    VCAP_CLEAR(gfmt);
     gfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (vcap_ioctl(vd->fd, VIDIOC_G_FMT, &gfmt))
@@ -833,22 +828,16 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
         return VCAP_ERROR;
     }
 
-    // NOTE: Some cameras return a device busy signal when attempting to set
-    // the format on a device that has already been streaming. The only viable
-    // solution is to close the camera, open it, set the format, and restart the
-    // stream (if applicable).
-
     bool streaming = vcap_is_streaming(vd);
 
-    vcap_close(vd);
-
-    if (vcap_open(vd) == VCAP_ERROR)
+    if (streaming && vcap_stop_stream(vd) == VCAP_ERROR)
         return VCAP_ERROR;
+
+    // TODO: Try format
 
     // Specify desired format and set
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-fmt.html
-    struct v4l2_format sfmt;
-
+    struct v4l2_format sfmt = { 0 };
     sfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     sfmt.fmt.pix.width = size.width;
     sfmt.fmt.pix.height = size.height;
@@ -880,7 +869,7 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
 
     // Get frame rate
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-parm.html
-    struct v4l2_streamparm parm;
+    struct v4l2_streamparm parm = { 0 };
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (vcap_ioctl(vd->fd, VIDIOC_G_PARM, &parm) == -1)
@@ -901,21 +890,15 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
 {
     assert(vd);
 
-    // Setting the format before changing the frame rate is a hack to avoid
-    // EBUSY on the on certain cameras
+    bool streaming = vcap_is_streaming(vd);
 
-    vcap_fmt_id fmt = 0;
-    vcap_size size = { 0 };
-
-    if (vcap_get_fmt(vd, &fmt, &size) == VCAP_ERROR)
-        return VCAP_ERROR;
-
-    if (vcap_set_fmt(vd, fmt, size) == VCAP_ERROR)
+    if (streaming && vcap_stop_stream(vd) == VCAP_ERROR)
         return VCAP_ERROR;
 
     // Set frame rate
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-parm.html
-    struct v4l2_streamparm parm;
+    struct v4l2_streamparm parm = { 0 };
+
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     // NOTE: We swap the numerator and denominator because Vcap uses frame rates
@@ -928,6 +911,9 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
         vcap_set_error_errno(vd, "Unable to set framerate on device %s", vd->path);
         return VCAP_ERROR;
     }
+
+    if (streaming && vcap_start_stream(vd) == VCAP_ERROR)
+        return VCAP_ERROR;
 
     return VCAP_OK;
 }
@@ -958,9 +944,8 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
 
     // Query specified control
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-queryctrl.html
-    struct v4l2_queryctrl qctrl;
+    struct v4l2_queryctrl qctrl = { 0 };
 
-    VCAP_CLEAR(qctrl);
     qctrl.id = vcap_map_ctrl(ctrl);
 
     if (vcap_ioctl(vd->fd, VIDIOC_QUERYCTRL, &qctrl) == -1)
@@ -1027,9 +1012,8 @@ int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* stat
 
     // Query specified control.
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-queryctrl.html
-    struct v4l2_queryctrl qctrl;
+    struct v4l2_queryctrl qctrl = { 0 };
 
-    VCAP_CLEAR(qctrl);
     qctrl.id = vcap_map_ctrl(ctrl);
 
     if (vcap_ioctl(vd->fd, VIDIOC_QUERYCTRL, &qctrl) == -1)
@@ -1160,9 +1144,8 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
     }
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-ctrl.html
-    struct v4l2_control gctrl;
+    struct v4l2_control gctrl = { 0 };
 
-    VCAP_CLEAR(gctrl);
     gctrl.id = vcap_map_ctrl(ctrl);
 
     if (vcap_ioctl(vd->fd, VIDIOC_G_CTRL, &gctrl) == -1)
@@ -1191,9 +1174,8 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
 
     // Specify control and value
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-ctrl.html
-    struct v4l2_control sctrl;
+    struct v4l2_control sctrl = { 0 };
 
-    VCAP_CLEAR(sctrl);
     sctrl.id = vcap_map_ctrl(ctrl);
     sctrl.value = value;
 
@@ -1271,9 +1253,8 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
 
     // Get crop rectangle
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-cropcap.html
-    struct v4l2_cropcap cropcap;
+    struct v4l2_cropcap cropcap = { 0 };
 
-    VCAP_CLEAR(cropcap);
     cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (vcap_ioctl(vd->fd, VIDIOC_CROPCAP, &cropcap) == -1)
@@ -1299,9 +1280,8 @@ int vcap_reset_crop(vcap_dev* vd)
     assert(vd);
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-cropcap.html
-    struct v4l2_cropcap cropcap;
+    struct v4l2_cropcap cropcap = { 0 };
 
-    VCAP_CLEAR(cropcap);
     cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (vcap_ioctl(vd->fd, VIDIOC_CROPCAP, &cropcap) == -1)
@@ -1314,9 +1294,8 @@ int vcap_reset_crop(vcap_dev* vd)
     }
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-crop.html
-    struct v4l2_crop crop;
+    struct v4l2_crop crop = { 0 };
 
-    VCAP_CLEAR(crop);
     crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     crop.c = cropcap.defrect;
 
@@ -1341,9 +1320,8 @@ int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
     }
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-crop.html
-    struct v4l2_crop crop;
+    struct v4l2_crop crop = { 0 };
 
-    VCAP_CLEAR(crop);
     crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (vcap_ioctl(vd->fd, VIDIOC_G_CROP, &crop) == -1)
@@ -1373,9 +1351,8 @@ int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
     assert(vd);
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-crop.html
-    struct v4l2_crop crop;
+    struct v4l2_crop crop = { 0 };
 
-    VCAP_CLEAR(crop);
     crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     crop.c.left = rect.left;
     crop.c.top = rect.top;
@@ -1515,6 +1492,7 @@ static void vcap_caps_to_info(const char* path, const struct v4l2_capability cap
     info->read = (bool)(caps.capabilities & V4L2_CAP_READWRITE);
 }
 
+// TODO: buffer_count can be inferred by vd->buffer_count
 static int vcap_request_buffers(vcap_dev* vd, uint32_t buffer_count)
 {
     assert(vd);
@@ -1522,9 +1500,8 @@ static int vcap_request_buffers(vcap_dev* vd, uint32_t buffer_count)
     // Requests the specified number of buffers, returning the number of
     // available buffers
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-reqbufs.html
-    struct v4l2_requestbuffers req;
+    struct v4l2_requestbuffers req = { 0 };
 
-    VCAP_CLEAR(req);
     req.count = buffer_count;
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     req.memory = V4L2_MEMORY_MMAP;
@@ -1570,6 +1547,23 @@ static int vcap_init_stream(vcap_dev* vd)
     return VCAP_OK;
 }
 
+static int vcap_release_buffers(vcap_dev* vd)
+{
+    struct v4l2_requestbuffers req = { 0 };
+
+    req.count = 0;
+    req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    req.memory = V4L2_MEMORY_MMAP;
+
+	if (vcap_ioctl(vd->fd, VIDIOC_REQBUFS, &req) == -1)
+	{
+    	vcap_set_error_errno(vd, "Unable to request buffers on %s", vd->path);
+		return VCAP_ERROR;
+    }
+
+    return VCAP_OK;
+}
+
 static int vcap_shutdown_stream(vcap_dev* vd)
 {
     assert(vd);
@@ -1577,6 +1571,9 @@ static int vcap_shutdown_stream(vcap_dev* vd)
     if (vd->buffer_count > 0)
     {
         if (vcap_unmap_buffers(vd) == VCAP_ERROR)
+            return VCAP_ERROR;
+
+        if (vcap_release_buffers(vd) == VCAP_ERROR)
             return VCAP_ERROR;
     }
 
@@ -1591,9 +1588,8 @@ static int vcap_map_buffers(vcap_dev* vd)
      {
         // Query buffers, returning their size and other information
         // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-querybuf.html
-        struct v4l2_buffer buf;
+        struct v4l2_buffer buf = { 0 };
 
-        VCAP_CLEAR(buf);
         buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         buf.memory = V4L2_MEMORY_MMAP;
         buf.index = i;
@@ -1648,9 +1644,8 @@ static int vcap_queue_buffers(vcap_dev* vd)
     {
         // Places a buffer in the queue
         // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-qbuf.html
-        struct v4l2_buffer buf;
+        struct v4l2_buffer buf = { 0 };
 
-        VCAP_CLEAR(buf);
         buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         buf.memory = V4L2_MEMORY_MMAP;
         buf.index = i;
@@ -1682,11 +1677,11 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
         return VCAP_ERROR;
     }
 
-    struct v4l2_buffer buf;
-
 	// Dequeue buffer
-	// https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-qbuf.html
-    VCAP_CLEAR(buf);
+	// https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-qbuf.htm
+
+    struct v4l2_buffer buf = { 0 };
+l
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_MMAP;
 
@@ -1848,9 +1843,8 @@ static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
 
     // Enumerate formats
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-enum-fmt.html
-    struct v4l2_fmtdesc fmtd;
+    struct v4l2_fmtdesc fmtd = { 0 };
 
-    VCAP_CLEAR(fmtd);
     fmtd.index = index;
     fmtd.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
@@ -1895,9 +1889,8 @@ static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint3
 
     // Enumerate frame sizes
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-enum-framesizes.html
-    struct v4l2_frmsizeenum fenum;
+    struct v4l2_frmsizeenum fenum = { 0 };
 
-    VCAP_CLEAR(fenum);
     fenum.index = index;
     fenum.pixel_format = vcap_map_fmt(fmt);
 
@@ -1939,9 +1932,8 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
 
     // Enumerate frame rates
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-enum-frameintervals.html
-    struct v4l2_frmivalenum frenum;
+    struct v4l2_frmivalenum frenum = { 0 };
 
-    VCAP_CLEAR(frenum);
     frenum.index = index;
     frenum.pixel_format = vcap_map_fmt(fmt);
     frenum.width = size.width;
@@ -2046,9 +2038,8 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
     {
         // Query menu
         // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-queryctrl.html
-        struct v4l2_querymenu qmenu;
+        struct v4l2_querymenu qmenu = { 0 };
 
-        VCAP_CLEAR(qmenu);
         qmenu.id = vcap_map_ctrl(ctrl);
         qmenu.index = i;
 

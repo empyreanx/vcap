@@ -677,10 +677,12 @@ vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
 {
     assert(vd);
 
-    vcap_fmt_itr itr = { 0 };
-    itr.vd = vd;
-    itr.index = 0;
-    itr.result = vcap_enum_fmts(vd, &itr.info, 0);
+    vcap_fmt_itr itr =
+    {
+        .vd     = vd,
+        .index  = 0,
+        .result = vcap_enum_fmts(vd, &itr.info, 0),
+    };
 
     return itr;
 }
@@ -711,11 +713,13 @@ vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
 {
     assert(vd);
 
-    vcap_size_itr itr;
-    itr.vd = vd;
-    itr.fmt = fmt;
-    itr.index = 0;
-    itr.result = vcap_enum_sizes(vd, fmt, &itr.size, 0);
+    vcap_size_itr itr =
+    {
+        .vd     = vd,
+        .fmt    = fmt,
+        .index  = 0,
+        .result = vcap_enum_sizes(vd, fmt, &itr.size, 0),
+    };
 
     return itr;
 }
@@ -746,12 +750,14 @@ vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 {
     assert(vd);
 
-    vcap_rate_itr itr;
-    itr.vd = vd;
-    itr.fmt = fmt;
-    itr.size = size;
-    itr.index = 0;
-    itr.result = vcap_enum_rates(vd, fmt, size, &itr.rate, 0);
+    vcap_rate_itr itr =
+    {
+        .vd     = vd,
+        .fmt    = fmt,
+        .size   = size,
+        .index  = 0,
+        .result = vcap_enum_rates(vd, fmt, size, &itr.rate, 0),
+    };
 
     return itr;
 }
@@ -1062,10 +1068,12 @@ vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd)
 {
     assert(vd);
 
-    vcap_ctrl_itr itr = { 0 };
-    itr.vd = vd;
-    itr.index = 0;
-    itr.result = vcap_enum_ctrls(vd, &itr.info, 0);
+    vcap_ctrl_itr itr =
+    {
+        .vd     = vd,
+        .index  = 0,
+        .result = vcap_enum_ctrls(vd, &itr.info, 0),
+    };
 
     return itr;
 }
@@ -1096,11 +1104,13 @@ vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
     assert(vd);
 
-    vcap_menu_itr itr = { 0 };
-    itr.vd = vd;
-    itr.ctrl = ctrl;
-    itr.index = 0;
-    itr.result = vcap_enum_menu(vd, ctrl, &itr.item, 0);
+    vcap_menu_itr itr =
+    {
+        .vd     = vd,
+        .ctrl   = ctrl,
+        .index  = 0,
+        .result = vcap_enum_menu(vd, ctrl, &itr.item, 0),
+    };
 
     return itr;
 }

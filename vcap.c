@@ -1678,9 +1678,6 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
         return VCAP_ERROR;
     }
 
-	// Dequeue buffer
-	// https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-qbuf.htm
-
     fd_set fds;
     struct timeval tv;
 
@@ -1699,10 +1696,14 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
         if (result == -1)
         {
             if (EINTR == errno)
+            {
                 continue;
-
-            vcap_set_error_errno(vd, "Unable to read frame");
-            return VCAP_ERROR;
+            }
+            else
+            {
+                vcap_set_error_errno(vd, "Unable to read frame");
+                return VCAP_ERROR;
+            }
         }
 
         if (result == 0)
@@ -1710,7 +1711,6 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
             vcap_set_error(vd, "Timeout reached");
             return VCAP_ERROR;
         }
-
 
 	    // Dequeue buffer
 	    // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-qbuf.htm

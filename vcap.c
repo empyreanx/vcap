@@ -682,8 +682,8 @@ vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
 
     vcap_fmt_itr itr =
     {
-        .vd     = vd,
-        .index  = 0,
+        .vd = vd,
+        .index = 0,
         .result = vcap_enum_fmts(vd, &itr.info, 0),
     };
 
@@ -718,9 +718,9 @@ vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
 
     vcap_size_itr itr =
     {
-        .vd     = vd,
-        .fmt    = fmt,
-        .index  = 0,
+        .vd = vd,
+        .fmt = fmt,
+        .index = 0,
         .result = vcap_enum_sizes(vd, fmt, &itr.size, 0),
     };
 
@@ -755,10 +755,10 @@ vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 
     vcap_rate_itr itr =
     {
-        .vd     = vd,
-        .fmt    = fmt,
-        .size   = size,
-        .index  = 0,
+        .vd = vd,
+        .fmt = fmt,
+        .size = size,
+        .index = 0,
         .result = vcap_enum_rates(vd, fmt, size, &itr.rate, 0),
     };
 
@@ -1069,8 +1069,8 @@ vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd)
 
     vcap_ctrl_itr itr =
     {
-        .vd     = vd,
-        .index  = 0,
+        .vd = vd,
+        .index = 0,
         .result = vcap_enum_ctrls(vd, &itr.info, 0),
     };
 
@@ -1105,9 +1105,9 @@ vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
 
     vcap_menu_itr itr =
     {
-        .vd     = vd,
-        .ctrl   = ctrl,
-        .index  = 0,
+        .vd = vd,
+        .ctrl = ctrl,
+        .index = 0,
         .result = vcap_enum_menu(vd, ctrl, &itr.item, 0),
     };
 
@@ -1280,9 +1280,9 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
     }
 
     // Copy rectangle bounds
-    rect->top    = cropcap.bounds.top;
-    rect->left   = cropcap.bounds.left;
-    rect->width  = cropcap.bounds.width;
+    rect->top = cropcap.bounds.top;
+    rect->left = cropcap.bounds.left;
+    rect->width = cropcap.bounds.width;
     rect->height = cropcap.bounds.height;
 
     return VCAP_OK;
@@ -1351,9 +1351,9 @@ int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
         }
     }
 
-    rect->left   = crop.c.left;
-    rect->top    = crop.c.top;
-    rect->width  = crop.c.width;
+    rect->top = crop.c.top;
+    rect->left = crop.c.left;
+    rect->width = crop.c.width;
     rect->height = crop.c.height;
 
     return VCAP_OK;
@@ -1366,10 +1366,10 @@ int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-crop.html
     struct v4l2_crop crop = { 0 };
 
-    crop.type     = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    crop.c.left   = rect.left;
-    crop.c.top    = rect.top;
-    crop.c.width  = rect.width;
+    crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    crop.c.left = rect.left;
+    crop.c.top = rect.top;
+    crop.c.width = rect.width;
     crop.c.height = rect.height;
 
     if (vcap_ioctl(vd->fd, VIDIOC_S_CROP, &crop) == -1)

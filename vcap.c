@@ -830,10 +830,16 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 
     bool streaming = vcap_is_streaming(vd);
 
-    if (streaming && vcap_stop_stream(vd) == VCAP_ERROR)
-        return VCAP_ERROR;
+    /*if (streaming && vcap_stop_stream(vd) == VCAP_ERROR)
+        return VCAP_ERROR;*/
 
-    // TODO: Try format
+    // NOTE: Some cameras return a device busy signal when attempting to set
+    // the format on a device that was streaming. The only solution that seems
+    // to work is closing the camera and then reopening it.
+    vcap_close(vd);
+
+    if (vcap_open(vd) == VCAP_ERROR)
+        return VCAP_ERROR;
 
     // Specify desired format and set
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-fmt.html

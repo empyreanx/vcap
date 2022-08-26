@@ -91,7 +91,7 @@ static int vcap_video_device_filter(const struct dirent *a);
 static void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_dev_info* info);
 
 // Request a number of buffers for streaming
-static int vcap_request_buffers(vcap_dev* vd, uint32_t buffer_count);
+static int vcap_request_buffers(vcap_dev* vd);
 
 // Initialize streaming for the given device
 static int vcap_init_stream(vcap_dev* vd);
@@ -1505,8 +1505,7 @@ static void vcap_caps_to_info(const char* path, const struct v4l2_capability cap
     info->read = (bool)(caps.capabilities & V4L2_CAP_READWRITE);
 }
 
-// TODO: buffer_count can be inferred by vd->buffer_count
-static int vcap_request_buffers(vcap_dev* vd, uint32_t buffer_count)
+static int vcap_request_buffers(vcap_dev* vd)
 {
     assert(vd != NULL);
 
@@ -1515,7 +1514,7 @@ static int vcap_request_buffers(vcap_dev* vd, uint32_t buffer_count)
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-reqbufs.html
     struct v4l2_requestbuffers req = { 0 };
 
-    req.count  = buffer_count;
+    req.count  = vd->buffer_count;
     req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     req.memory = V4L2_MEMORY_MMAP;
 
@@ -1547,7 +1546,7 @@ static int vcap_init_stream(vcap_dev* vd)
 
     if (vd->buffer_count > 0)
     {
-        if (vcap_request_buffers(vd, vd->buffer_count) == VCAP_ERROR)
+        if (vcap_request_buffers(vd) == VCAP_ERROR)
             return VCAP_ERROR;
 
         if (vcap_map_buffers(vd) == VCAP_ERROR)

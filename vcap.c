@@ -830,12 +830,9 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 
     bool streaming = vcap_is_streaming(vd);
 
-    /*if (streaming && vcap_stop_stream(vd) == VCAP_ERROR)
-        return VCAP_ERROR;*/
-
     // NOTE: Some cameras return a device busy signal when attempting to set
-    // the format on a device that was streaming. The only solution that seems
-    // to work is closing the camera and then reopening it.
+    // a format on the device. The only solution that seems work is closing the
+    // device and then reopening it.
     vcap_close(vd);
 
     if (vcap_open(vd) == VCAP_ERROR)

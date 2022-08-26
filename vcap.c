@@ -830,9 +830,9 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 
     bool streaming = vcap_is_streaming(vd);
 
-    // NOTE: Some cameras return a device busy signal when attempting to set
-    // a format on the device. The only solution that seems work is closing the
-    // device and then reopening it.
+    // NOTE: Some cameras return a busy signal when attempting to set a format
+    // on the device. The only solution that seems work across multiple cameras
+    // is closing the device and then immediately reopening it.
     vcap_close(vd);
 
     if (vcap_open(vd) == VCAP_ERROR)
@@ -884,7 +884,7 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
 
     // NOTE: We swap the numerator and denominator because Vcap uses frame rates
     // instead of intervals.
-    rate->numerator = parm.parm.capture.timeperframe.denominator;
+    rate->numerator   = parm.parm.capture.timeperframe.denominator;
     rate->denominator = parm.parm.capture.timeperframe.numerator;
 
     return VCAP_OK;
@@ -907,7 +907,7 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
 
     // NOTE: We swap the numerator and denominator because Vcap uses frame rates
     // instead of intervals.
-    parm.parm.capture.timeperframe.numerator = rate.denominator;
+    parm.parm.capture.timeperframe.numerator   = rate.denominator;
     parm.parm.capture.timeperframe.denominator = rate.numerator;
 
     if(vcap_ioctl(vd->fd, VIDIOC_S_PARM, &parm) == -1)
@@ -2006,7 +2006,7 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
 
     // NOTE: We swap the numerator and denominator because Vcap uses frame rates
     // instead of intervals.
-    rate->numerator = frenum.discrete.denominator;
+    rate->numerator   = frenum.discrete.denominator;
     rate->denominator = frenum.discrete.numerator;
 
     return VCAP_OK;

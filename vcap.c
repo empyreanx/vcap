@@ -377,7 +377,7 @@ vcap_dev* vcap_create_device(const char* path, bool convert, uint32_t buffer_cou
 {
     assert(path != NULL);
 
-    vcap_dev* vd = vcap_malloc(sizeof(vcap_dev));
+    vcap_dev* vd = (vcap_dev*)vcap_malloc(sizeof(vcap_dev));
 
     if (!vd)
         return NULL; // Out of memory
@@ -1535,7 +1535,7 @@ static int vcap_request_buffers(vcap_dev* vd)
     vd->buffer_count = req.count;
 
     // Allocates the buffer objects
-    vd->buffers = vcap_malloc(req.count * sizeof(vcap_buffer));
+    vd->buffers = (vcap_buffer*)vcap_malloc(req.count * sizeof(vcap_buffer));
 
     return VCAP_OK;
 }

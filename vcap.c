@@ -190,7 +190,7 @@ void vcap_set_alloc(vcap_malloc_fn malloc_fp, vcap_free_fn free_fp)
 
 const char* vcap_get_error(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
     return vd->error_msg;
 }
 
@@ -202,7 +202,7 @@ const char* vcap_get_error(vcap_dev* vd)
 //
 int vcap_dump_info(vcap_dev* vd, FILE* file)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     vcap_dev_info info = { 0 };
     vcap_get_device_info(vd, &info);
@@ -328,7 +328,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
 // NOTE: This function requires the "free" function
 int vcap_enum_devices(uint32_t index, vcap_dev_info* info)
 {
-    assert(info);
+    assert(info != NULL);
 
     if (!info)
         return VCAP_ERROR;
@@ -372,7 +372,7 @@ int vcap_enum_devices(uint32_t index, vcap_dev_info* info)
 
 vcap_dev* vcap_create_device(const char* path, bool convert, uint32_t buffer_count)
 {
-    assert(path);
+    assert(path != NULL);
 
     vcap_dev* vd = vcap_malloc(sizeof(vcap_dev));
 
@@ -393,7 +393,7 @@ vcap_dev* vcap_create_device(const char* path, bool convert, uint32_t buffer_cou
 
 void vcap_destroy_device(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     if (vcap_is_open(vd))
         vcap_close(vd);
@@ -403,7 +403,7 @@ void vcap_destroy_device(vcap_dev* vd)
 
 int vcap_open(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     if (vcap_is_open(vd))
     {
@@ -496,7 +496,7 @@ int vcap_open(vcap_dev* vd)
 
 void vcap_close(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     if (!vcap_is_open(vd))
         return;
@@ -513,7 +513,7 @@ void vcap_close(vcap_dev* vd)
 
 int vcap_start_stream(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     if (vd->buffer_count > 0)
     {
@@ -544,7 +544,7 @@ int vcap_start_stream(vcap_dev* vd)
 
 int vcap_stop_stream(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     if (vd->buffer_count > 0)
     {
@@ -576,20 +576,20 @@ int vcap_stop_stream(vcap_dev* vd)
 
 bool vcap_is_open(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
     return vd->open;
 }
 
 bool vcap_is_streaming(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
     return vd->streaming;
 }
 
 int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info)
 {
-    assert(vd);
-    assert(info);
+    assert(vd != NULL);
+    assert(info != NULL);
 
     if (!info)
     {
@@ -604,7 +604,7 @@ int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info)
 
 size_t vcap_get_image_size(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-fmt.html
     struct v4l2_format fmt = { 0 };
@@ -622,8 +622,8 @@ size_t vcap_get_image_size(vcap_dev* vd)
 
 int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data)
 {
-    assert(vd);
-    assert(data);
+    assert(vd != NULL);
+    assert(data != NULL);
 
     if (!data)
     {
@@ -643,8 +643,8 @@ int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data)
 
 int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
 {
-    assert(vd);
-    assert(info);
+    assert(vd != NULL);
+    assert(info != NULL);
 
     if (!info)
     {
@@ -675,7 +675,7 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
 
 vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     vcap_fmt_itr itr =
     {
@@ -690,7 +690,7 @@ vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
 bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info)
 {
     assert(itr);
-    assert(info);
+    assert(info != NULL);
 
     if (!info)
     {
@@ -711,7 +711,7 @@ bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info)
 
 vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     vcap_size_itr itr =
     {
@@ -726,8 +726,8 @@ vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
 
 bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size)
 {
-    assert(itr);
-    assert(size);
+    assert(itr != NULL);
+    assert(size != NULL);
 
     if (!size)
     {
@@ -748,7 +748,7 @@ bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size)
 
 vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     vcap_rate_itr itr =
     {
@@ -764,8 +764,8 @@ vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 
 bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
 {
-    assert(itr);
-    assert(rate);
+    assert(itr != NULL);
+    assert(rate != NULL);
 
     if (!rate)
     {
@@ -786,8 +786,8 @@ bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
 
 int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
 {
-    assert(vd);
-    assert(size);
+    assert(vd != NULL);
+    assert(size != NULL);
 
     if (!fmt || !size)
     {
@@ -823,7 +823,7 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
 
 int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     // Ensure format ID is within the proper range
     assert(0 <= fmt && fmt < VCAP_FMT_COUNT);
@@ -868,8 +868,8 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 
 int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
 {
-    assert(vd);
-    assert(rate);
+    assert(vd != NULL);
+    assert(rate != NULL);
 
     if (!rate)
     {
@@ -898,7 +898,7 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
 
 int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     bool streaming = vcap_is_streaming(vd);
 
@@ -934,8 +934,8 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
 
 int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
 {
-    assert(vd);
-    assert(info);
+    assert(vd != NULL);
+    assert(info != NULL);
 
     // Ensure control ID is within the proper range
     assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
@@ -1002,8 +1002,8 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
 
 int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* status)
 {
-    assert(vd);
-    assert(status);
+    assert(vd != NULL);
+    assert(status != NULL);
 
     // Ensure control ID is within the proper range
     assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
@@ -1066,7 +1066,7 @@ int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* stat
 
 vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     vcap_ctrl_itr itr =
     {
@@ -1080,8 +1080,8 @@ vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd)
 
 bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info)
 {
-    assert(itr);
-    assert(info);
+    assert(itr != NULL);
+    assert(info != NULL);
 
     if (!info)
     {
@@ -1102,7 +1102,7 @@ bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info)
 
 vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     vcap_menu_itr itr =
     {
@@ -1117,8 +1117,8 @@ vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
 
 bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
 {
-    assert(itr);
-    assert(item);
+    assert(itr != NULL);
+    assert(item != NULL);
 
     if (!item)
     {
@@ -1139,8 +1139,8 @@ bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
 
 int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
 {
-    assert(vd);
-    assert(value);
+    assert(vd != NULL);
+    assert(value != NULL);
 
     // Ensure control ID is within the proper range
     assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
@@ -1175,7 +1175,7 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
 
 int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     // Ensure control ID is within the proper range
     assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
@@ -1205,7 +1205,7 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
 
 int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     vcap_ctrl_info info;
 
@@ -1225,7 +1225,7 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
 
 int vcap_reset_all_ctrls(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     // Loop over all controlsa
     for (vcap_ctrl_id ctrl = 0; ctrl < VCAP_CTRL_COUNT; ctrl++)
@@ -1256,8 +1256,8 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
 
 int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
 {
-    assert(vd);
-    assert(rect);
+    assert(vd != NULL);
+    assert(rect != NULL);
 
     if (!rect)
     {
@@ -1291,7 +1291,7 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
 
 int vcap_reset_crop(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-cropcap.html
     struct v4l2_cropcap cropcap = { 0 };
@@ -1324,8 +1324,8 @@ int vcap_reset_crop(vcap_dev* vd)
 
 int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
 {
-    assert(vd);
-    assert(rect);
+    assert(vd != NULL);
+    assert(rect != NULL);
 
     if (!rect)
     {
@@ -1362,7 +1362,7 @@ int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
 
 int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-crop.html
     struct v4l2_crop crop = { 0 };
@@ -1417,7 +1417,7 @@ static void vcap_fourcc_string(uint32_t code, uint8_t* str)
 
 static int vcap_ioctl(int fd, int request, void *arg)
 {
-    assert(arg);
+    assert(arg != NULL);
 
     int result;
 
@@ -1434,8 +1434,8 @@ static int vcap_ioctl(int fd, int request, void *arg)
 
 static int vcap_query_caps(const char* path, struct v4l2_capability* caps)
 {
-    assert(path);
-    assert(caps);
+    assert(path != NULL);
+    assert(caps != NULL);
 
     struct stat st;
     int fd = -1;
@@ -1475,7 +1475,7 @@ static int vcap_query_caps(const char* path, struct v4l2_capability* caps)
 
 static int vcap_video_device_filter(const struct dirent* a)
 {
-    assert(a);
+    assert(a != NULL);
 
     if (0 == strncmp(a->d_name, "video", 5))
         return 1;
@@ -1485,8 +1485,8 @@ static int vcap_video_device_filter(const struct dirent* a)
 
 static void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_dev_info* info)
 {
-    assert(path);
-    assert(info);
+    assert(path != NULL);
+    assert(info != NULL);
 
     // Copy device information
     vcap_strcpy(info->path, path, sizeof(info->path));
@@ -1509,7 +1509,7 @@ static void vcap_caps_to_info(const char* path, const struct v4l2_capability cap
 // TODO: buffer_count can be inferred by vd->buffer_count
 static int vcap_request_buffers(vcap_dev* vd, uint32_t buffer_count)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     // Requests the specified number of buffers, returning the number of
     // available buffers
@@ -1544,7 +1544,7 @@ static int vcap_request_buffers(vcap_dev* vd, uint32_t buffer_count)
 
 static int vcap_init_stream(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     if (vd->buffer_count > 0)
     {
@@ -1580,7 +1580,7 @@ static int vcap_release_buffers(vcap_dev* vd)
 
 static int vcap_shutdown_stream(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     if (vd->buffer_count > 0)
     {
@@ -1596,7 +1596,7 @@ static int vcap_shutdown_stream(vcap_dev* vd)
 
 static int vcap_map_buffers(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
      for (uint32_t i = 0; i < vd->buffer_count; i++)
      {
@@ -1631,7 +1631,7 @@ static int vcap_map_buffers(vcap_dev* vd)
 
 static int vcap_unmap_buffers(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     // Unmap and free buffers
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/func-munmap.html
@@ -1652,7 +1652,7 @@ static int vcap_unmap_buffers(vcap_dev* vd)
 
 static int vcap_queue_buffers(vcap_dev* vd)
 {
-    assert(vd);
+    assert(vd != NULL);
 
     for (uint32_t i = 0; i < vd->buffer_count; i++)
     {
@@ -1676,8 +1676,8 @@ static int vcap_queue_buffers(vcap_dev* vd)
 
 static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
 {
-    assert(vd);
-    assert(data);
+    assert(vd != NULL);
+    assert(data != NULL);
 
     if (!data)
     {
@@ -1765,8 +1765,8 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
 
 static int vcap_grab_read(vcap_dev* vd, size_t size, uint8_t* data)
 {
-    assert(vd);
-    assert(data);
+    assert(vd != NULL);
+    assert(data != NULL);
 
     if (!data)
     {
@@ -1824,30 +1824,30 @@ static int vcap_grab_read(vcap_dev* vd, size_t size, uint8_t* data)
 
 static void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size)
 {
-    assert(dst);
-    assert(src);
+    assert(dst != NULL);
+    assert(src != NULL);
 
     snprintf((char*)dst, size, "%s", (char*)src);
 }
 
 static void vcap_strcpy(char* dst, const char* src, size_t size)
 {
-    assert(dst);
-    assert(src);
+    assert(dst != NULL);
+    assert(src != NULL);
 
     snprintf(dst, size, "%s", src);
 }
 
 static void vcap_set_error_str(const char* func, int line, vcap_dev* vd, const char* fmt, ...)
 {
-    assert(vd);
-    assert(fmt);
+    assert(vd != NULL);
+    assert(fmt != NULL);
 
     char error_msg1[512];
     char error_msg2[512];
 
     snprintf(error_msg1, sizeof(error_msg1), "[%s:%d]", func, line);
-    assert(vd);
+    assert(vd != NULL);
 
     va_list args;
     va_start(args, fmt);
@@ -1859,8 +1859,8 @@ static void vcap_set_error_str(const char* func, int line, vcap_dev* vd, const c
 
 static void vcap_set_error_errno_str(const char* func, int line, vcap_dev* vd, const char* fmt, ...)
 {
-    assert(vd);
-    assert(fmt);
+    assert(vd != NULL);
+    assert(fmt != NULL);
 
     char error_msg1[512];
     char error_msg2[512];
@@ -1896,8 +1896,8 @@ static bool vcap_ctrl_type_supported(uint32_t type)
 
 static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
 {
-    assert(vd);
-    assert(info);
+    assert(vd != NULL);
+    assert(info != NULL);
 
     // Enumerate formats
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-enum-fmt.html
@@ -1933,8 +1933,8 @@ static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
 
 static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index)
 {
-    assert(vd);
-    assert(size);
+    assert(vd != NULL);
+    assert(size != NULL);
 
     // Ensure format ID is within the proper range
     assert(0 <= fmt && fmt < VCAP_FMT_COUNT);
@@ -1976,8 +1976,8 @@ static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint3
 
 static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index)
 {
-    assert(vd);
-    assert(rate);
+    assert(vd != NULL);
+    assert(rate != NULL);
 
     // Ensure format ID is within the proper range
     assert(0 <= fmt && fmt < VCAP_FMT_COUNT);
@@ -2024,8 +2024,8 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
 
 static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
 {
-    assert(vd);
-    assert(info);
+    assert(vd != NULL);
+    assert(info != NULL);
 
     int count = 0;
 
@@ -2051,8 +2051,8 @@ static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
 
 static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index)
 {
-    assert(vd);
-    assert(item);
+    assert(vd != NULL);
+    assert(item != NULL);
 
     // Ensure control ID is within the proper range
     assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);

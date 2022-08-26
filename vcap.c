@@ -310,9 +310,9 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             while (vcap_menu_itr_next(&menu_itr, &menu_item))
             {
                 if (ctrl_info.type == VCAP_CTRL_TYPE_MENU)
-                    printf("      %i : %s\n", menu_item.index, menu_item.name);
+                    printf("      %i : %s\n", menu_item.index, menu_item.data.name);
                 else
-                    printf("      %i : %li\n", menu_item.index, menu_item.value);
+                    printf("      %i : %li\n", menu_item.index, menu_item.data.value);
             }
 
             // Check for errors during menu iteration
@@ -822,9 +822,9 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     assert(vd != NULL);
 
     // Ensure format ID is within the proper range
-    assert(0 <= fmt && fmt < VCAP_FMT_COUNT);
+    assert(fmt < VCAP_FMT_COUNT);
 
-    if (fmt < 0 || fmt >= VCAP_FMT_COUNT)
+    if (fmt >= VCAP_FMT_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
         return VCAP_ERROR;
@@ -935,9 +935,9 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     assert(info != NULL);
 
     // Ensure control ID is within the proper range
-    assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
+    assert(ctrl < VCAP_CTRL_COUNT);
 
-    if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
+    if (ctrl >= VCAP_CTRL_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
         return VCAP_ERROR;
@@ -1005,9 +1005,9 @@ int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* stat
     assert(status != NULL);
 
     // Ensure control ID is within the proper range
-    assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
+    assert(ctrl < VCAP_CTRL_COUNT);
 
-    if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
+    if (ctrl >= VCAP_CTRL_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
         return VCAP_ERROR;
@@ -1142,9 +1142,9 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
     assert(value != NULL);
 
     // Ensure control ID is within the proper range
-    assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
+    assert(ctrl < VCAP_CTRL_COUNT);
 
-    if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
+    if (ctrl >= VCAP_CTRL_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
         return VCAP_ERROR;
@@ -1177,9 +1177,9 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
     assert(vd != NULL);
 
     // Ensure control ID is within the proper range
-    assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
+    assert(ctrl < VCAP_CTRL_COUNT);
 
-    if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
+    if (ctrl >= VCAP_CTRL_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
         return VCAP_ERROR;
@@ -1939,9 +1939,9 @@ static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint3
     assert(size != NULL);
 
     // Ensure format ID is within the proper range
-    assert(0 <= fmt && fmt < VCAP_FMT_COUNT);
+    assert(fmt < VCAP_FMT_COUNT);
 
-    if (fmt < 0 || fmt >= VCAP_FMT_COUNT)
+    if (fmt >= VCAP_FMT_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
         return VCAP_ERROR;
@@ -1982,9 +1982,9 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
     assert(rate != NULL);
 
     // Ensure format ID is within the proper range
-    assert(0 <= fmt && fmt < VCAP_FMT_COUNT);
+    assert(fmt < VCAP_FMT_COUNT);
 
-    if (fmt < 0 || fmt >= VCAP_FMT_COUNT)
+    if (fmt >= VCAP_FMT_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
         return VCAP_ERROR;
@@ -2029,7 +2029,7 @@ static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
     assert(vd != NULL);
     assert(info != NULL);
 
-    int count = 0;
+    uint32_t count = 0;
 
     // Enuemrate user controls
     for (vcap_ctrl_id ctrl = 0; ctrl < VCAP_CTRL_COUNT; ctrl++)
@@ -2057,9 +2057,9 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
     assert(item != NULL);
 
     // Ensure control ID is within the proper range
-    assert(0 <= ctrl && ctrl < VCAP_CTRL_COUNT);
+    assert(ctrl < VCAP_CTRL_COUNT);
 
-    if (ctrl < 0 || ctrl >= VCAP_CTRL_COUNT)
+    if (ctrl >= VCAP_CTRL_COUNT)
     {
         vcap_set_error(vd, "Invalid argument (out of range)");
         return VCAP_ERROR;
@@ -2085,7 +2085,7 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
         return VCAP_ERROR;
     }
 
-    if (index < info.min || index > info.max)
+    if (index < (uint32_t)info.min || index > (uint32_t)info.max)
     {
         return VCAP_INVALID;
     }
@@ -2121,9 +2121,9 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
             item->index = i;
 
             if (info.type == VCAP_CTRL_TYPE_MENU)
-                vcap_ustrcpy(item->name, qmenu.name, sizeof(item->name));
+                vcap_ustrcpy(item->data.name, qmenu.name, sizeof(item->data.name));
             else
-                item->value = qmenu.value;
+                item->data.value = qmenu.value;
 
             return VCAP_OK;
         }

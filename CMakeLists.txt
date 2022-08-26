@@ -26,7 +26,7 @@ else()
     add_definitions(-g)
 endif()
 
-add_definitions(-Wall -std=c99 -D_GNU_SOURCE)
+add_definitions(-std=c99 -Wall -Wextra -D_GNU_SOURCE) #-pedantic
 
 # Add souce files
 file(GLOB SOURCE_FILES

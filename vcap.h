@@ -169,7 +169,7 @@ typedef struct
     {
         uint8_t name[32];       ///< Menu item name (used if control type is VCAP_CTRL_TYPE_MENU)
         int64_t value;          ///< Menu item value (used if control type is VCAP_CTRL_TYPE_INTEGER_MENU)
-    };
+    } data;
 
 } vcap_menu_item;
 
@@ -460,7 +460,7 @@ vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Advances the specified format iterator
+/// \brief  Advances a format iterator
 ///
 /// Copies the current format information into 'info' and advances the iterator.
 ///
@@ -488,7 +488,7 @@ vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Advances the specified frame size iterator
+/// \brief  Advances a frame size iterator
 ///
 /// Copies the current frame size into 'size' and advances the iterator.
 ///
@@ -517,7 +517,7 @@ vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Advances the specified frame rate iterator
+/// \brief  Advances a frame rate iterator
 ///
 /// Copies the current frame rate into 'rate' and advances the iterator.
 ///
@@ -644,7 +644,7 @@ vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Advances the specified control iterator
+/// \brief  Advances a control iterator
 ///
 /// Copies the current control information into 'info' and advances the iterator.
 ///
@@ -672,7 +672,7 @@ vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Advances the specified menu iterator
+/// \brief  Advances a menu iterator
 ///
 /// Copies the current menu item into 'item' and advances the iterator.
 ///

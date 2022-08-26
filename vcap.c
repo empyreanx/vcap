@@ -2202,7 +2202,7 @@ static uint32_t ctrl_type_map[] = {
     V4L2_CTRL_TYPE_BUTTON
 };
 
-static char* ctrl_type_str_map[] = {
+static const char* ctrl_type_str_map[] = {
     "Integer",
     "Boolean",
     "Menu",

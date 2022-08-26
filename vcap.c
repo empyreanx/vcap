@@ -838,6 +838,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     // Specify desired format and set
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-fmt.html
     struct v4l2_format sfmt = { 0 };
+
     sfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     sfmt.fmt.pix.width = size.width;
     sfmt.fmt.pix.height = size.height;
@@ -1680,15 +1681,59 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
 	// Dequeue buffer
 	// https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-qbuf.htm
 
-    struct v4l2_buffer buf = { 0 };
-l
-    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    buf.memory = V4L2_MEMORY_MMAP;
+    fd_set fds;
+    struct timeval tv;
 
-    if (vcap_ioctl(vd->fd, VIDIOC_DQBUF, &buf) == -1)
+    FD_ZERO(&fds);
+    FD_SET(vd->fd, &fds);
+
+    tv.tv_sec  = 1;
+    tv.tv_usec = 0;
+
+    struct v4l2_buffer buf = { 0 };
+
+    while (true)
     {
-        vcap_set_error_errno(vd, "Could not dequeue buffer on %s", vd->path);
-        return VCAP_ERROR;
+        int result = select(vd->fd + 1, &fds, NULL, NULL, &tv);
+
+        if (result == -1)
+        {
+            if (EINTR == errno)
+                continue;
+
+            vcap_set_error_errno(vd, "Unable to read frame");
+            return VCAP_ERROR;
+        }
+
+        if (result == 0)
+        {
+            vcap_set_error(vd, "Timeout reached");
+            return VCAP_ERROR;
+        }
+
+
+	    // Dequeue buffer
+	    // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-qbuf.htm
+
+        buf = (struct v4l2_buffer){ 0 };
+
+        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.memory = V4L2_MEMORY_MMAP;
+
+        if (vcap_ioctl(vd->fd, VIDIOC_DQBUF, &buf) == -1)
+        {
+            if (errno == EAGAIN)
+            {
+                continue;
+            }
+            else
+            {
+                vcap_set_error_errno(vd, "Could not dequeue buffer on %s", vd->path);
+                return VCAP_ERROR;
+            }
+        }
+
+        break;
     }
 
     // Copy buffer data

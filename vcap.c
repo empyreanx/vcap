@@ -844,7 +844,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-fmt.html
     struct v4l2_format sfmt = { 0 };
 
-    sfmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    sfmt.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     sfmt.fmt.pix.pixelformat = vcap_map_fmt(fmt);
     sfmt.fmt.pix.width       = size.width;
     sfmt.fmt.pix.height      = size.height;
@@ -1566,9 +1566,9 @@ static int vcap_release_buffers(vcap_dev* vd)
 
     struct v4l2_requestbuffers req = { 0 };
 
-    req.count  = 0;
     req.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     req.memory = V4L2_MEMORY_MMAP;
+    req.count  = 0;
 
 	if (vcap_ioctl(vd->fd, VIDIOC_REQBUFS, &req) == -1)
 	{
@@ -1775,7 +1775,6 @@ static int vcap_grab_read(vcap_dev* vd, size_t size, uint8_t* data)
         return VCAP_ERROR;
     }
 
-
     fd_set fds;
     struct timeval tv;
 
@@ -1792,10 +1791,14 @@ static int vcap_grab_read(vcap_dev* vd, size_t size, uint8_t* data)
         if (result == -1)
         {
             if (EINTR == errno)
+            {
                 continue;
-
-            vcap_set_error_errno(vd, "Unable to read frame");
-            return VCAP_ERROR;
+            }
+            else
+            {
+                vcap_set_error_errno(vd, "Unable to read frame");
+                return VCAP_ERROR;
+            }
         }
 
         if (result == 0)
@@ -1848,7 +1851,6 @@ static void vcap_set_error_str(const char* func, int line, vcap_dev* vd, const c
     char error_msg2[512];
 
     snprintf(error_msg1, sizeof(error_msg1), "[%s:%d]", func, line);
-    assert(vd != NULL);
 
     va_list args;
     va_start(args, fmt);

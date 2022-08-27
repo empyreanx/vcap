@@ -422,7 +422,7 @@ vcap_itr* vcap_new_fmt_itr(vcap_dev* vd);
 /// \returns false if there was an error or there are no more formats, and true
 ///          otherwise
 ///
-bool vcap_fmt_itr_next(vcap_itr* itr, vcap_fmt_info* info);
+bool vcap_next_fmt(vcap_itr* itr, vcap_fmt_info* info);
 
 //------------------------------------------------------------------------------
 ///
@@ -450,7 +450,7 @@ vcap_itr* vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt);
 /// \returns false if there was an error or there are no more sizes, and true
 ///          otherwise
 ///
-bool vcap_size_itr_next(vcap_itr* itr, vcap_size* size);
+bool vcap_next_size(vcap_itr* itr, vcap_size* size);
 
 //------------------------------------------------------------------------------
 ///
@@ -479,7 +479,7 @@ vcap_itr* vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
 /// \returns false if there was an error or there are no more sizes, and true
 ///          otherwise
 ///
-bool vcap_rate_itr_next(vcap_itr* itr, vcap_rate* rate);
+bool vcap_next_rate(vcap_itr* itr, vcap_rate* rate);
 
 //------------------------------------------------------------------------------
 ///
@@ -606,7 +606,7 @@ vcap_itr* vcap_new_ctrl_itr(vcap_dev* vd);
 /// \returns false if there was an error or there are no more controls, and true
 ///          otherwise
 ///
-bool vcap_ctrl_itr_next(vcap_itr* itr, vcap_ctrl_info* info);
+bool vcap_next_ctrl(vcap_itr* itr, vcap_ctrl_info* info);
 
 //------------------------------------------------------------------------------
 ///
@@ -634,7 +634,7 @@ vcap_itr* vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl);
 /// \returns false if there was an error or there are no more menu items, and
 ///          true otherwise
 ///
-bool vcap_menu_itr_next(vcap_itr* itr, vcap_menu_item* item);
+bool vcap_next_menu_item(vcap_itr* itr, vcap_menu_item* item);
 
 //------------------------------------------------------------------------------
 ///

@@ -313,7 +313,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     vcap_itr* fmt_itr = vcap_new_fmt_itr(vd);
     vcap_fmt_info fmt_info;
 
-    while (vcap_fmt_itr_next(fmt_itr, &fmt_info))
+    while (vcap_next_fmt(fmt_itr, &fmt_info))
     {
         fprintf(file, "------------------------------------------------\n");
         fprintf(file, "Format: %s, FourCC: %s\n", fmt_info.name, fmt_info.fourcc);
@@ -325,7 +325,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
         vcap_itr* size_itr = vcap_new_size_itr(vd, fmt_info.id);
         vcap_size size;
 
-        while (vcap_size_itr_next(size_itr, &size))
+        while (vcap_next_size(size_itr, &size))
         {
             fprintf(file, "   %u x %u: ", size.width, size.height);
             fprintf(file, "(Frame rates:");
@@ -336,7 +336,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             vcap_itr* rate_itr = vcap_new_rate_itr(vd, fmt_info.id, size);
             vcap_rate rate;
 
-            while (vcap_rate_itr_next(rate_itr, &rate))
+            while (vcap_next_rate(rate_itr, &rate))
             {
                 fprintf(file, " %u/%u", rate.numerator, rate.denominator);
             }
@@ -383,7 +383,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     vcap_itr* ctrl_itr = vcap_new_ctrl_itr(vd);
     vcap_ctrl_info ctrl_info;
 
-    while (vcap_ctrl_itr_next(ctrl_itr, &ctrl_info))
+    while (vcap_next_ctrl(ctrl_itr, &ctrl_info))
     {
         printf("   Name: %s, Type: %s\n", ctrl_info.name, ctrl_info.type_name);
 
@@ -397,7 +397,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             vcap_itr* menu_itr = vcap_new_menu_itr(vd, ctrl_info.id);
             vcap_menu_item menu_item;
 
-            while (vcap_menu_itr_next(menu_itr, &menu_item))
+            while (vcap_next_menu_item(menu_itr, &menu_item))
             {
                 if (ctrl_info.type == VCAP_CTRL_TYPE_MENU)
                     printf("      %i : %s\n", menu_item.index, menu_item.data.name);
@@ -792,7 +792,7 @@ vcap_itr* vcap_new_fmt_itr(vcap_dev* vd)
     return itr;
 }
 
-bool vcap_fmt_itr_next(vcap_itr* itr, vcap_fmt_info* info)
+bool vcap_next_fmt(vcap_itr* itr, vcap_fmt_info* info)
 {
     assert(itr != NULL);
     assert(info != NULL);
@@ -830,7 +830,7 @@ vcap_itr* vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
     return itr;
 }
 
-bool vcap_size_itr_next(vcap_itr* itr, vcap_size* size)
+bool vcap_next_size(vcap_itr* itr, vcap_size* size)
 {
     assert(itr != NULL);
     assert(size != NULL);
@@ -869,7 +869,7 @@ vcap_itr* vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     return itr;
 }
 
-bool vcap_rate_itr_next(vcap_itr* itr, vcap_rate* rate)
+bool vcap_next_rate(vcap_itr* itr, vcap_rate* rate)
 {
     assert(itr != NULL);
     assert(rate != NULL);
@@ -1188,7 +1188,7 @@ vcap_itr* vcap_new_ctrl_itr(vcap_dev* vd)
     return itr;
 }
 
-bool vcap_ctrl_itr_next(vcap_itr* itr, vcap_ctrl_info* info)
+bool vcap_next_ctrl(vcap_itr* itr, vcap_ctrl_info* info)
 {
     assert(itr != NULL);
     assert(info != NULL);
@@ -1226,7 +1226,7 @@ vcap_itr* vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
     return itr;
 }
 
-bool vcap_menu_itr_next(vcap_itr* itr, vcap_menu_item* item)
+bool vcap_next_menu_item(vcap_itr* itr, vcap_menu_item* item)
 {
     assert(itr != NULL);
     assert(item != NULL);

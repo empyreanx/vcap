@@ -210,6 +210,8 @@ typedef void* (*vcap_malloc_fn)(size_t size);
 ///
 typedef void  (*vcap_free_fn)(void* ptr);
 
+bool vcap_itr_next(vcap_itr* itr, void* value);
+
 //------------------------------------------------------------------------------
 ///
 /// \brief  Set a custom 'malloc' and 'free' function

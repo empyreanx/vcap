@@ -256,6 +256,14 @@ const char* vcap_get_error(vcap_dev* vd)
     return vd->error_msg;
 }
 
+void vcap_free_itr(vcap_itr* itr)
+{
+    if (!itr)
+        return;
+
+    vcap_free(itr);
+}
+
 //
 // Prints device information. The implementation of this function is very
 // pedantic in terms of error checking. Every error condition is checked and
@@ -329,19 +337,37 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             }
 
             if (vcap_itr_error(rate_itr))
+            {
+                vcap_free_itr(fmt_itr);
+                vcap_free_itr(size_itr);
+                vcap_free_itr(rate_itr);
                 return VCAP_ERROR;
+            }
+
+            vcap_free_itr(rate_itr);
 
             fprintf(file, ")\n");
         }
 
         // Check for errors during frame size iteration
         if (vcap_itr_error(size_itr))
+        {
+            vcap_free_itr(fmt_itr);
+            vcap_free_itr(size_itr);
             return VCAP_ERROR;
+        }
+
+       vcap_free_itr(size_itr);
     }
 
     // Check for errors during format iteration
     if (vcap_itr_error(fmt_itr))
+    {
+        vcap_free_itr(fmt_itr);
         return VCAP_ERROR;
+    }
+
+    vcap_free_itr(fmt_itr);
 
     //==========================================================================
     // Enumerate controls
@@ -376,13 +402,24 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
 
             // Check for errors during menu iteration
             if (vcap_itr_error(menu_itr))
+            {
+                vcap_free_itr(ctrl_itr);
+                vcap_free_itr(menu_itr);
                 return VCAP_ERROR;
+            }
+
+            vcap_free_itr(menu_itr);
         }
     }
 
     // Check for errors during control iteration
     if (vcap_itr_error(ctrl_itr))
+    {
+        vcap_free_itr(ctrl_itr);
         return VCAP_ERROR;
+    }
+
+    vcap_free_itr(ctrl_itr);
 
     return VCAP_OK;
 }

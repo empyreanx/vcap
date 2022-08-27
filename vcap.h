@@ -185,80 +185,17 @@ typedef struct
     int32_t height;             ///< Height of rectangle
 } vcap_rect;
 
-//
-// Iterators
-//
-/*typedef struct vcap_fmt_itr  vcap_fmt_itr;
-typedef struct vcap_size_itr vcap_size_itr;
-typedef struct vcap_rate_itr vcap_rate_itr;
-typedef struct vcap_ctrl_itr vcap_ctrl_itr;
-typedef struct vcap_menu_itr vcap_menu_itr;*/
-
-//
-// Control iterator (internal use only)
-//
-typedef struct
-{
-    vcap_dev* vd;
-    uint32_t index;
-    int result;
-    vcap_ctrl_info info;
-} vcap_ctrl_itr;
-
-//
-// Menu iterator (internal use only)
-//
-typedef struct
-{
-    vcap_dev* vd;
-    vcap_ctrl_id ctrl;
-    uint32_t index;
-    int result;
-    vcap_menu_item item;
-} vcap_menu_itr;
-
-//
-// Format iterator (internal use only)
-//
-typedef struct
-{
-    vcap_dev* vd;
-    uint32_t index;
-    int result;
-    vcap_fmt_info info;
-} vcap_fmt_itr;
-
-//
-// Size iterator (internal use only)
-//
-typedef struct
-{
-    vcap_dev* vd;
-    vcap_fmt_id fmt;
-    uint32_t index;
-    int result;
-    vcap_size size;
-} vcap_size_itr;
-
-//
-// Frame rate iterator (internal use only)
-//
-typedef struct
-{
-    vcap_dev* vd;
-    vcap_fmt_id fmt;
-    vcap_size size;
-    uint32_t index;
-    int result;
-    vcap_rate rate;
-} vcap_rate_itr;
-
+///
+/// \brief Generic iterator type
+///
 typedef struct vcap_itr vcap_itr;
 
 ///
 /// \brief Generic iterator error test
 ///
 #define vcap_itr_error(itr) (VCAP_ERROR == (itr)->result)
+
+void vcap_free_itr(vcap_itr* itr);
 
 ///
 /// \brief Custom malloc function type

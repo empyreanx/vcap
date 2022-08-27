@@ -84,7 +84,7 @@ struct vcap_itr
 {
     vcap_itr_type type;
 
-    vcap_dev* dev;
+    vcap_dev* vd;
     uint32_t index;
     int result;
 
@@ -118,7 +118,7 @@ struct vcap_itr
             vcap_ctrl_id ctrl;
             vcap_menu_item item;
         } menu;
-    };
+    } data;
 };
 
 //==============================================================================
@@ -736,22 +736,25 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
     return VCAP_INVALID;
 }
 
-vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
+vcap_itr* vcap_new_fmt_itr(vcap_dev* vd)
 {
     assert(vd != NULL);
 
-    vcap_fmt_itr itr;
-    itr.vd = vd,
-    itr.index = 0,
-    itr.result = vcap_enum_fmts(vd, &itr.info, 0);
+    vcap_itr* itr = (vcap_itr*)vcap_malloc(sizeof(vcap_itr));
+
+    itr->type = VCAP_ITR_FMT;
+    itr->vd = vd;
+    itr->index = 0;
+    itr->result = vcap_enum_fmts(itr->vd, &itr->data.fmt.info, ++itr->index);
 
     return itr;
 }
 
-bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info)
+bool vcap_fmt_itr_next(vcap_itr* itr, vcap_fmt_info* info)
 {
     assert(itr != NULL);
     assert(info != NULL);
+    assert(itr->type == VCAP_ITR_FMT);
 
     if (!info)
     {
@@ -763,30 +766,33 @@ bool vcap_fmt_itr_next(vcap_fmt_itr* itr, vcap_fmt_info* info)
     if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
         return false;
 
-    *info = itr->info;
+    *info = itr->data.fmt.info;
 
-    itr->result = vcap_enum_fmts(itr->vd, &itr->info, ++itr->index);
+    itr->result = vcap_enum_fmts(itr->vd, &itr->data.fmt.info, ++itr->index);
 
     return true;
 }
 
-vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
+vcap_itr* vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
 {
     assert(vd != NULL);
 
-    vcap_size_itr itr;
-    itr.vd = vd,
-    itr.fmt = fmt,
-    itr.index = 0,
-    itr.result = vcap_enum_sizes(vd, fmt, &itr.size, 0);
+    vcap_itr* itr = (vcap_itr*)vcap_malloc(sizeof(vcap_itr));
+
+    itr->type = VCAP_ITR_SIZE;
+    itr->vd = vd;
+    itr->index = 0;
+    itr->data.size.fmt = fmt;
+    itr->result = vcap_enum_sizes(itr->vd, fmt, &itr->data.size.size, ++itr->index);
 
     return itr;
 }
 
-bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size)
+bool vcap_size_itr_next(vcap_itr* itr, vcap_size* size)
 {
     assert(itr != NULL);
     assert(size != NULL);
+    assert(itr->type == VCAP_ITR_SIZE);
 
     if (!size)
     {
@@ -798,32 +804,34 @@ bool vcap_size_itr_next(vcap_size_itr* itr, vcap_size* size)
     if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
         return false;
 
-    *size = itr->size;
+    *size = itr->data.size.size;
 
-    itr->result = vcap_enum_sizes(itr->vd, itr->fmt, &itr->size, ++itr->index);
+    itr->result = vcap_enum_sizes(itr->vd, itr->data.size.fmt, &itr->data.size.size, ++itr->index);
 
     return true;
 }
 
-vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
+vcap_itr* vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 {
     assert(vd != NULL);
 
-    vcap_rate_itr itr;
+    vcap_itr* itr = (vcap_itr*)vcap_malloc(sizeof(vcap_itr));
 
-    itr.vd = vd,
-    itr.fmt = fmt,
-    itr.size = size,
-    itr.index = 0,
-    itr.result = vcap_enum_rates(vd, fmt, size, &itr.rate, 0);
+    itr->type = VCAP_ITR_RATE;
+    itr->vd = vd;
+    itr->index = 0;
+    itr->data.rate.fmt = fmt;
+    itr->data.rate.size = size;
+    itr->result = vcap_enum_rates(vd, fmt, size, &itr->data.rate.rate, 0);
 
     return itr;
 }
 
-bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
+bool vcap_rate_itr_next(vcap_itr* itr, vcap_rate* rate)
 {
     assert(itr != NULL);
     assert(rate != NULL);
+    assert(itr->type == VCAP_ITR_RATE);
 
     if (!rate)
     {
@@ -835,9 +843,9 @@ bool vcap_rate_itr_next(vcap_rate_itr* itr, vcap_rate* rate)
     if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
         return false;
 
-    *rate = itr->rate;
+    *rate = itr->data.rate.rate;
 
-    itr->result = vcap_enum_rates(itr->vd, itr->fmt, itr->size, &itr->rate, ++itr->index);
+    itr->result = vcap_enum_rates(itr->vd, itr->data.rate.fmt, itr->data.rate.size, &itr->data.rate.rate, ++itr->index);
 
     return true;
 }
@@ -1124,23 +1132,25 @@ int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* stat
     return VCAP_OK;
 }
 
-vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd)
+vcap_itr* vcap_new_ctrl_itr(vcap_dev* vd)
 {
     assert(vd != NULL);
 
-    vcap_ctrl_itr itr;
+    vcap_itr* itr = (vcap_itr*)vcap_malloc(sizeof(vcap_itr));
 
-    itr.vd = vd,
-    itr.index = 0,
-    itr.result = vcap_enum_ctrls(vd, &itr.info, 0);
+    itr->type = VCAP_ITR_CTRL;
+    itr->vd = vd;
+    itr->index = 0;
+    itr->result = vcap_enum_ctrls(vd, &itr->data.ctrl.info, 0);
 
     return itr;
 }
 
-bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info)
+bool vcap_ctrl_itr_next(vcap_itr* itr, vcap_ctrl_info* info)
 {
     assert(itr != NULL);
     assert(info != NULL);
+    assert(itr->type == VCAP_ITR_CTRL);
 
     if (!info)
     {
@@ -1152,31 +1162,33 @@ bool vcap_ctrl_itr_next(vcap_ctrl_itr* itr, vcap_ctrl_info* info)
     if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
         return false;
 
-    *info = itr->info;
+    *info = itr->data.ctrl.info;
 
-    itr->result = vcap_enum_ctrls(itr->vd, &itr->info, ++itr->index);
+    itr->result = vcap_enum_ctrls(itr->vd, &itr->data.ctrl.info, ++itr->index);
 
     return true;
 }
 
-vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
+vcap_itr* vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
     assert(vd != NULL);
 
-    vcap_menu_itr itr;
+    vcap_itr* itr = (vcap_itr*)vcap_malloc(sizeof(vcap_itr));
 
-    itr.vd = vd,
-    itr.ctrl = ctrl,
-    itr.index = 0,
-    itr.result = vcap_enum_menu(vd, ctrl, &itr.item, 0);
+    itr->type = VCAP_ITR_MENU;
+    itr->vd = vd;
+    itr->index = 0;
+    itr->data.menu.ctrl = ctrl;
+    itr->result = vcap_enum_menu(vd, ctrl, &itr->data.menu.item, 0);
 
     return itr;
 }
 
-bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
+bool vcap_menu_itr_next(vcap_itr* itr, vcap_menu_item* item)
 {
     assert(itr != NULL);
     assert(item != NULL);
+    assert(itr->type == VCAP_ITR_MENU);
 
     if (!item)
     {
@@ -1188,9 +1200,9 @@ bool vcap_menu_itr_next(vcap_menu_itr* itr, vcap_menu_item* item)
     if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
         return false;
 
-    *item = itr->item;
+    *item = itr->data.menu.item;
 
-    itr->result = vcap_enum_menu(itr->vd, itr->ctrl, &itr->item, ++itr->index);
+    itr->result = vcap_enum_menu(itr->vd, itr->data.menu.ctrl, &itr->data.menu.item, ++itr->index);
 
     return true;
 }

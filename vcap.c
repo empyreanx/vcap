@@ -256,6 +256,11 @@ const char* vcap_get_error(vcap_dev* vd)
     return vd->error_msg;
 }
 
+bool vcap_itr_error(vcap_itr* itr)
+{
+    return itr->result == VCAP_ERROR;
+}
+
 void vcap_free_itr(vcap_itr* itr)
 {
     if (!itr)

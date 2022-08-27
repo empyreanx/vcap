@@ -193,8 +193,11 @@ typedef struct vcap_itr vcap_itr;
 ///
 /// \brief Generic iterator error test
 ///
-#define vcap_itr_error(itr) (VCAP_ERROR == (itr)->result)
+bool vcap_itr_error(vcap_itr* itr);
 
+///
+/// \brief Dealocates an iterator
+///
 void vcap_free_itr(vcap_itr* itr);
 
 ///

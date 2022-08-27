@@ -269,6 +269,52 @@ void vcap_free_itr(vcap_itr* itr)
     vcap_free(itr);
 }
 
+bool vcap_itr_next(vcap_itr* itr, void* value)
+{
+    assert(itr != NULL);
+    assert(value != NULL);
+
+    if (!value)
+    {
+        vcap_set_error(itr->vd, "Argument can't be null");
+        itr->result = VCAP_ERROR;
+        return false;
+    }
+
+    if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
+        return false;
+
+    switch (itr->type)
+    {
+        case VCAP_ITR_FMT:
+            *(vcap_fmt_info*)value = itr->data.fmt.info;
+            itr->result = vcap_enum_fmts(itr->vd, &itr->data.fmt.info, ++itr->index);
+            break;
+
+        case VCAP_ITR_SIZE:
+            *(vcap_size*)value = itr->data.size.size;
+            vcap_enum_sizes(itr->vd, itr->data.size.fmt, &itr->data.size.size, ++itr->index);
+            break;
+
+        case VCAP_ITR_RATE:
+            *(vcap_rate*)value = itr->data.rate.rate;
+            vcap_enum_rates(itr->vd, itr->data.rate.fmt, itr->data.rate.size, &itr->data.rate.rate, ++itr->index);
+            break;
+
+        case VCAP_ITR_CTRL:
+            *(vcap_ctrl_info*)value = itr->data.ctrl.info;
+            vcap_enum_ctrls(itr->vd, &itr->data.ctrl.info, ++itr->index);
+            break;
+
+        case VCAP_ITR_MENU:
+            *(vcap_menu_item*)value = itr->data.menu.item;
+            itr->result = vcap_enum_menu(itr->vd, itr->data.menu.ctrl, &itr->data.menu.item, ++itr->index);
+            break;
+    }
+
+    return true;
+}
+
 //
 // Prints device information. The implementation of this function is very
 // pedantic in terms of error checking. Every error condition is checked and
@@ -313,7 +359,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     vcap_itr* fmt_itr = vcap_new_fmt_itr(vd);
     vcap_fmt_info fmt_info;
 
-    while (vcap_next_fmt(fmt_itr, &fmt_info))
+    while (vcap_itr_next(fmt_itr, &fmt_info))
     {
         fprintf(file, "------------------------------------------------\n");
         fprintf(file, "Format: %s, FourCC: %s\n", fmt_info.name, fmt_info.fourcc);
@@ -325,7 +371,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
         vcap_itr* size_itr = vcap_new_size_itr(vd, fmt_info.id);
         vcap_size size;
 
-        while (vcap_next_size(size_itr, &size))
+        while (vcap_itr_next(size_itr, &size))
         {
             fprintf(file, "   %u x %u: ", size.width, size.height);
             fprintf(file, "(Frame rates:");
@@ -336,7 +382,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             vcap_itr* rate_itr = vcap_new_rate_itr(vd, fmt_info.id, size);
             vcap_rate rate;
 
-            while (vcap_next_rate(rate_itr, &rate))
+            while (vcap_itr_next(rate_itr, &rate))
             {
                 fprintf(file, " %u/%u", rate.numerator, rate.denominator);
             }
@@ -383,7 +429,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     vcap_itr* ctrl_itr = vcap_new_ctrl_itr(vd);
     vcap_ctrl_info ctrl_info;
 
-    while (vcap_next_ctrl(ctrl_itr, &ctrl_info))
+    while (vcap_itr_next(ctrl_itr, &ctrl_info))
     {
         printf("   Name: %s, Type: %s\n", ctrl_info.name, ctrl_info.type_name);
 
@@ -397,7 +443,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             vcap_itr* menu_itr = vcap_new_menu_itr(vd, ctrl_info.id);
             vcap_menu_item menu_item;
 
-            while (vcap_next_menu_item(menu_itr, &menu_item))
+            while (vcap_itr_next(menu_itr, &menu_item))
             {
                 if (ctrl_info.type == VCAP_CTRL_TYPE_MENU)
                     printf("      %i : %s\n", menu_item.index, menu_item.data.name);
@@ -792,29 +838,6 @@ vcap_itr* vcap_new_fmt_itr(vcap_dev* vd)
     return itr;
 }
 
-bool vcap_next_fmt(vcap_itr* itr, vcap_fmt_info* info)
-{
-    assert(itr != NULL);
-    assert(info != NULL);
-    assert(itr->type == VCAP_ITR_FMT);
-
-    if (!info)
-    {
-        vcap_set_error(itr->vd, "Argument can't be null");
-        itr->result = VCAP_ERROR;
-        return false;
-    }
-
-    if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
-        return false;
-
-    *info = itr->data.fmt.info;
-
-    itr->result = vcap_enum_fmts(itr->vd, &itr->data.fmt.info, ++itr->index);
-
-    return true;
-}
-
 vcap_itr* vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
 {
     assert(vd != NULL);
@@ -828,29 +851,6 @@ vcap_itr* vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
     itr->result = vcap_enum_sizes(itr->vd, fmt, &itr->data.size.size, ++itr->index);
 
     return itr;
-}
-
-bool vcap_next_size(vcap_itr* itr, vcap_size* size)
-{
-    assert(itr != NULL);
-    assert(size != NULL);
-    assert(itr->type == VCAP_ITR_SIZE);
-
-    if (!size)
-    {
-        vcap_set_error(itr->vd, "Argument can't be null");
-        itr->result = VCAP_ERROR;
-        return false;
-    }
-
-    if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
-        return false;
-
-    *size = itr->data.size.size;
-
-    itr->result = vcap_enum_sizes(itr->vd, itr->data.size.fmt, &itr->data.size.size, ++itr->index);
-
-    return true;
 }
 
 vcap_itr* vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
@@ -867,29 +867,6 @@ vcap_itr* vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     itr->result = vcap_enum_rates(vd, fmt, size, &itr->data.rate.rate, 0);
 
     return itr;
-}
-
-bool vcap_next_rate(vcap_itr* itr, vcap_rate* rate)
-{
-    assert(itr != NULL);
-    assert(rate != NULL);
-    assert(itr->type == VCAP_ITR_RATE);
-
-    if (!rate)
-    {
-        vcap_set_error(itr->vd, "Argument can't be null");
-        itr->result = VCAP_ERROR;
-        return false;
-    }
-
-    if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
-        return false;
-
-    *rate = itr->data.rate.rate;
-
-    itr->result = vcap_enum_rates(itr->vd, itr->data.rate.fmt, itr->data.rate.size, &itr->data.rate.rate, ++itr->index);
-
-    return true;
 }
 
 int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
@@ -1188,29 +1165,6 @@ vcap_itr* vcap_new_ctrl_itr(vcap_dev* vd)
     return itr;
 }
 
-bool vcap_next_ctrl(vcap_itr* itr, vcap_ctrl_info* info)
-{
-    assert(itr != NULL);
-    assert(info != NULL);
-    assert(itr->type == VCAP_ITR_CTRL);
-
-    if (!info)
-    {
-        vcap_set_error(itr->vd, "Argument can't be null");
-        itr->result = VCAP_ERROR;
-        return false;
-    }
-
-    if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
-        return false;
-
-    *info = itr->data.ctrl.info;
-
-    itr->result = vcap_enum_ctrls(itr->vd, &itr->data.ctrl.info, ++itr->index);
-
-    return true;
-}
-
 vcap_itr* vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
     assert(vd != NULL);
@@ -1224,29 +1178,6 @@ vcap_itr* vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
     itr->result = vcap_enum_menu(vd, ctrl, &itr->data.menu.item, 0);
 
     return itr;
-}
-
-bool vcap_next_menu_item(vcap_itr* itr, vcap_menu_item* item)
-{
-    assert(itr != NULL);
-    assert(item != NULL);
-    assert(itr->type == VCAP_ITR_MENU);
-
-    if (!item)
-    {
-        vcap_set_error(itr->vd, "Argument can't be null");
-        itr->result = VCAP_ERROR;
-        return false;
-    }
-
-    if (itr->result == VCAP_INVALID || itr->result == VCAP_ERROR)
-        return false;
-
-    *item = itr->data.menu.item;
-
-    itr->result = vcap_enum_menu(itr->vd, itr->data.menu.ctrl, &itr->data.menu.item, ++itr->index);
-
-    return true;
 }
 
 int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)

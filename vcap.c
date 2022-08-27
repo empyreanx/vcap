@@ -293,17 +293,17 @@ bool vcap_itr_next(vcap_itr* itr, void* value)
 
         case VCAP_ITR_SIZE:
             *(vcap_size*)value = itr->data.size.size;
-            itr->result =vcap_enum_sizes(itr->vd, itr->data.size.fmt, &itr->data.size.size, ++itr->index);
+            itr->result = vcap_enum_sizes(itr->vd, itr->data.size.fmt, &itr->data.size.size, ++itr->index);
             break;
 
         case VCAP_ITR_RATE:
             *(vcap_rate*)value = itr->data.rate.rate;
-            itr->result =vcap_enum_rates(itr->vd, itr->data.rate.fmt, itr->data.rate.size, &itr->data.rate.rate, ++itr->index);
+            itr->result = vcap_enum_rates(itr->vd, itr->data.rate.fmt, itr->data.rate.size, &itr->data.rate.rate, ++itr->index);
             break;
 
         case VCAP_ITR_CTRL:
             *(vcap_ctrl_info*)value = itr->data.ctrl.info;
-            itr->result =vcap_enum_ctrls(itr->vd, &itr->data.ctrl.info, ++itr->index);
+            itr->result = vcap_enum_ctrls(itr->vd, &itr->data.ctrl.info, ++itr->index);
             break;
 
         case VCAP_ITR_MENU:

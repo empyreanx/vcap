@@ -79,7 +79,7 @@ static void vcap_free(void* ptr);
 static void vcap_fourcc_string(uint32_t code, uint8_t* str);
 
 // Extended ioctl function
-static int vcap_ioctl(int fd, int request, void *arg);
+static int vcap_ioctl(int fd, long unsigned request, void *arg);
 
 // Query device capabilities, used in device enumeration
 static int vcap_query_caps(const char* path, struct v4l2_capability* caps);
@@ -684,12 +684,10 @@ vcap_fmt_itr vcap_new_fmt_itr(vcap_dev* vd)
 {
     assert(vd != NULL);
 
-    vcap_fmt_itr itr =
-    {
-        .vd = vd,
-        .index = 0,
-        .result = vcap_enum_fmts(vd, &itr.info, 0),
-    };
+    vcap_fmt_itr itr;
+    itr.vd = vd,
+    itr.index = 0,
+    itr.result = vcap_enum_fmts(vd, &itr.info, 0);
 
     return itr;
 }
@@ -720,13 +718,11 @@ vcap_size_itr vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
 {
     assert(vd != NULL);
 
-    vcap_size_itr itr =
-    {
-        .vd = vd,
-        .fmt = fmt,
-        .index = 0,
-        .result = vcap_enum_sizes(vd, fmt, &itr.size, 0),
-    };
+    vcap_size_itr itr;
+    itr.vd = vd,
+    itr.fmt = fmt,
+    itr.index = 0,
+    itr.result = vcap_enum_sizes(vd, fmt, &itr.size, 0);
 
     return itr;
 }
@@ -757,14 +753,13 @@ vcap_rate_itr vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
 {
     assert(vd != NULL);
 
-    vcap_rate_itr itr =
-    {
-        .vd = vd,
-        .fmt = fmt,
-        .size = size,
-        .index = 0,
-        .result = vcap_enum_rates(vd, fmt, size, &itr.rate, 0),
-    };
+    vcap_rate_itr itr;
+
+    itr.vd = vd,
+    itr.fmt = fmt,
+    itr.size = size,
+    itr.index = 0,
+    itr.result = vcap_enum_rates(vd, fmt, size, &itr.rate, 0);
 
     return itr;
 }
@@ -1077,12 +1072,11 @@ vcap_ctrl_itr vcap_new_ctrl_itr(vcap_dev* vd)
 {
     assert(vd != NULL);
 
-    vcap_ctrl_itr itr =
-    {
-        .vd = vd,
-        .index = 0,
-        .result = vcap_enum_ctrls(vd, &itr.info, 0),
-    };
+    vcap_ctrl_itr itr;
+
+    itr.vd = vd,
+    itr.index = 0,
+    itr.result = vcap_enum_ctrls(vd, &itr.info, 0);
 
     return itr;
 }
@@ -1113,13 +1107,12 @@ vcap_menu_itr vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
 {
     assert(vd != NULL);
 
-    vcap_menu_itr itr =
-    {
-        .vd = vd,
-        .ctrl = ctrl,
-        .index = 0,
-        .result = vcap_enum_menu(vd, ctrl, &itr.item, 0),
-    };
+    vcap_menu_itr itr;
+
+    itr.vd = vd,
+    itr.ctrl = ctrl,
+    itr.index = 0,
+    itr.result = vcap_enum_menu(vd, ctrl, &itr.item, 0);
 
     return itr;
 }
@@ -1431,7 +1424,7 @@ static void vcap_fourcc_string(uint32_t code, uint8_t* str)
     str[4] = '\0';
 }
 
-static int vcap_ioctl(int fd, int request, void *arg)
+static int vcap_ioctl(int fd, long unsigned request, void *arg)
 {
     assert(arg != NULL);
 
@@ -1441,7 +1434,7 @@ static int vcap_ioctl(int fd, int request, void *arg)
 
     do
     {
-        result = v4l2_ioctl(fd, request, arg);
+        result = v4l2_ioctl(fd, (int)request, arg);
     }
     while (result == -1 && (errno == EINTR || errno == EAGAIN));
 

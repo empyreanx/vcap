@@ -297,10 +297,10 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     //==========================================================================
     // Enumerate formats
     //==========================================================================
-    vcap_fmt_itr fmt_itr = vcap_new_fmt_itr(vd);
+    vcap_itr* fmt_itr = vcap_new_fmt_itr(vd);
     vcap_fmt_info fmt_info;
 
-    while (vcap_fmt_itr_next(&fmt_itr, &fmt_info))
+    while (vcap_fmt_itr_next(fmt_itr, &fmt_info))
     {
         fprintf(file, "------------------------------------------------\n");
         fprintf(file, "Format: %s, FourCC: %s\n", fmt_info.name, fmt_info.fourcc);
@@ -309,10 +309,10 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
         //======================================================================
         // Enumerate sizes
         //======================================================================
-        vcap_size_itr size_itr = vcap_new_size_itr(vd, fmt_info.id);
+        vcap_itr* size_itr = vcap_new_size_itr(vd, fmt_info.id);
         vcap_size size;
 
-        while (vcap_size_itr_next(&size_itr, &size))
+        while (vcap_size_itr_next(size_itr, &size))
         {
             fprintf(file, "   %u x %u: ", size.width, size.height);
             fprintf(file, "(Frame rates:");
@@ -320,27 +320,27 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             //==================================================================
             // Enumerate frame rates
             //==================================================================
-            vcap_rate_itr rate_itr = vcap_new_rate_itr(vd, fmt_info.id, size);
+            vcap_itr* rate_itr = vcap_new_rate_itr(vd, fmt_info.id, size);
             vcap_rate rate;
 
-            while (vcap_rate_itr_next(&rate_itr, &rate))
+            while (vcap_rate_itr_next(rate_itr, &rate))
             {
                 fprintf(file, " %u/%u", rate.numerator, rate.denominator);
             }
 
-            if (vcap_itr_error(&rate_itr))
+            if (vcap_itr_error(rate_itr))
                 return VCAP_ERROR;
 
             fprintf(file, ")\n");
         }
 
         // Check for errors during frame size iteration
-        if (vcap_itr_error(&size_itr))
+        if (vcap_itr_error(size_itr))
             return VCAP_ERROR;
     }
 
     // Check for errors during format iteration
-    if (vcap_itr_error(&fmt_itr))
+    if (vcap_itr_error(fmt_itr))
         return VCAP_ERROR;
 
     //==========================================================================
@@ -349,10 +349,10 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     fprintf(file, "------------------------------------------------\n");
     fprintf(file, "Controls:\n");
 
-    vcap_ctrl_itr ctrl_itr = vcap_new_ctrl_itr(vd);
+    vcap_itr* ctrl_itr = vcap_new_ctrl_itr(vd);
     vcap_ctrl_info ctrl_info;
 
-    while (vcap_ctrl_itr_next(&ctrl_itr, &ctrl_info))
+    while (vcap_ctrl_itr_next(ctrl_itr, &ctrl_info))
     {
         printf("   Name: %s, Type: %s\n", ctrl_info.name, ctrl_info.type_name);
 
@@ -363,10 +363,10 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             //==================================================================
             // Enumerate menu
             //==================================================================
-            vcap_menu_itr menu_itr = vcap_new_menu_itr(vd, ctrl_info.id);
+            vcap_itr* menu_itr = vcap_new_menu_itr(vd, ctrl_info.id);
             vcap_menu_item menu_item;
 
-            while (vcap_menu_itr_next(&menu_itr, &menu_item))
+            while (vcap_menu_itr_next(menu_itr, &menu_item))
             {
                 if (ctrl_info.type == VCAP_CTRL_TYPE_MENU)
                     printf("      %i : %s\n", menu_item.index, menu_item.data.name);
@@ -375,13 +375,13 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             }
 
             // Check for errors during menu iteration
-            if (vcap_itr_error(&menu_itr))
+            if (vcap_itr_error(menu_itr))
                 return VCAP_ERROR;
         }
     }
 
     // Check for errors during control iteration
-    if (vcap_itr_error(&ctrl_itr))
+    if (vcap_itr_error(ctrl_itr))
         return VCAP_ERROR;
 
     return VCAP_OK;

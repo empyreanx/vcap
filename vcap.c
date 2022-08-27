@@ -65,6 +65,62 @@ struct vcap_dev
     struct v4l2_capability caps;
 };
 
+//
+// Iterator type
+//
+typedef enum
+{
+    VCAP_ITR_FMT,
+    VCAP_ITR_SIZE,
+    VCAP_ITR_RATE,
+    VCAP_ITR_CTRL,
+    VCAP_ITR_MENU,
+} vcap_itr_type;
+
+//
+// Generic iterator
+//
+struct vcap_itr
+{
+    vcap_itr_type type;
+
+    vcap_dev* dev;
+    uint32_t index;
+    int result;
+
+    union
+    {
+        struct
+        {
+            vcap_fmt_info info;
+        } fmt;
+
+        struct
+        {
+            vcap_fmt_id fmt;
+            vcap_size size;
+        } size;
+
+        struct
+        {
+            vcap_fmt_id fmt;
+            vcap_size size;
+            vcap_rate rate;
+        } rate;
+
+        struct
+        {
+            vcap_ctrl_info info;
+        } ctrl;
+
+        struct
+        {
+            vcap_ctrl_id ctrl;
+            vcap_menu_item item;
+        } menu;
+    };
+};
+
 //==============================================================================
 // Internal function declarations
 //==============================================================================

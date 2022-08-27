@@ -253,6 +253,8 @@ typedef struct
     vcap_rate rate;
 } vcap_rate_itr;
 
+typedef struct vcap_itr vcap_itr;
+
 ///
 /// \brief Generic iterator error test
 ///

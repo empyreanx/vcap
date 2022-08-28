@@ -52,7 +52,7 @@ typedef struct
 //
 // Video device definition
 //
-struct vcap_dev
+struct vcap_device
 {
     int fd;
     char path[512];
@@ -80,11 +80,11 @@ typedef enum
 //
 // Generic iterator
 //
-struct vcap_itr
+struct vcap_iterator
 {
     vcap_itr_type type;
 
-    vcap_dev* vd;
+    vcap_device* vd;
     uint32_t index;
     int result;
 
@@ -92,30 +92,30 @@ struct vcap_itr
     {
         struct
         {
-            vcap_fmt_info info;
+            vcap_format_info info;
         } fmt;
 
         struct
         {
-            vcap_fmt_id fmt;
+            vcap_format_id fmt;
             vcap_size size;
         } size;
 
         struct
         {
-            vcap_fmt_id fmt;
+            vcap_format_id fmt;
             vcap_size size;
             vcap_rate rate;
         } rate;
 
         struct
         {
-            vcap_ctrl_info info;
+            vcap_control_info info;
         } ctrl;
 
         struct
         {
-            vcap_ctrl_id ctrl;
+            vcap_control_id ctrl;
             vcap_menu_item item;
         } menu;
     } data;
@@ -144,34 +144,34 @@ static int vcap_query_caps(const char* path, struct v4l2_capability* caps);
 static int vcap_video_device_filter(const struct dirent *a);
 
 // Convert device capabilities into device info struct
-static void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_dev_info* info);
+static void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_device_info* info);
 
 // Request a number of buffers for streaming
-static int vcap_request_buffers(vcap_dev* vd);
+static int vcap_request_buffers(vcap_device* vd);
 
 // Initialize streaming for the given device
-static int vcap_init_stream(vcap_dev* vd);
+static int vcap_init_stream(vcap_device* vd);
 
 // Instructs V4L2 to dispose of any buffers
-static int vcap_release_buffers(vcap_dev* vd);
+static int vcap_release_buffers(vcap_device* vd);
 
 // Shutdown stream for given device
-static int vcap_shutdown_stream(vcap_dev* vd);
+static int vcap_shutdown_stream(vcap_device* vd);
 
 // Map memory buffers
-static int vcap_map_buffers(vcap_dev* vd);
+static int vcap_map_buffers(vcap_device* vd);
 
 // Unmap memory buffers
-static int vcap_unmap_buffers(vcap_dev* vd);
+static int vcap_unmap_buffers(vcap_device* vd);
 
 // Queue mapped buffers
-static int vcap_queue_buffers(vcap_dev* vd);
+static int vcap_queue_buffers(vcap_device* vd);
 
 // Grab a frame using memory-mapped buffers
-static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data);
+static int vcap_grab_mmap(vcap_device* vd, size_t size, uint8_t* data);
 
 // Grab a frame using a direct read call
-static int vcap_grab_read(vcap_dev* vd, size_t size, uint8_t* data);
+static int vcap_grab_read(vcap_device* vd, size_t size, uint8_t* data);
 
 // Safe unsigned string copy
 static void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size);
@@ -180,46 +180,46 @@ static void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size);
 static void vcap_strcpy(char* dst, const char* src, size_t size);
 
 // Set error message for specified device
-static void vcap_set_error_str(const char* func, int line, vcap_dev* vd, const char* fmt, ...);
+static void vcap_set_error_str(const char* func, int line, vcap_device* vd, const char* fmt, ...);
 
 // Set error message (including errno infomation) for specified device
-static void vcap_set_error_errno_str(const char* func, int line, vcap_dev* vd, const char* fmt, ...);
+static void vcap_set_error_errno_str(const char* func, int line, vcap_device* vd, const char* fmt, ...);
 
 // Converts a V4L2 control ID to VCAP control ID
-static vcap_ctrl_id vcap_convert_ctrl(uint32_t id);
+static vcap_control_id vcap_convert_ctrl(uint32_t id);
 
 // Converts a VCAP control ID to the corresponding V4L2 control ID
-static uint32_t vcap_map_ctrl(vcap_ctrl_id id);
+static uint32_t vcap_map_ctrl(vcap_control_id id);
 
 // Converts a V4L2 control type ID to VCAP control type ID
-static vcap_ctrl_type vcap_convert_ctrl_type(uint32_t type);
+static vcap_control_type vcap_convert_ctrl_type(uint32_t type);
 
 // Returns true if control type is supported
 static bool vcap_ctrl_type_supported(uint32_t type);
 
 // Return string describing a control type
-static const char* vcap_ctrl_type_str(vcap_ctrl_type id);
+static const char* vcap_ctrl_type_str(vcap_control_type id);
 
 // Enumerates formats
-static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index);
+static int vcap_enum_fmts(vcap_device* vd, vcap_format_info* info, uint32_t index);
 
 // Enumerates frame sizes for the given format
-static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index);
+static int vcap_enum_sizes(vcap_device* vd, vcap_format_id fmt, vcap_size* size, uint32_t index);
 
 // Enumerates frame rates for the given format and frame size
-static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index);
+static int vcap_enum_rates(vcap_device* vd, vcap_format_id fmt, vcap_size size, vcap_rate* rate, uint32_t index);
 
 // Enumerates camera controls
-static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index);
+static int vcap_enum_ctrls(vcap_device* vd, vcap_control_info* info, uint32_t index);
 
 // Enumerates a menu for the given control
-static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index);
+static int vcap_enum_menu(vcap_device* vd, vcap_control_id ctrl, vcap_menu_item* item, uint32_t index);
 
 // Converts a V4L2 format ID to a VCAP format ID
-static vcap_fmt_id vcap_convert_fmt(uint32_t id);
+static vcap_format_id vcap_convert_fmt(uint32_t id);
 
 // Converts a VCAP format ID to a V4L2 ID
-static uint32_t vcap_map_fmt(vcap_fmt_id id);
+static uint32_t vcap_map_fmt(vcap_format_id id);
 
 // Global malloc function pointer
 static vcap_malloc_fn global_malloc_fp = malloc;
@@ -250,18 +250,18 @@ void vcap_set_alloc(vcap_malloc_fn malloc_fp, vcap_free_fn free_fp)
     global_free_fp = free_fp;
 }
 
-const char* vcap_get_error(vcap_dev* vd)
+const char* vcap_get_error(vcap_device* vd)
 {
     assert(vd != NULL);
     return vd->error_msg;
 }
 
-bool vcap_itr_error(vcap_itr* itr)
+bool vcap_iterator_error(vcap_iterator* itr)
 {
     return itr->result == VCAP_ERROR;
 }
 
-void vcap_free_itr(vcap_itr* itr)
+void vcap_free_iterator(vcap_iterator* itr)
 {
     if (!itr)
         return;
@@ -269,7 +269,7 @@ void vcap_free_itr(vcap_itr* itr)
     vcap_free(itr);
 }
 
-bool vcap_itr_next(vcap_itr* itr, void* value)
+bool vcap_next(vcap_iterator* itr, void* value)
 {
     assert(itr != NULL);
     assert(value != NULL);
@@ -287,7 +287,7 @@ bool vcap_itr_next(vcap_itr* itr, void* value)
     switch (itr->type)
     {
         case VCAP_ITR_FMT:
-            *(vcap_fmt_info*)value = itr->data.fmt.info;
+            *(vcap_format_info*)value = itr->data.fmt.info;
             itr->result = vcap_enum_fmts(itr->vd, &itr->data.fmt.info, ++itr->index);
             break;
 
@@ -302,7 +302,7 @@ bool vcap_itr_next(vcap_itr* itr, void* value)
             break;
 
         case VCAP_ITR_CTRL:
-            *(vcap_ctrl_info*)value = itr->data.ctrl.info;
+            *(vcap_control_info*)value = itr->data.ctrl.info;
             itr->result = vcap_enum_ctrls(itr->vd, &itr->data.ctrl.info, ++itr->index);
             break;
 
@@ -321,11 +321,11 @@ bool vcap_itr_next(vcap_itr* itr, void* value)
 // reported. A user application may choose to ignore some error cases, trading
 // a little robustness for some convenience.
 //
-int vcap_dump_info(vcap_dev* vd, FILE* file)
+int vcap_dump_info(vcap_device* vd, FILE* file)
 {
     assert(vd != NULL);
 
-    vcap_dev_info info;
+    vcap_device_info info;
     vcap_get_device_info(vd, &info);
 
     //==========================================================================
@@ -356,10 +356,10 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     //==========================================================================
     // Enumerate formats
     //==========================================================================
-    vcap_itr* fmt_itr = vcap_new_fmt_itr(vd);
-    vcap_fmt_info fmt_info;
+    vcap_iterator* fmt_itr = vcap_format_iterator(vd);
+    vcap_format_info fmt_info;
 
-    while (vcap_itr_next(fmt_itr, &fmt_info))
+    while (vcap_next(fmt_itr, &fmt_info))
     {
         fprintf(file, "------------------------------------------------\n");
         fprintf(file, "Format: %s, FourCC: %s\n", fmt_info.name, fmt_info.fourcc);
@@ -368,10 +368,10 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
         //======================================================================
         // Enumerate sizes
         //======================================================================
-        vcap_itr* size_itr = vcap_new_size_itr(vd, fmt_info.id);
+        vcap_iterator* size_itr = vcap_size_iterator(vd, fmt_info.id);
         vcap_size size;
 
-        while (vcap_itr_next(size_itr, &size))
+        while (vcap_next(size_itr, &size))
         {
             fprintf(file, "   %u x %u: ", size.width, size.height);
             fprintf(file, "(Frame rates:");
@@ -379,46 +379,46 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             //==================================================================
             // Enumerate frame rates
             //==================================================================
-            vcap_itr* rate_itr = vcap_new_rate_itr(vd, fmt_info.id, size);
+            vcap_iterator* rate_itr = vcap_rate_iterator(vd, fmt_info.id, size);
             vcap_rate rate;
 
-            while (vcap_itr_next(rate_itr, &rate))
+            while (vcap_next(rate_itr, &rate))
             {
                 fprintf(file, " %u/%u", rate.numerator, rate.denominator);
             }
 
-            if (vcap_itr_error(rate_itr))
+            if (vcap_iterator_error(rate_itr))
             {
-                vcap_free_itr(fmt_itr);
-                vcap_free_itr(size_itr);
-                vcap_free_itr(rate_itr);
+                vcap_free_iterator(fmt_itr);
+                vcap_free_iterator(size_itr);
+                vcap_free_iterator(rate_itr);
                 return VCAP_ERROR;
             }
 
-            vcap_free_itr(rate_itr);
+            vcap_free_iterator(rate_itr);
 
             fprintf(file, ")\n");
         }
 
         // Check for errors during frame size iteration
-        if (vcap_itr_error(size_itr))
+        if (vcap_iterator_error(size_itr))
         {
-            vcap_free_itr(fmt_itr);
-            vcap_free_itr(size_itr);
+            vcap_free_iterator(fmt_itr);
+            vcap_free_iterator(size_itr);
             return VCAP_ERROR;
         }
 
-       vcap_free_itr(size_itr);
+       vcap_free_iterator(size_itr);
     }
 
     // Check for errors during format iteration
-    if (vcap_itr_error(fmt_itr))
+    if (vcap_iterator_error(fmt_itr))
     {
-        vcap_free_itr(fmt_itr);
+        vcap_free_iterator(fmt_itr);
         return VCAP_ERROR;
     }
 
-    vcap_free_itr(fmt_itr);
+    vcap_free_iterator(fmt_itr);
 
     //==========================================================================
     // Enumerate controls
@@ -426,10 +426,10 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
     fprintf(file, "------------------------------------------------\n");
     fprintf(file, "Controls:\n");
 
-    vcap_itr* ctrl_itr = vcap_new_ctrl_itr(vd);
-    vcap_ctrl_info ctrl_info;
+    vcap_iterator* ctrl_itr = vcap_control_iterator(vd);
+    vcap_control_info ctrl_info;
 
-    while (vcap_itr_next(ctrl_itr, &ctrl_info))
+    while (vcap_next(ctrl_itr, &ctrl_info))
     {
         printf("   Name: %s, Type: %s\n", ctrl_info.name, ctrl_info.type_name);
 
@@ -440,10 +440,10 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             //==================================================================
             // Enumerate menu
             //==================================================================
-            vcap_itr* menu_itr = vcap_new_menu_itr(vd, ctrl_info.id);
+            vcap_iterator* menu_itr = vcap_menu_iterator(vd, ctrl_info.id);
             vcap_menu_item menu_item;
 
-            while (vcap_itr_next(menu_itr, &menu_item))
+            while (vcap_next(menu_itr, &menu_item))
             {
                 if (ctrl_info.type == VCAP_CTRL_TYPE_MENU)
                     printf("      %i : %s\n", menu_item.index, menu_item.data.name);
@@ -452,31 +452,31 @@ int vcap_dump_info(vcap_dev* vd, FILE* file)
             }
 
             // Check for errors during menu iteration
-            if (vcap_itr_error(menu_itr))
+            if (vcap_iterator_error(menu_itr))
             {
-                vcap_free_itr(ctrl_itr);
-                vcap_free_itr(menu_itr);
+                vcap_free_iterator(ctrl_itr);
+                vcap_free_iterator(menu_itr);
                 return VCAP_ERROR;
             }
 
-            vcap_free_itr(menu_itr);
+            vcap_free_iterator(menu_itr);
         }
     }
 
     // Check for errors during control iteration
-    if (vcap_itr_error(ctrl_itr))
+    if (vcap_iterator_error(ctrl_itr))
     {
-        vcap_free_itr(ctrl_itr);
+        vcap_free_iterator(ctrl_itr);
         return VCAP_ERROR;
     }
 
-    vcap_free_itr(ctrl_itr);
+    vcap_free_iterator(ctrl_itr);
 
     return VCAP_OK;
 }
 
 // NOTE: This function requires the "free" function
-int vcap_enum_devices(uint32_t index, vcap_dev_info* info)
+int vcap_enumerate_devices(uint32_t index, vcap_device_info* info)
 {
     assert(info != NULL);
 
@@ -520,16 +520,16 @@ int vcap_enum_devices(uint32_t index, vcap_dev_info* info)
     return VCAP_INVALID;
 }
 
-vcap_dev* vcap_create_device(const char* path, bool convert, uint32_t buffer_count)
+vcap_device* vcap_create_device(const char* path, bool convert, uint32_t buffer_count)
 {
     assert(path != NULL);
 
-    vcap_dev* vd = (vcap_dev*)vcap_malloc(sizeof(vcap_dev));
+    vcap_device* vd = (vcap_device*)vcap_malloc(sizeof(vcap_device));
 
     if (!vd)
         return NULL; // Out of memory
 
-    memset(vd, 0, sizeof(vcap_dev));
+    memset(vd, 0, sizeof(vcap_device));
 
     vd->fd = -1;
     vd->buffer_count = buffer_count;
@@ -541,7 +541,7 @@ vcap_dev* vcap_create_device(const char* path, bool convert, uint32_t buffer_cou
     return vd;
 }
 
-void vcap_destroy_device(vcap_dev* vd)
+void vcap_destroy_device(vcap_device* vd)
 {
     assert(vd != NULL);
 
@@ -551,7 +551,7 @@ void vcap_destroy_device(vcap_dev* vd)
     vcap_free(vd);
 }
 
-int vcap_open(vcap_dev* vd)
+int vcap_open(vcap_device* vd)
 {
     assert(vd != NULL);
 
@@ -644,7 +644,7 @@ int vcap_open(vcap_dev* vd)
     return VCAP_OK;
 }
 
-void vcap_close(vcap_dev* vd)
+void vcap_close(vcap_device* vd)
 {
     assert(vd != NULL);
 
@@ -661,7 +661,7 @@ void vcap_close(vcap_dev* vd)
     vd->open = false;
 }
 
-int vcap_start_stream(vcap_dev* vd)
+int vcap_start_stream(vcap_device* vd)
 {
     assert(vd != NULL);
 
@@ -692,7 +692,7 @@ int vcap_start_stream(vcap_dev* vd)
     return VCAP_OK;
 }
 
-int vcap_stop_stream(vcap_dev* vd)
+int vcap_stop_stream(vcap_device* vd)
 {
     assert(vd != NULL);
 
@@ -724,19 +724,19 @@ int vcap_stop_stream(vcap_dev* vd)
     return VCAP_OK;
 }
 
-bool vcap_is_open(vcap_dev* vd)
+bool vcap_is_open(vcap_device* vd)
 {
     assert(vd != NULL);
     return vd->open;
 }
 
-bool vcap_is_streaming(vcap_dev* vd)
+bool vcap_is_streaming(vcap_device* vd)
 {
     assert(vd != NULL);
     return vd->streaming;
 }
 
-int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info)
+int vcap_get_device_info(vcap_device* vd, vcap_device_info* info)
 {
     assert(vd != NULL);
     assert(info != NULL);
@@ -752,7 +752,7 @@ int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info)
     return VCAP_OK;
 }
 
-size_t vcap_get_image_size(vcap_dev* vd)
+size_t vcap_get_image_size(vcap_device* vd)
 {
     assert(vd != NULL);
 
@@ -771,7 +771,7 @@ size_t vcap_get_image_size(vcap_dev* vd)
     return fmt.fmt.pix.sizeimage;
 }
 
-int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data)
+int vcap_grab(vcap_device* vd, size_t size, uint8_t* data)
 {
     assert(vd != NULL);
     assert(data != NULL);
@@ -792,7 +792,7 @@ int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data)
 // Format functions
 //==============================================================================
 
-int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
+int vcap_get_format_info(vcap_device* vd, vcap_format_id fmt, vcap_format_info* info)
 {
     assert(vd != NULL);
     assert(info != NULL);
@@ -824,11 +824,11 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info)
     return VCAP_INVALID;
 }
 
-vcap_itr* vcap_new_fmt_itr(vcap_dev* vd)
+vcap_iterator* vcap_format_iterator(vcap_device* vd)
 {
     assert(vd != NULL);
 
-    vcap_itr* itr = (vcap_itr*)vcap_malloc(sizeof(vcap_itr));
+    vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
     itr->type = VCAP_ITR_FMT;
     itr->vd = vd;
@@ -838,11 +838,11 @@ vcap_itr* vcap_new_fmt_itr(vcap_dev* vd)
     return itr;
 }
 
-vcap_itr* vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
+vcap_iterator* vcap_size_iterator(vcap_device* vd, vcap_format_id fmt)
 {
     assert(vd != NULL);
 
-    vcap_itr* itr = (vcap_itr*)vcap_malloc(sizeof(vcap_itr));
+    vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
     itr->type = VCAP_ITR_SIZE;
     itr->vd = vd;
@@ -853,11 +853,11 @@ vcap_itr* vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt)
     return itr;
 }
 
-vcap_itr* vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
+vcap_iterator* vcap_rate_iterator(vcap_device* vd, vcap_format_id fmt, vcap_size size)
 {
     assert(vd != NULL);
 
-    vcap_itr* itr = (vcap_itr*)vcap_malloc(sizeof(vcap_itr));
+    vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
     itr->type = VCAP_ITR_RATE;
     itr->vd = vd;
@@ -869,7 +869,7 @@ vcap_itr* vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     return itr;
 }
 
-int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
+int vcap_get_format(vcap_device* vd, vcap_format_id* fmt, vcap_size* size)
 {
     assert(vd != NULL);
 
@@ -900,7 +900,7 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size)
     return VCAP_OK;
 }
 
-int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
+int vcap_set_format(vcap_device* vd, vcap_format_id fmt, vcap_size size)
 {
     assert(vd != NULL);
 
@@ -946,7 +946,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size)
     return VCAP_OK;
 }
 
-int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
+int vcap_get_rate(vcap_device* vd, vcap_rate* rate)
 {
     assert(vd != NULL);
     assert(rate != NULL);
@@ -978,7 +978,7 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate)
     return VCAP_OK;
 }
 
-int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
+int vcap_set_rate(vcap_device* vd, vcap_rate rate)
 {
     assert(vd != NULL);
 
@@ -1015,7 +1015,7 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate)
 // Control Functions
 //==============================================================================
 
-int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
+int vcap_get_control_info(vcap_device* vd, vcap_control_id ctrl, vcap_control_info* info)
 {
     assert(vd != NULL);
     assert(info != NULL);
@@ -1086,7 +1086,7 @@ int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info)
     return VCAP_OK;
 }
 
-int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* status)
+int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_status* status)
 {
     assert(vd != NULL);
     assert(status != NULL);
@@ -1151,11 +1151,11 @@ int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* stat
     return VCAP_OK;
 }
 
-vcap_itr* vcap_new_ctrl_itr(vcap_dev* vd)
+vcap_iterator* vcap_control_iterator(vcap_device* vd)
 {
     assert(vd != NULL);
 
-    vcap_itr* itr = (vcap_itr*)vcap_malloc(sizeof(vcap_itr));
+    vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
     itr->type = VCAP_ITR_CTRL;
     itr->vd = vd;
@@ -1165,11 +1165,11 @@ vcap_itr* vcap_new_ctrl_itr(vcap_dev* vd)
     return itr;
 }
 
-vcap_itr* vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
+vcap_iterator* vcap_menu_iterator(vcap_device* vd, vcap_control_id ctrl)
 {
     assert(vd != NULL);
 
-    vcap_itr* itr = (vcap_itr*)vcap_malloc(sizeof(vcap_itr));
+    vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
     itr->type = VCAP_ITR_MENU;
     itr->vd = vd;
@@ -1180,7 +1180,7 @@ vcap_itr* vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl)
     return itr;
 }
 
-int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
+int vcap_get_control(vcap_device* vd, vcap_control_id ctrl, int32_t* value)
 {
     assert(vd != NULL);
     assert(value != NULL);
@@ -1217,7 +1217,7 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value)
     return VCAP_OK;
 }
 
-int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
+int vcap_set_control(vcap_device* vd, vcap_control_id ctrl, int32_t value)
 {
     assert(vd != NULL);
 
@@ -1248,36 +1248,36 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value)
     return VCAP_OK;
 }
 
-int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl)
+int vcap_reset_control(vcap_device* vd, vcap_control_id ctrl)
 {
     assert(vd != NULL);
 
-    vcap_ctrl_info info;
+    vcap_control_info info;
 
-    int result = vcap_get_ctrl_info(vd, ctrl, &info);
+    int result = vcap_get_control_info(vd, ctrl, &info);
 
     if (result == VCAP_ERROR || result == VCAP_INVALID)
         return VCAP_ERROR;
 
     if (result == VCAP_OK)
     {
-        if (vcap_set_ctrl(vd, ctrl, info.default_value) == VCAP_ERROR)
+        if (vcap_set_control(vd, ctrl, info.default_value) == VCAP_ERROR)
             return VCAP_ERROR;
     }
 
     return VCAP_OK;
 }
 
-int vcap_reset_all_ctrls(vcap_dev* vd)
+int vcap_reset_all_controls(vcap_device* vd)
 {
     assert(vd != NULL);
 
     // Loop over all controlsa
-    for (vcap_ctrl_id ctrl = 0; ctrl < VCAP_CTRL_COUNT; ctrl++)
+    for (vcap_control_id ctrl = 0; ctrl < VCAP_CTRL_COUNT; ctrl++)
     {
-        vcap_ctrl_status status = 0;
+        vcap_control_status status = 0;
 
-        int result = vcap_get_ctrl_status(vd, ctrl, &status);
+        int result = vcap_get_control_status(vd, ctrl, &status);
 
         if (result == VCAP_ERROR)
             return VCAP_ERROR;
@@ -1288,7 +1288,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
         if (status != VCAP_CTRL_OK)
             continue;
 
-        if (vcap_reset_ctrl(vd, ctrl) == -1)
+        if (vcap_reset_control(vd, ctrl) == -1)
             return VCAP_ERROR;
     }
 
@@ -1299,7 +1299,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd)
 // Crop functions
 //==============================================================================
 
-int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
+int vcap_get_crop_bounds(vcap_device* vd, vcap_rect* rect)
 {
     assert(vd != NULL);
     assert(rect != NULL);
@@ -1335,7 +1335,7 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect)
     return VCAP_OK;
 }
 
-int vcap_reset_crop(vcap_dev* vd)
+int vcap_reset_crop(vcap_device* vd)
 {
     assert(vd != NULL);
 
@@ -1370,7 +1370,7 @@ int vcap_reset_crop(vcap_dev* vd)
     return VCAP_OK;
 }
 
-int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
+int vcap_get_crop(vcap_device* vd, vcap_rect* rect)
 {
     assert(vd != NULL);
     assert(rect != NULL);
@@ -1409,7 +1409,7 @@ int vcap_get_crop(vcap_dev* vd, vcap_rect* rect)
     return VCAP_OK;
 }
 
-int vcap_set_crop(vcap_dev* vd, vcap_rect rect)
+int vcap_set_crop(vcap_device* vd, vcap_rect rect)
 {
     assert(vd != NULL);
 
@@ -1533,7 +1533,7 @@ static int vcap_video_device_filter(const struct dirent* a)
         return 0;
 }
 
-static void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_dev_info* info)
+static void vcap_caps_to_info(const char* path, const struct v4l2_capability caps, vcap_device_info* info)
 {
     assert(path != NULL);
     assert(info != NULL);
@@ -1556,7 +1556,7 @@ static void vcap_caps_to_info(const char* path, const struct v4l2_capability cap
     info->read = (bool)(caps.capabilities & V4L2_CAP_READWRITE);
 }
 
-static int vcap_request_buffers(vcap_dev* vd)
+static int vcap_request_buffers(vcap_device* vd)
 {
     assert(vd != NULL);
 
@@ -1592,7 +1592,7 @@ static int vcap_request_buffers(vcap_dev* vd)
     return VCAP_OK;
 }
 
-static int vcap_init_stream(vcap_dev* vd)
+static int vcap_init_stream(vcap_device* vd)
 {
     assert(vd != NULL);
 
@@ -1611,7 +1611,7 @@ static int vcap_init_stream(vcap_dev* vd)
     return VCAP_OK;
 }
 
-static int vcap_release_buffers(vcap_dev* vd)
+static int vcap_release_buffers(vcap_device* vd)
 {
     assert(vd != NULL);
 
@@ -1631,7 +1631,7 @@ static int vcap_release_buffers(vcap_dev* vd)
     return VCAP_OK;
 }
 
-static int vcap_shutdown_stream(vcap_dev* vd)
+static int vcap_shutdown_stream(vcap_device* vd)
 {
     assert(vd != NULL);
 
@@ -1647,7 +1647,7 @@ static int vcap_shutdown_stream(vcap_dev* vd)
     return VCAP_OK;
 }
 
-static int vcap_map_buffers(vcap_dev* vd)
+static int vcap_map_buffers(vcap_device* vd)
 {
     assert(vd != NULL);
 
@@ -1683,7 +1683,7 @@ static int vcap_map_buffers(vcap_dev* vd)
     return VCAP_OK;
 }
 
-static int vcap_unmap_buffers(vcap_dev* vd)
+static int vcap_unmap_buffers(vcap_device* vd)
 {
     assert(vd != NULL);
 
@@ -1704,7 +1704,7 @@ static int vcap_unmap_buffers(vcap_dev* vd)
     return VCAP_OK;
 }
 
-static int vcap_queue_buffers(vcap_dev* vd)
+static int vcap_queue_buffers(vcap_device* vd)
 {
     assert(vd != NULL);
 
@@ -1729,7 +1729,7 @@ static int vcap_queue_buffers(vcap_dev* vd)
 	return VCAP_OK;
 }
 
-static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
+static int vcap_grab_mmap(vcap_device* vd, size_t size, uint8_t* data)
 {
     assert(vd != NULL);
     assert(data != NULL);
@@ -1819,7 +1819,7 @@ static int vcap_grab_mmap(vcap_dev* vd, size_t size, uint8_t* data)
     return VCAP_OK;
 }
 
-static int vcap_grab_read(vcap_dev* vd, size_t size, uint8_t* data)
+static int vcap_grab_read(vcap_device* vd, size_t size, uint8_t* data)
 {
     assert(vd != NULL);
     assert(data != NULL);
@@ -1897,7 +1897,7 @@ static void vcap_strcpy(char* dst, const char* src, size_t size)
     snprintf(dst, size, "%s", src);
 }
 
-static void vcap_set_error_str(const char* func, int line, vcap_dev* vd, const char* fmt, ...)
+static void vcap_set_error_str(const char* func, int line, vcap_device* vd, const char* fmt, ...)
 {
     assert(vd != NULL);
     assert(fmt != NULL);
@@ -1915,7 +1915,7 @@ static void vcap_set_error_str(const char* func, int line, vcap_dev* vd, const c
     snprintf(vd->error_msg, sizeof(vd->error_msg), "%s %s", error_msg1, error_msg2);
 }
 
-static void vcap_set_error_errno_str(const char* func, int line, vcap_dev* vd, const char* fmt, ...)
+static void vcap_set_error_errno_str(const char* func, int line, vcap_device* vd, const char* fmt, ...)
 {
     assert(vd != NULL);
     assert(fmt != NULL);
@@ -1952,7 +1952,7 @@ static bool vcap_ctrl_type_supported(uint32_t type)
     return false;
 }
 
-static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
+static int vcap_enum_fmts(vcap_device* vd, vcap_format_info* info, uint32_t index)
 {
     assert(vd != NULL);
     assert(info != NULL);
@@ -1990,7 +1990,7 @@ static int vcap_enum_fmts(vcap_dev* vd, vcap_fmt_info* info, uint32_t index)
     return VCAP_OK;
 }
 
-static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint32_t index)
+static int vcap_enum_sizes(vcap_device* vd, vcap_format_id fmt, vcap_size* size, uint32_t index)
 {
     assert(vd != NULL);
     assert(size != NULL);
@@ -2034,7 +2034,7 @@ static int vcap_enum_sizes(vcap_dev* vd, vcap_fmt_id fmt, vcap_size* size, uint3
     return VCAP_OK;
 }
 
-static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_rate* rate, uint32_t index)
+static int vcap_enum_rates(vcap_device* vd, vcap_format_id fmt, vcap_size size, vcap_rate* rate, uint32_t index)
 {
     assert(vd != NULL);
     assert(rate != NULL);
@@ -2083,7 +2083,7 @@ static int vcap_enum_rates(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size, vcap_r
     return VCAP_OK;
 }
 
-static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
+static int vcap_enum_ctrls(vcap_device* vd, vcap_control_info* info, uint32_t index)
 {
     assert(vd != NULL);
     assert(info != NULL);
@@ -2091,9 +2091,9 @@ static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
     uint32_t count = 0;
 
     // Enuemrate user controls
-    for (vcap_ctrl_id ctrl = 0; ctrl < VCAP_CTRL_COUNT; ctrl++)
+    for (vcap_control_id ctrl = 0; ctrl < VCAP_CTRL_COUNT; ctrl++)
     {
-        int result = vcap_get_ctrl_info(vd, ctrl, info);
+        int result = vcap_get_control_info(vd, ctrl, info);
 
         if (result == VCAP_ERROR)
             return VCAP_ERROR;
@@ -2110,7 +2110,7 @@ static int vcap_enum_ctrls(vcap_dev* vd, vcap_ctrl_info* info, uint32_t index)
     return VCAP_INVALID;
 }
 
-static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item, uint32_t index)
+static int vcap_enum_menu(vcap_device* vd, vcap_control_id ctrl, vcap_menu_item* item, uint32_t index)
 {
     assert(vd != NULL);
     assert(item != NULL);
@@ -2125,10 +2125,10 @@ static int vcap_enum_menu(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_menu_item* item,
     }
 
     // Check if supported and a menu
-    vcap_ctrl_info info;
+    vcap_control_info info;
     VCAP_CLEAR(info);
 
-    int result = vcap_get_ctrl_info(vd, ctrl, &info);
+    int result = vcap_get_control_info(vd, ctrl, &info);
 
     if (result == VCAP_ERROR)
         return VCAP_ERROR;
@@ -2272,34 +2272,34 @@ static const char* ctrl_type_str_map[] = {
     "Unknown"
 };
 
-static vcap_ctrl_id vcap_convert_ctrl(uint32_t id)
+static vcap_control_id vcap_convert_ctrl(uint32_t id)
 {
     for (size_t i = 0; i < VCAP_CTRL_COUNT; i++)
     {
         if (ctrl_map[i] == id)
-            return (vcap_ctrl_id)i;
+            return (vcap_control_id)i;
     }
 
     return VCAP_CTRL_UNKNOWN;
 }
 
-static uint32_t vcap_map_ctrl(vcap_ctrl_id id)
+static uint32_t vcap_map_ctrl(vcap_control_id id)
 {
     return ctrl_map[id];
 }
 
-static vcap_ctrl_type vcap_convert_ctrl_type(uint32_t type)
+static vcap_control_type vcap_convert_ctrl_type(uint32_t type)
 {
     for (size_t i = 0; i < VCAP_CTRL_TYPE_UNKNOWN; i++)
     {
         if (ctrl_type_map[i] == type)
-            return (vcap_ctrl_type)i;
+            return (vcap_control_type)i;
     }
 
     return VCAP_CTRL_TYPE_UNKNOWN;
 }
 
-static const char* vcap_ctrl_type_str(vcap_ctrl_type id)
+static const char* vcap_ctrl_type_str(vcap_control_type id)
 {
     return ctrl_type_str_map[id];
 }
@@ -2491,18 +2491,18 @@ static uint32_t fmt_map[] = {
     V4L2_PIX_FMT_INZI,
 };
 
-static vcap_fmt_id vcap_convert_fmt(uint32_t id)
+static vcap_format_id vcap_convert_fmt(uint32_t id)
 {
     for (size_t i = 0; i < VCAP_FMT_COUNT; i++)
     {
         if (fmt_map[i] == id)
-            return (vcap_fmt_id)i;
+            return (vcap_format_id)i;
     }
 
     return VCAP_FMT_UNKNOWN;
 }
 
-static uint32_t vcap_map_fmt(vcap_fmt_id id)
+static uint32_t vcap_map_fmt(vcap_format_id id)
 {
     return fmt_map[id];
 }

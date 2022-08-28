@@ -78,27 +78,27 @@ enum
 ///
 /// \brief Control ID type
 ///
-typedef uint32_t vcap_ctrl_id;
+typedef uint32_t vcap_control_id;
 
 ///
 /// \brief Control type ID
 ///
-typedef uint8_t vcap_ctrl_type;
+typedef uint8_t vcap_control_type;
 
 ///
 /// \brief Control status
 ///
-typedef uint16_t vcap_ctrl_status;
+typedef uint16_t vcap_control_status;
 
 ///
 /// \brief Format ID type
 ///
-typedef uint32_t vcap_fmt_id;
+typedef uint32_t vcap_format_id;
 
 ///
 /// \brief Device handle
 ///
-typedef struct vcap_dev vcap_dev;
+typedef struct vcap_device vcap_device;
 
 ///
 /// \brief Video capture device infomation
@@ -113,7 +113,7 @@ typedef struct
     uint8_t version_str[16];    ///< Driver version str
     bool streaming;             ///< True if device supports streaming, false otherwise
     bool read;                  ///< True if device supports direct read, false otherwise
-} vcap_dev_info;
+} vcap_device_info;
 
 ///
 /// \brief Frame dimensions
@@ -138,25 +138,25 @@ typedef struct
 ///
 typedef struct
 {
-    vcap_fmt_id id;             ///< Format ID
+    vcap_format_id id;             ///< Format ID
     uint8_t name[32];           ///< Format name
     uint8_t fourcc[5];          ///< FourCC string
-} vcap_fmt_info;
+} vcap_format_info;
 
 //
 // \brief Control info
 //
 typedef struct
 {
-    vcap_ctrl_id id;            ///< Control ID
+    vcap_control_id id;            ///< Control ID
     uint8_t name[32];           ///< Control name
-    vcap_ctrl_type type;        ///< Control type
+    vcap_control_type type;        ///< Control type
     uint8_t type_name[16];      ///< Control type name
     int32_t min;                ///< The minimum value of the control
     int32_t max;                ///< The maximum value of the control
     int32_t step;               ///< The spacing between consecutive values
     int32_t default_value;      ///< The default value of the control (set when the driver is first loaded)
-} vcap_ctrl_info;
+} vcap_control_info;
 
 ///
 /// \brief Control menu item
@@ -167,8 +167,8 @@ typedef struct
 
     union
     {
-        uint8_t name[32];       ///< Menu item name (used if control type is VCAP_CTRL_TYPE_MENU)
-        int64_t value;          ///< Menu item value (used if control type is VCAP_CTRL_TYPE_INTEGER_MENU)
+        uint8_t name[32];       ///< Menu item name (used if control type is vcap_control_type_MENU)
+        int64_t value;          ///< Menu item value (used if control type is vcap_control_type_INTEGER_MENU)
     } data;
 
 } vcap_menu_item;
@@ -188,17 +188,19 @@ typedef struct
 ///
 /// \brief Generic iterator type
 ///
-typedef struct vcap_itr vcap_itr;
+typedef struct vcap_iterator vcap_iterator;
 
 ///
 /// \brief Generic iterator error test
 ///
-bool vcap_itr_error(vcap_itr* itr);
+bool vcap_iterator_error(vcap_iterator* iterator);
 
 ///
-/// \brief Dealocates an iterator
+/// \brief Deallocates an iterator
 ///
-void vcap_free_itr(vcap_itr* itr);
+void vcap_free_iterator(vcap_iterator* iterator);
+
+bool vcap_next(vcap_iterator* itr, void* value);
 
 ///
 /// \brief Custom malloc function type
@@ -209,8 +211,6 @@ typedef void* (*vcap_malloc_fn)(size_t size);
 /// \brief Custom free function type
 ///
 typedef void  (*vcap_free_fn)(void* ptr);
-
-bool vcap_itr_next(vcap_itr* itr, void* value);
 
 //------------------------------------------------------------------------------
 ///
@@ -227,7 +227,7 @@ void vcap_set_alloc(vcap_malloc_fn malloc_fp, vcap_free_fn free_fp);
 /// \brief  Returns a device specific string containing the last error message
 /// \param  vd  Pointer to the video device
 ///
-const char* vcap_get_error(vcap_dev* vd);
+const char* vcap_get_error(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -243,14 +243,14 @@ const char* vcap_get_error(vcap_dev* vd);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_dump_info(vcap_dev* vd, FILE* file);
+int vcap_dump_info(vcap_device* vd, FILE* file);
 
 //------------------------------------------------------------------------------
 ///
 /// \brief  Enumerates video capture devices
 ///
 /// Retrieves the video capture device at the specified 'index' and stores
-/// the corresponding device information in the 'vcap_dev_info' struct pointed
+/// the corresponding device information in the 'vcap_device_info' struct pointed
 /// to by the 'device' parameter. NOTE: this function calls a system function
 /// that uses the default 'malloc' internally. Unfortunately this is
 /// unavoidable.
@@ -262,7 +262,7 @@ int vcap_dump_info(vcap_dev* vd, FILE* file);
 ///          VCAP_INVALID if the index is invalid, and
 ///          VCAP_ERROR   if querying the device failed.
 ///
-int vcap_enum_devices(uint32_t index, vcap_dev_info* info);
+int vcap_enumerate_devices(uint32_t index, vcap_device_info* info);
 
 //------------------------------------------------------------------------------
 ///
@@ -275,7 +275,7 @@ int vcap_enum_devices(uint32_t index, vcap_dev_info* info);
 ///
 /// \returns NULL on error and a pointer to a video device otherwise
 ///
-vcap_dev* vcap_create_device(const char* path, bool convert, uint32_t buffer_count);
+vcap_device* vcap_create_device(const char* path, bool convert, uint32_t buffer_count);
 
 //------------------------------------------------------------------------------
 ///
@@ -284,7 +284,7 @@ vcap_dev* vcap_create_device(const char* path, bool convert, uint32_t buffer_cou
 ///
 /// \param  vd  Pointer to the video device
 ///
-void vcap_destroy_device(vcap_dev* vd);
+void vcap_destroy_device(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -294,7 +294,7 @@ void vcap_destroy_device(vcap_dev* vd);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_open(vcap_dev* vd);
+int vcap_open(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -304,7 +304,7 @@ int vcap_open(vcap_dev* vd);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-void vcap_close(vcap_dev* vd);
+void vcap_close(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -314,7 +314,7 @@ void vcap_close(vcap_dev* vd);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_start_stream(vcap_dev* vd);
+int vcap_start_stream(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -324,7 +324,7 @@ int vcap_start_stream(vcap_dev* vd);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_stop_stream(vcap_dev* vd);
+int vcap_stop_stream(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -332,7 +332,7 @@ int vcap_stop_stream(vcap_dev* vd);
 ///
 /// \param  vd  Pointer to the video device
 ///
-bool vcap_is_open(vcap_dev* vd);
+bool vcap_is_open(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -340,7 +340,7 @@ bool vcap_is_open(vcap_dev* vd);
 ///
 /// \param  vd  Pointer to the video device
 ///
-bool vcap_is_streaming(vcap_dev* vd);
+bool vcap_is_streaming(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -354,7 +354,7 @@ bool vcap_is_streaming(vcap_dev* vd);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info);
+int vcap_get_device_info(vcap_device* vd, vcap_device_info* info);
 
 //------------------------------------------------------------------------------
 ///
@@ -368,7 +368,7 @@ int vcap_get_device_info(vcap_dev* vd, vcap_dev_info* info);
 ///
 /// \return 0 on error and frame size otherwise
 ///
-size_t vcap_get_image_size(vcap_dev* vd);
+size_t vcap_get_image_size(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -382,7 +382,7 @@ size_t vcap_get_image_size(vcap_dev* vd);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data);
+int vcap_grab(vcap_device* vd, size_t size, uint8_t* data);
 
 //------------------------------------------------------------------------------
 ///
@@ -398,7 +398,7 @@ int vcap_grab(vcap_dev* vd, size_t size, uint8_t* data);
 ///          VCAP_ERROR   if getting the format info failed
 ///          VCAP_INVALID if the format ID is invalid
 ///
-int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info);
+int vcap_get_format_info(vcap_device* vd, vcap_format_id fmt, vcap_format_info* info);
 
 //------------------------------------------------------------------------------
 ///
@@ -408,9 +408,9 @@ int vcap_get_fmt_info(vcap_dev* vd, vcap_fmt_id fmt, vcap_fmt_info* info);
 ///
 /// \param  vd  Pointer to the video device
 ///
-/// \returns An initialized 'vcap_fmt_itr' struct
+/// \returns An initialized 'vcap_format_iterator' struct
 ///
-vcap_itr* vcap_new_fmt_itr(vcap_dev* vd);
+vcap_iterator* vcap_format_iterator(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -420,11 +420,11 @@ vcap_itr* vcap_new_fmt_itr(vcap_dev* vd);
 /// and format ID.
 ///
 /// \param  vd   Pointer to the video device
-/// \param  fmt  The format ID
+/// \param  format  The format ID
 ///
-/// \returns An initialized 'vcap_size_itr' struct
+/// \returns An initialized 'vcap_size_iterator' struct
 ///
-vcap_itr* vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt);
+vcap_iterator* vcap_size_iterator(vcap_device* vd, vcap_format_id format);
 
 //------------------------------------------------------------------------------
 ///
@@ -437,9 +437,9 @@ vcap_itr* vcap_new_size_itr(vcap_dev* vd, vcap_fmt_id fmt);
 /// \param  fmt   The format ID
 /// \param  size  The frame size
 ///
-/// \returns An initialized 'vcap_rate_itr' struct
+/// \returns An initialized 'vcap_rate_iterator' struct
 ///
-vcap_itr* vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
+vcap_iterator* vcap_rate_iterator(vcap_device* vd, vcap_format_id fmt, vcap_size size);
 
 //------------------------------------------------------------------------------
 ///
@@ -455,7 +455,7 @@ vcap_itr* vcap_new_rate_itr(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
 /// \returns VCAP_OK       if the format was retrieved successfully,
 ///          VCAP_ERROR    if getting the format failed
 ///
-int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size);
+int vcap_get_format(vcap_device* vd, vcap_format_id* fmt, vcap_size* size);
 
 //------------------------------------------------------------------------------
 ///
@@ -470,7 +470,7 @@ int vcap_get_fmt(vcap_dev* vd, vcap_fmt_id* fmt, vcap_size* size);
 /// \returns VCAP_OK       if the format was set successfully,
 ///          VCAP_ERROR    if setting the format failed
 ///
-int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
+int vcap_set_format(vcap_device* vd, vcap_format_id fmt, vcap_size size);
 
 //------------------------------------------------------------------------------
 ///
@@ -483,7 +483,7 @@ int vcap_set_fmt(vcap_dev* vd, vcap_fmt_id fmt, vcap_size size);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_get_rate(vcap_dev* vd, vcap_rate* rate);
+int vcap_get_rate(vcap_device* vd, vcap_rate* rate);
 
 //------------------------------------------------------------------------------
 ///
@@ -496,7 +496,7 @@ int vcap_get_rate(vcap_dev* vd, vcap_rate* rate);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_set_rate(vcap_dev* vd, vcap_rate rate);
+int vcap_set_rate(vcap_device* vd, vcap_rate rate);
 
 //------------------------------------------------------------------------------
 ///
@@ -512,7 +512,7 @@ int vcap_set_rate(vcap_dev* vd, vcap_rate rate);
 ///          VCAP_ERROR    if getting the control info failed
 ///          VCAP_INVALID  if the control ID is invalid, and
 ///
-int vcap_get_ctrl_info(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_info* info);
+int vcap_get_control_info(vcap_device* vd, vcap_control_id ctrl, vcap_control_info* info);
 
 ///
 /// \brief Control status codes
@@ -534,13 +534,13 @@ enum
 ///
 /// \param  vd    Pointer to the video device
 /// \param  ctrl  The control ID
-/// \param  ctrl  The control's status (output)
+/// \param  status  The control's status (output)
 ///
 /// \returns VCAP_OK       if the control status was retrieved successfully,
 ///          VCAP_ERROR    if getting the control status failed
 ///          VCAP_INVALID  if the control ID is invalid, and
 ///
-int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* status);
+int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_status* status);
 
 //------------------------------------------------------------------------------
 ///
@@ -550,9 +550,9 @@ int vcap_get_ctrl_status(vcap_dev* vd, vcap_ctrl_id ctrl, vcap_ctrl_status* stat
 ///
 /// \param  vd  Pointer to the video device
 ///
-/// \returns An initialized 'vcap_ctrl_itr' struct
+/// \returns An initialized 'vcap_ctrl_iterator' struct
 ///
-vcap_itr* vcap_new_ctrl_itr(vcap_dev* vd);
+vcap_iterator* vcap_control_iterator(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -564,9 +564,9 @@ vcap_itr* vcap_new_ctrl_itr(vcap_dev* vd);
 /// \param  vd   Pointer to the video device
 /// \param  ctrl The control ID
 ///
-/// \returns An initialized 'vcap_menu_itr' struct
+/// \returns An initialized 'vcap_menu_iterator' struct
 ///
-vcap_itr* vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl);
+vcap_iterator* vcap_menu_iterator(vcap_device* vd, vcap_control_id ctrl);
 
 //------------------------------------------------------------------------------
 ///
@@ -581,7 +581,7 @@ vcap_itr* vcap_new_menu_itr(vcap_dev* vd, vcap_ctrl_id ctrl);
 /// \returns VCAP_OK      if the control value was retrieved
 ///          VCAP_ERROR   if an error occured
 ///
-int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value);
+int vcap_get_control(vcap_device* vd, vcap_control_id ctrl, int32_t* value);
 
 //------------------------------------------------------------------------------
 ///
@@ -597,7 +597,7 @@ int vcap_get_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t* value);
 ///          VCAP_ERROR   if an error occured
 ///
 ///
-int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value);
+int vcap_set_control(vcap_device* vd, vcap_control_id ctrl, int32_t value);
 
 //------------------------------------------------------------------------------
 ///
@@ -611,7 +611,7 @@ int vcap_set_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl, int32_t value);
 /// \returns VCAP_OK      if the control value was reset
 ///          VCAP_ERROR   if an error occured
 ///
-int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl);
+int vcap_reset_control(vcap_device* vd, vcap_control_id ctrl);
 
 //------------------------------------------------------------------------------
 ///
@@ -623,7 +623,7 @@ int vcap_reset_ctrl(vcap_dev* vd, vcap_ctrl_id ctrl);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_reset_all_ctrls(vcap_dev* vd);
+int vcap_reset_all_controls(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -637,7 +637,7 @@ int vcap_reset_all_ctrls(vcap_dev* vd);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect);
+int vcap_get_crop_bounds(vcap_device* vd, vcap_rect* rect);
 
 //------------------------------------------------------------------------------
 ///
@@ -649,7 +649,7 @@ int vcap_get_crop_bounds(vcap_dev* vd, vcap_rect* rect);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_reset_crop(vcap_dev* vd);
+int vcap_reset_crop(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -663,7 +663,7 @@ int vcap_reset_crop(vcap_dev* vd);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_get_crop(vcap_dev* vd, vcap_rect* rect);
+int vcap_get_crop(vcap_device* vd, vcap_rect* rect);
 
 //------------------------------------------------------------------------------
 ///
@@ -676,7 +676,7 @@ int vcap_get_crop(vcap_dev* vd, vcap_rect* rect);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_set_crop(vcap_dev* vd, vcap_rect rect);
+int vcap_set_crop(vcap_device* vd, vcap_rect rect);
 
 ///
 /// \brief Pixel format IDs

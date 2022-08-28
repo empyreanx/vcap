@@ -38,9 +38,9 @@ int main(int argc, char** argv)
     if (argc == 2)
         index = atoi(argv[1]);
 
-    vcap_dev_info info = { 0 };
+    vcap_device_info info = { 0 };
 
-    int result = vcap_enum_devices(index, &info);
+    int result = vcap_enumerate_devices(index, &info);
 
     if (result == VCAP_ERROR)
     {
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
     }
 
     // Create device
-    vcap_dev* vd = vcap_create_device(info.path, true, 0);
+    vcap_device* vd = vcap_create_device(info.path, true, 0);
 
     if (!vd)
     {

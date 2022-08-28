@@ -59,10 +59,10 @@ int main(int argc, char** argv)
     if (argc == 2)
         index = atoi(argv[1]);
 
-    vcap_dev_info info = { 0 };
+    vcap_device_info info = { 0 };
 
     // Find first video capture device
-    int result = vcap_enum_devices(index, &info);
+    int result = vcap_enumerate_devices(index, &info);
 
     if (result == VCAP_ERROR)
     {
@@ -78,7 +78,7 @@ int main(int argc, char** argv)
 
     // Create device
     uint32_t buffer_count = info.streaming ? 3 : 0;
-    vcap_dev* vd = vcap_create_device(info.path, true, buffer_count);
+    vcap_device* vd = vcap_create_device(info.path, true, buffer_count);
 
     if (!vd)
     {
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
     // Set format
     vcap_size size = { 640, 480 };
 
-    if (vcap_set_fmt(vd, VCAP_FMT_RGB24, size) == VCAP_ERROR)
+    if (vcap_set_format(vd, VCAP_FMT_RGB24, size) == VCAP_ERROR)
     {
         printf("Error: %s\n", vcap_get_error(vd));
         vcap_destroy_device(vd);

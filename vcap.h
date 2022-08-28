@@ -694,15 +694,15 @@ int vcap_set_crop(vcap_device* vd, vcap_rect rect);
 enum
 {
     /* RGB formats */
-    VCAP_FMT_BGR24,         ///< 24  BGR-8-8-8
-    VCAP_FMT_RGB24,         ///< 24  RGB-8-8-8
+    VCAP_FMT_BGR24,        ///< 24  BGR-8-8-8
+    VCAP_FMT_RGB24,        ///< 24  RGB-8-8-8
 
     /* 8-Greyscale */
-    VCAP_PIX_FMT_GREY,         ///<  8  Greyscale
+    VCAP_PIX_FMT_GREY,     ///<  8  Greyscale
 
     /* Luminance+Chrominance formats */
     VCAP_FMT_YUYV,         ///< 16  YUV 4:2:2
-    VCAP_FMT_YVYU,          ///< 16 YVU 4:2:2
+    VCAP_FMT_YVYU,         ///< 16 YVU 4:2:2
     VCAP_FMT_UYVY,         ///< 16  YUV 4:2:2
     VCAP_FMT_HM12,         ///<  8  YUV 4:2:0 16x16 macroblocks
 
@@ -736,7 +736,6 @@ enum
     VCAP_FMT_COUNT,        ///< Number of formats
     VCAP_FMT_UNKNOWN       ///< Unrecognized format
 };
-
 
 ///
 /// \brief Camera control types

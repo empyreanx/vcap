@@ -374,7 +374,7 @@ int vcap_dump_info(vcap_device* vd, FILE* file)
     {
         printf("   Name: %s, Type: %s\n", ctrl_info.name, ctrl_info.type_name);
 
-        if (ctrl_info.type == VCAP_CTRL_TYPE_MENU || ctrl_info.type == VCAP_CTRL_TYPE_INTEGER_MENU)
+        if (ctrl_info.type == VCAP_CTRL_TYPE_MENU)
         {
             printf("   Menu:\n");
 
@@ -386,10 +386,7 @@ int vcap_dump_info(vcap_device* vd, FILE* file)
 
             while (vcap_iterator_next(menu_itr, &menu_item))
             {
-                if (ctrl_info.type == VCAP_CTRL_TYPE_MENU)
-                    printf("      %i : %s\n", menu_item.index, menu_item.data.name);
-                else
-                    printf("      %i : %li\n", menu_item.index, menu_item.data.value);
+                printf("      %i : %s\n", menu_item.index, menu_item.name);
             }
 
             // Check for errors during menu iteration
@@ -1950,7 +1947,6 @@ static bool vcap_ctrl_type_supported(uint32_t type)
         case V4L2_CTRL_TYPE_INTEGER:
         case V4L2_CTRL_TYPE_BOOLEAN:
         case V4L2_CTRL_TYPE_MENU:
-        case V4L2_CTRL_TYPE_INTEGER_MENU:
         case V4L2_CTRL_TYPE_BUTTON:
             return true;
     }
@@ -2145,7 +2141,7 @@ static int vcap_enum_menu(vcap_device* vd, vcap_control_id ctrl, vcap_menu_item*
         return VCAP_ERROR;
     }
 
-    if (info.type != VCAP_CTRL_TYPE_MENU && info.type != VCAP_CTRL_TYPE_INTEGER_MENU)
+    if (info.type != VCAP_CTRL_TYPE_MENU)
     {
         vcap_set_error(vd, "Control is not a menu");
         return VCAP_ERROR;
@@ -2186,11 +2182,7 @@ static int vcap_enum_menu(vcap_device* vd, vcap_control_id ctrl, vcap_menu_item*
         if (index == count)
         {
             item->index = i;
-
-            if (info.type == VCAP_CTRL_TYPE_MENU)
-                vcap_ustrcpy(item->data.name, qmenu.name, sizeof(item->data.name));
-            else
-                item->data.value = qmenu.value;
+            vcap_ustrcpy(item->name, qmenu.name, sizeof(item->name));
 
             return VCAP_OK;
         }
@@ -2265,7 +2257,6 @@ static uint32_t ctrl_type_map[] = {
     V4L2_CTRL_TYPE_INTEGER,
     V4L2_CTRL_TYPE_BOOLEAN,
     V4L2_CTRL_TYPE_MENU,
-    V4L2_CTRL_TYPE_INTEGER_MENU,
     V4L2_CTRL_TYPE_BUTTON
 };
 

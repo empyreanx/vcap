@@ -171,13 +171,7 @@ typedef struct
 typedef struct
 {
     uint32_t index;             ///< Menu item index (value used to set the control)
-
-    union
-    {
-        uint8_t name[32];       ///< Menu item name (used if control type is vcap_control_type_MENU)
-        int64_t value;          ///< Menu item value (used if control type is vcap_control_type_INTEGER_MENU)
-    } data;
-
+    uint8_t name[32];       ///< Menu item name (used if control type is vcap_control_type_MENU)
 } vcap_menu_item;
 
 
@@ -895,7 +889,6 @@ enum
     VCAP_CTRL_TYPE_INTEGER,
     VCAP_CTRL_TYPE_BOOLEAN,
     VCAP_CTRL_TYPE_MENU,
-    VCAP_CTRL_TYPE_INTEGER_MENU,
     VCAP_CTRL_TYPE_BUTTON,
     VCAP_CTRL_TYPE_UNKNOWN,
 };

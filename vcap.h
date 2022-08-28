@@ -75,6 +75,23 @@ enum
     VCAP_INVALID = -2,        ///< Argument is invalid
 };
 
+
+///
+/// \brief Device handle
+///
+typedef struct vcap_device vcap_device;
+
+
+///
+/// \brief Generic iterator type
+///
+typedef struct vcap_iterator vcap_iterator;
+
+///
+/// \brief Format ID type
+///
+typedef uint32_t vcap_format_id;
+
 ///
 /// \brief Control ID type
 ///
@@ -88,17 +105,7 @@ typedef uint8_t vcap_control_type;
 ///
 /// \brief Control status
 ///
-typedef uint16_t vcap_control_status;
-
-///
-/// \brief Format ID type
-///
-typedef uint32_t vcap_format_id;
-
-///
-/// \brief Device handle
-///
-typedef struct vcap_device vcap_device;
+typedef uint8_t vcap_control_status;
 
 ///
 /// \brief Video capture device infomation
@@ -116,7 +123,7 @@ typedef struct
 } vcap_device_info;
 
 ///
-/// \brief Frame dimensions
+/// \brief Format dimensions
 ///
 typedef struct
 {
@@ -184,23 +191,6 @@ typedef struct
     int32_t width;              ///< Width of rectangle
     int32_t height;             ///< Height of rectangle
 } vcap_rect;
-
-///
-/// \brief Generic iterator type
-///
-typedef struct vcap_iterator vcap_iterator;
-
-///
-/// \brief Generic iterator error test
-///
-bool vcap_iterator_error(vcap_iterator* iterator);
-
-///
-/// \brief Deallocates an iterator
-///
-void vcap_free_iterator(vcap_iterator* iterator);
-
-bool vcap_iterator_next(vcap_iterator* itr, void* value);
 
 ///
 /// \brief Custom malloc function type
@@ -383,6 +373,32 @@ size_t vcap_get_image_size(vcap_device* vd);
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_grab(vcap_device* vd, size_t size, uint8_t* data);
+
+//------------------------------------------------------------------------------
+///
+/// \brief Sets the value and advances the iterator
+
+/// \param  iterator  The iterator to advance
+/// \param  value     Pointer to the value to set
+///
+bool vcap_iterator_next(vcap_iterator* itr, void* value);
+
+//------------------------------------------------------------------------------
+///
+/// \brief Tests if an error occurred while creating or advancing an iterator
+///
+/// \param  iterator  The iterator to test
+///
+bool vcap_iterator_error(vcap_iterator* iterator);
+
+//------------------------------------------------------------------------------
+///
+/// \brief Deallocates an iterator
+///
+/// \param  iterator  The iterator to deallocate
+///
+void vcap_free_iterator(vcap_iterator* iterator);
+
 
 //------------------------------------------------------------------------------
 ///

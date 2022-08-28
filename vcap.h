@@ -200,7 +200,7 @@ bool vcap_iterator_error(vcap_iterator* iterator);
 ///
 void vcap_free_iterator(vcap_iterator* iterator);
 
-bool vcap_next(vcap_iterator* itr, void* value);
+bool vcap_iterator_next(vcap_iterator* itr, void* value);
 
 ///
 /// \brief Custom malloc function type
@@ -519,10 +519,10 @@ int vcap_get_control_info(vcap_device* vd, vcap_control_id ctrl, vcap_control_in
 ///
 enum
 {
-    VCAP_CTRL_OK        = (0 << 0),  ///< Control is supported
-    VCAP_CTRL_INACTIVE  = (1 << 0),  ///< Control is supported, but inactive
-    VCAP_CTRL_READ_ONLY = (1 << 1),  ///< Control is presently read-only
-    VCAP_CTRL_DISABLED  = (1 << 2),  ///< Control is supported, but disabled
+    VCAP_CTRL_STATUS_OK        = (0 << 0),  ///< Control is supported
+    VCAP_CTRL_STATUS_INACTIVE  = (1 << 0),  ///< Control is supported, but inactive
+    VCAP_CTRL_STATUS_READ_ONLY = (1 << 1),  ///< Control is presently read-only
+    VCAP_CTRL_STATUS_DISABLED  = (1 << 2),  ///< Control is supported, but disabled
 };
 
 //------------------------------------------------------------------------------

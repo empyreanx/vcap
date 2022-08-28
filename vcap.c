@@ -269,7 +269,7 @@ void vcap_free_iterator(vcap_iterator* itr)
     vcap_free(itr);
 }
 
-bool vcap_next(vcap_iterator* itr, void* value)
+bool vcap_iterator_next(vcap_iterator* itr, void* value)
 {
     assert(itr != NULL);
     assert(value != NULL);
@@ -339,14 +339,14 @@ int vcap_dump_info(vcap_device* vd, FILE* file)
     fprintf(file, "Bus Info: %s\n", info.bus_info);
     fprintf(file, "------------------------------------------------\n");
 
-    fprintf(file, "Streaming: ");
+    fprintf(file, "Streaming mode: ");
 
     if (info.streaming)
         fprintf(file, "Supported\n");
     else
         fprintf(file, "Not supported\n");
 
-    fprintf(file, "Read: ");
+    fprintf(file, "Read mode: ");
 
     if (info.read)
         fprintf(file, "Supported\n");
@@ -359,7 +359,7 @@ int vcap_dump_info(vcap_device* vd, FILE* file)
     vcap_iterator* fmt_itr = vcap_format_iterator(vd);
     vcap_format_info fmt_info;
 
-    while (vcap_next(fmt_itr, &fmt_info))
+    while (vcap_iterator_next(fmt_itr, &fmt_info))
     {
         fprintf(file, "------------------------------------------------\n");
         fprintf(file, "Format: %s, FourCC: %s\n", fmt_info.name, fmt_info.fourcc);
@@ -371,7 +371,7 @@ int vcap_dump_info(vcap_device* vd, FILE* file)
         vcap_iterator* size_itr = vcap_size_iterator(vd, fmt_info.id);
         vcap_size size;
 
-        while (vcap_next(size_itr, &size))
+        while (vcap_iterator_next(size_itr, &size))
         {
             fprintf(file, "   %u x %u: ", size.width, size.height);
             fprintf(file, "(Frame rates:");
@@ -382,7 +382,7 @@ int vcap_dump_info(vcap_device* vd, FILE* file)
             vcap_iterator* rate_itr = vcap_rate_iterator(vd, fmt_info.id, size);
             vcap_rate rate;
 
-            while (vcap_next(rate_itr, &rate))
+            while (vcap_iterator_next(rate_itr, &rate))
             {
                 fprintf(file, " %u/%u", rate.numerator, rate.denominator);
             }
@@ -429,7 +429,7 @@ int vcap_dump_info(vcap_device* vd, FILE* file)
     vcap_iterator* ctrl_itr = vcap_control_iterator(vd);
     vcap_control_info ctrl_info;
 
-    while (vcap_next(ctrl_itr, &ctrl_info))
+    while (vcap_iterator_next(ctrl_itr, &ctrl_info))
     {
         printf("   Name: %s, Type: %s\n", ctrl_info.name, ctrl_info.type_name);
 
@@ -443,7 +443,7 @@ int vcap_dump_info(vcap_device* vd, FILE* file)
             vcap_iterator* menu_itr = vcap_menu_iterator(vd, ctrl_info.id);
             vcap_menu_item menu_item;
 
-            while (vcap_next(menu_itr, &menu_item))
+            while (vcap_iterator_next(menu_itr, &menu_item))
             {
                 if (ctrl_info.type == VCAP_CTRL_TYPE_MENU)
                     printf("      %i : %s\n", menu_item.index, menu_item.data.name);
@@ -1127,7 +1127,7 @@ int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_
         }
     }
 
-    *status = VCAP_CTRL_OK;
+    *status = VCAP_CTRL_STATUS_OK;
 
     // Test if control type is supported
     if (!vcap_ctrl_type_supported(qctrl.type))
@@ -1138,15 +1138,15 @@ int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_
 
     // Test if control is inactive
     if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE)
-        *status |= VCAP_CTRL_INACTIVE;
+        *status |= VCAP_CTRL_STATUS_INACTIVE;
 
     // Test if control is disabled
     if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
-        *status |= VCAP_CTRL_DISABLED;
+        *status |= VCAP_CTRL_STATUS_DISABLED;
 
     // Test if control is read only
     if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY || qctrl.flags & V4L2_CTRL_FLAG_GRABBED)
-        *status |= VCAP_CTRL_READ_ONLY;
+        *status |= VCAP_CTRL_STATUS_READ_ONLY;
 
     return VCAP_OK;
 }
@@ -1285,7 +1285,7 @@ int vcap_reset_all_controls(vcap_device* vd)
         if (result == VCAP_INVALID)
             continue;
 
-        if (status != VCAP_CTRL_OK)
+        if (status != VCAP_CTRL_STATUS_OK)
             continue;
 
         if (vcap_reset_control(vd, ctrl) == -1)

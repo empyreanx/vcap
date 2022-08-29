@@ -791,7 +791,7 @@ vcap_iterator* vcap_format_iterator(vcap_device* vd)
     itr->type = VCAP_ITR_FMT;
     itr->vd = vd;
     itr->index = 0;
-    itr->result = vcap_enum_fmts(itr->vd, &itr->data.fmt.info, ++itr->index);
+    itr->result = vcap_enum_fmts(itr->vd, &itr->data.fmt.info, 0);
 
     return itr;
 }
@@ -830,7 +830,7 @@ vcap_iterator* vcap_size_iterator(vcap_device* vd, vcap_format_id fmt)
     itr->vd = vd;
     itr->index = 0;
     itr->data.size.fmt = fmt;
-    itr->result = vcap_enum_sizes(itr->vd, fmt, &itr->data.size.size, ++itr->index);
+    itr->result = vcap_enum_sizes(itr->vd, fmt, &itr->data.size.size, 0);
 
     return itr;
 }
@@ -934,6 +934,8 @@ int vcap_set_format(vcap_device* vd, vcap_format_id fmt, vcap_size size)
 {
     assert(vd != NULL);
 
+    printf("buffer_count: %u\n", vd->buffer_count);
+
     // Ensure format ID is within the proper range
     assert(fmt < VCAP_FMT_COUNT);
 
@@ -945,14 +947,8 @@ int vcap_set_format(vcap_device* vd, vcap_format_id fmt, vcap_size size)
 
     bool streaming = vcap_is_streaming(vd);
 
-    // NOTE: Some cameras return a busy signal when attempting to set a format
-    // on the device. The only solution that seems work across multiple cameras
-    // is closing the device and then immediately reopening it.
-    vcap_close(vd);
-
-    if (vcap_open(vd) == VCAP_ERROR)
+    if (streaming && vcap_stop_stream(vd) == VCAP_ERROR)
         return VCAP_ERROR;
-
     // Specify desired format and set
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-fmt.html
     struct v4l2_format sfmt;
@@ -1779,7 +1775,6 @@ static int vcap_unmap_buffers(vcap_device* vd)
     }
 
     vcap_free(vd->buffers);
-    vd->buffer_count = 0;
 
     return VCAP_OK;
 }

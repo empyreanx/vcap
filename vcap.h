@@ -601,7 +601,6 @@ int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_
 ///
 vcap_iterator* vcap_control_iterator(vcap_device* vd);
 
-
 //------------------------------------------------------------------------------
 ///
 /// \brief  Advances a control iterator

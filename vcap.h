@@ -371,15 +371,6 @@ int vcap_grab(vcap_device* vd, size_t size, uint8_t* data);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief Sets the value and advances the iterator
-///
-/// \param  iterator  The iterator to advance
-/// \param  value     Pointer to the value to set
-///
-bool vcap_iterator_next(vcap_iterator* itr, void* value);
-
-//------------------------------------------------------------------------------
-///
 /// \brief Tests if an error occurred while creating or advancing an iterator
 ///
 /// \param  iterator  The iterator to test
@@ -424,6 +415,20 @@ vcap_iterator* vcap_format_iterator(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
+/// \brief  Advances a format iterator
+///
+/// Copies the current format information into 'info' and advances the iterator.
+///
+/// \param  itr   Pointer to iterator
+/// \param  info  Pointer to the format information
+///
+/// \returns false if there was an error or there are no more formats, and true
+///          otherwise
+///
+bool vcap_next_format(vcap_iterator* itr, vcap_format_info* info);
+
+//------------------------------------------------------------------------------
+///
 /// \brief  Creates a new frame size iterator
 ///
 /// Creates and initializes new frame size iterator for the specified device
@@ -435,6 +440,20 @@ vcap_iterator* vcap_format_iterator(vcap_device* vd);
 /// \returns An initialized 'vcap_size_iterator' struct
 ///
 vcap_iterator* vcap_size_iterator(vcap_device* vd, vcap_format_id fmt);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Advances a frame size iterator
+///
+/// Copies the current frame size into 'size' and advances the iterator.
+///
+/// \param  itr   Pointer to iterator
+/// \param  size  Pointer to the frame size
+///
+/// \returns false if there was an error or there are no more sizes, and true
+///          otherwise
+///
+bool vcap_next_size(vcap_iterator* itr, vcap_size* size);
 
 //------------------------------------------------------------------------------
 ///
@@ -450,6 +469,19 @@ vcap_iterator* vcap_size_iterator(vcap_device* vd, vcap_format_id fmt);
 /// \returns An initialized 'vcap_rate_iterator' struct
 ///
 vcap_iterator* vcap_rate_iterator(vcap_device* vd, vcap_format_id fmt, vcap_size size);
+
+///
+/// \brief  Advances a frame rate iterator
+///
+/// Copies the current frame rate into 'rate' and advances the iterator.
+///
+/// \param  itr   Pointer to iterator
+/// \param  rate  Pointer to the frame rate
+///
+/// \returns false if there was an error or there are no more sizes, and true
+///          otherwise
+///
+bool vcap_next_rate(vcap_iterator* itr, vcap_rate* rate);
 
 //------------------------------------------------------------------------------
 ///
@@ -564,6 +596,21 @@ int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_
 ///
 vcap_iterator* vcap_control_iterator(vcap_device* vd);
 
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Advances a control iterator
+///
+/// Copies the current control information into 'info' and advances the iterator.
+///
+/// \param  itr   Pointer to iterator
+/// \param  info  Pointer to the control information (output)
+///
+/// \returns false if there was an error or there are no more controls, and true
+///          otherwise
+///
+bool vcap_next_control(vcap_iterator* itr, vcap_control_info* info);
+
 //------------------------------------------------------------------------------
 ///
 /// \brief  Creates a new control menu iterator
@@ -577,6 +624,21 @@ vcap_iterator* vcap_control_iterator(vcap_device* vd);
 /// \returns An initialized 'vcap_menu_iterator' struct
 ///
 vcap_iterator* vcap_menu_iterator(vcap_device* vd, vcap_control_id ctrl);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Gets a control's value
+///
+/// Retrieves the current value of a control with the specified control ID.
+///
+/// \param  vd     Pointer to the video device
+/// \param  ctrl   The control ID
+/// \param  value  The control value (output)
+///
+/// \returns VCAP_OK      if the control value was retrieved
+///          VCAP_ERROR   if an error occured
+///
+bool vcap_next_menu_item(vcap_iterator* itr, vcap_menu_item* item);
 
 //------------------------------------------------------------------------------
 ///
@@ -698,7 +760,7 @@ enum
     VCAP_FMT_RGB24,        ///< 24  RGB-8-8-8
 
     /* 8-Greyscale */
-    VCAP_PIX_FMT_GREY,     ///<  8  Greyscale
+    VCAP_FMT_GREY,     ///<  8  Greyscale
 
     /* Luminance+Chrominance formats */
     VCAP_FMT_YUYV,         ///< 16  YUV 4:2:2

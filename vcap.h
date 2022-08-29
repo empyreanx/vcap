@@ -353,6 +353,7 @@ int vcap_get_device_info(vcap_device* vd, vcap_device_info* info);
 /// \return 0 on error and frame size otherwise
 ///
 size_t vcap_get_image_size(vcap_device* vd);
+//size_t vcap_get_frame_size(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -371,7 +372,7 @@ int vcap_grab(vcap_device* vd, size_t size, uint8_t* data);
 //------------------------------------------------------------------------------
 ///
 /// \brief Sets the value and advances the iterator
-
+///
 /// \param  iterator  The iterator to advance
 /// \param  value     Pointer to the value to set
 ///
@@ -392,7 +393,6 @@ bool vcap_iterator_error(vcap_iterator* iterator);
 /// \param  iterator  The iterator to deallocate
 ///
 void vcap_free_iterator(vcap_iterator* iterator);
-
 
 //------------------------------------------------------------------------------
 ///
@@ -430,11 +430,11 @@ vcap_iterator* vcap_format_iterator(vcap_device* vd);
 /// and format ID.
 ///
 /// \param  vd   Pointer to the video device
-/// \param  format  The format ID
+/// \param  fmt  The format ID
 ///
 /// \returns An initialized 'vcap_size_iterator' struct
 ///
-vcap_iterator* vcap_size_iterator(vcap_device* vd, vcap_format_id format);
+vcap_iterator* vcap_size_iterator(vcap_device* vd, vcap_format_id fmt);
 
 //------------------------------------------------------------------------------
 ///

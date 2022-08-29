@@ -374,7 +374,7 @@ int vcap_dump_info(vcap_device* vd, FILE* file)
     {
         printf("   Name: %s, Type: %s\n", ctrl_info.name, ctrl_info.type_name);
 
-        if (ctrl_info.type == VCAP_CTRL_TYPE_MENU)
+        if (ctrl_info.type == VCAP_CTRL_TYPE_MENU || ctrl_info.type == VCAP_CTRL_TYPE_INTEGER_MENU)
         {
             printf("   Menu:\n");
 
@@ -386,7 +386,10 @@ int vcap_dump_info(vcap_device* vd, FILE* file)
 
             while (vcap_next_menu_item(menu_itr, &menu_item))
             {
-                printf("      %i : %s\n", menu_item.index, menu_item.name);
+                if (ctrl_info.type == VCAP_CTRL_TYPE_MENU)
+                    printf("      %i : %s\n", menu_item.index, menu_item.label.str);
+                else
+                    printf("      %i : %li\n", menu_item.index, menu_item.label.num);
             }
 
             // Check for errors during menu iteration
@@ -2256,7 +2259,11 @@ static int vcap_enum_menu(vcap_device* vd, vcap_control_id ctrl, vcap_menu_item*
         if (index == count)
         {
             item->index = i;
-            vcap_ustrcpy(item->name, qmenu.name, sizeof(item->name));
+
+            if (info.type == VCAP_CTRL_TYPE_MENU)
+                vcap_ustrcpy(item->label.str, qmenu.name, sizeof(item->label.str));
+            else
+                item->label.num = qmenu.value;
 
             return VCAP_OK;
         }

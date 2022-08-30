@@ -1108,17 +1108,8 @@ int vcap_get_control_info(vcap_device* vd, vcap_control_id ctrl, vcap_control_in
     // Default
     info->default_value = qctrl.default_value;
 
-    // Flags
-    uint32_t flags = qctrl.flags;
-
-    info->slider    =  (bool)(flags & V4L2_CTRL_FLAG_SLIDER);
-
-    info->read_only =  (bool)(flags & V4L2_CTRL_FLAG_READ_ONLY) ||
-                       (bool)(flags & V4L2_CTRL_FLAG_GRABBED);
-
-    info->write_only = (bool)(flags & V4L2_CTRL_FLAG_WRITE_ONLY);
-    info->disabled   = (bool)(flags & V4L2_CTRL_FLAG_DISABLED);
-    info->inactive   = (bool)(flags & V4L2_CTRL_FLAG_INACTIVE);
+    // Slider control hint
+    info->slider = (bool)(qctrl.flags & V4L2_CTRL_FLAG_SLIDER);
 
     return VCAP_OK;
 }
@@ -1333,6 +1324,7 @@ int vcap_reset_control(vcap_device* vd, vcap_control_id ctrl)
     assert(vd != NULL);
 
     vcap_control_info info;
+    vcap_control_status status;
 
     int result = vcap_get_control_info(vd, ctrl, &info);
 
@@ -1342,7 +1334,15 @@ int vcap_reset_control(vcap_device* vd, vcap_control_id ctrl)
     if (result == VCAP_INVALID)
         return VCAP_INVALID;
 
-    if (info.read_only || info.write_only || info.inactive || info.disabled)
+    result = vcap_get_control_status(vd, ctrl, &status);
+
+    if (result == VCAP_ERROR)
+        return VCAP_ERROR;
+
+    if (result == VCAP_INVALID)
+        return VCAP_INVALID;
+
+    if (status.read_only || status.write_only || status.inactive || status.disabled)
         return VCAP_INVALID;
 
     assert(result == VCAP_OK);

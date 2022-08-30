@@ -157,12 +157,11 @@ typedef struct
     int32_t step;               ///< The spacing between consecutive values
     int32_t default_value;      ///< The default value of the control (set when the driver is first loaded)
     bool slider;
-    bool read_only;
-    bool write_only;
-    bool disabled;
-    bool inactive;
 } vcap_control_info;
 
+///
+/// \brief Control status
+///
 typedef struct
 {
     bool read_only;
@@ -566,6 +565,23 @@ int vcap_set_rate(vcap_device* vd, vcap_rate rate);
 ///          VCAP_INVALID  if the control ID is invalid, and
 ///
 int vcap_get_control_info(vcap_device* vd, vcap_control_id ctrl, vcap_control_info* info);
+
+//------------------------------------------------------------------------------
+///
+/// \brief  Retrieves control status information
+///
+/// Retrieves status information for the specified control ID.
+///
+/// \param  vd      Pointer to the video device
+/// \param  ctrl    The control ID
+/// \param  status  Pointer to the control info
+///
+/// \returns VCAP_OK       if the control info was retrieved successfully,
+///          VCAP_ERROR    if getting the control info failed
+///          VCAP_INVALID  if the control ID is invalid, and
+///
+int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_status* status);
+
 
 //------------------------------------------------------------------------------
 ///

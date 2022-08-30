@@ -934,8 +934,6 @@ int vcap_set_format(vcap_device* vd, vcap_format_id fmt, vcap_size size)
 {
     assert(vd != NULL);
 
-    printf("buffer_count: %u\n", vd->buffer_count);
-
     // Ensure format ID is within the proper range
     assert(fmt < VCAP_FMT_COUNT);
 
@@ -949,6 +947,7 @@ int vcap_set_format(vcap_device* vd, vcap_format_id fmt, vcap_size size)
 
     if (streaming && vcap_stop_stream(vd) == VCAP_ERROR)
         return VCAP_ERROR;
+
     // Specify desired format and set
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-fmt.html
     struct v4l2_format sfmt;
@@ -1109,70 +1108,17 @@ int vcap_get_control_info(vcap_device* vd, vcap_control_id ctrl, vcap_control_in
     // Default
     info->default_value = qctrl.default_value;
 
-    return VCAP_OK;
-}
+    // Flags
+    uint32_t flags = qctrl.flags;
 
-int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_status* status)
-{
-    assert(vd != NULL);
-    assert(status != NULL);
+    info->slider    =  (bool)(flags & V4L2_CTRL_FLAG_SLIDER);
 
-    // Ensure control ID is within the proper range
-    assert(ctrl < VCAP_CTRL_COUNT);
+    info->read_only =  (bool)(flags & V4L2_CTRL_FLAG_READ_ONLY) ||
+                       (bool)(flags & V4L2_CTRL_FLAG_GRABBED);
 
-    if (ctrl >= VCAP_CTRL_COUNT)
-    {
-        vcap_set_error(vd, "Invalid argument (out of range)");
-        return VCAP_ERROR;
-    }
-
-    if (!status)
-    {
-        vcap_set_error(vd, "Argument can't be null");
-        return VCAP_ERROR;
-    }
-
-    // Query specified control.
-    // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-queryctrl.html
-    struct v4l2_queryctrl qctrl;
-    VCAP_CLEAR(qctrl);
-
-    qctrl.id = vcap_map_ctrl(ctrl);
-
-    if (vcap_ioctl(vd->fd, VIDIOC_QUERYCTRL, &qctrl) == -1)
-    {
-        if (errno == EINVAL)
-        {
-            vcap_set_error(vd, "Invalid control ID");
-            return VCAP_INVALID;
-        }
-        else
-        {
-            vcap_set_error_errno(vd, "Unable to check control status on device %s", vd->path);
-            return VCAP_ERROR;
-        }
-    }
-
-    *status = VCAP_CTRL_STATUS_OK;
-
-    // Test if control type is supported
-    if (!vcap_ctrl_type_supported(qctrl.type))
-    {
-        vcap_set_error(vd, "Invalid control type");
-        return VCAP_INVALID;
-    }
-
-    // Test if control is inactive
-    if (qctrl.flags & V4L2_CTRL_FLAG_INACTIVE)
-        *status |= VCAP_CTRL_STATUS_INACTIVE;
-
-    // Test if control is disabled
-    if (qctrl.flags & V4L2_CTRL_FLAG_DISABLED)
-        *status |= VCAP_CTRL_STATUS_DISABLED;
-
-    // Test if control is read only
-    if (qctrl.flags & V4L2_CTRL_FLAG_READ_ONLY || qctrl.flags & V4L2_CTRL_FLAG_GRABBED)
-        *status |= VCAP_CTRL_STATUS_READ_ONLY;
+    info->write_only = (bool)(flags & V4L2_CTRL_FLAG_WRITE_ONLY);
+    info->disabled   = (bool)(flags & V4L2_CTRL_FLAG_DISABLED);
+    info->inactive   = (bool)(flags & V4L2_CTRL_FLAG_INACTIVE);
 
     return VCAP_OK;
 }
@@ -1330,14 +1276,19 @@ int vcap_reset_control(vcap_device* vd, vcap_control_id ctrl)
 
     int result = vcap_get_control_info(vd, ctrl, &info);
 
-    if (result == VCAP_ERROR || result == VCAP_INVALID)
+    if (result == VCAP_ERROR)
         return VCAP_ERROR;
 
-    if (result == VCAP_OK)
-    {
-        if (vcap_set_control(vd, ctrl, info.default_value) == VCAP_ERROR)
-            return VCAP_ERROR;
-    }
+    if (result == VCAP_INVALID)
+        return VCAP_INVALID;
+
+    if (info.read_only || info.write_only || info.inactive || info.disabled)
+        return VCAP_INVALID;
+
+    assert(result == VCAP_OK);
+
+    if (vcap_set_control(vd, ctrl, info.default_value) == VCAP_ERROR)
+        return VCAP_ERROR;
 
     return VCAP_OK;
 }
@@ -1349,21 +1300,13 @@ int vcap_reset_all_controls(vcap_device* vd)
     // Loop over all controlsa
     for (vcap_control_id ctrl = 0; ctrl < VCAP_CTRL_COUNT; ctrl++)
     {
-        vcap_control_status status = 0;
-
-        int result = vcap_get_control_status(vd, ctrl, &status);
+        int result = vcap_reset_control(vd, ctrl);
 
         if (result == VCAP_ERROR)
             return VCAP_ERROR;
 
         if (result == VCAP_INVALID)
             continue;
-
-        if (status != VCAP_CTRL_STATUS_OK)
-            continue;
-
-        if (vcap_reset_control(vd, ctrl) == -1)
-            return VCAP_ERROR;
     }
 
     return VCAP_OK;

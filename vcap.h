@@ -75,12 +75,10 @@ enum
     VCAP_INVALID = -2,        ///< Argument is invalid
 };
 
-
 ///
 /// \brief Device handle
 ///
 typedef struct vcap_device vcap_device;
-
 
 ///
 /// \brief Generic iterator type
@@ -101,11 +99,6 @@ typedef uint32_t vcap_control_id;
 /// \brief Control type ID
 ///
 typedef uint8_t vcap_control_type;
-
-///
-/// \brief Control status
-///
-typedef uint8_t vcap_control_status;
 
 ///
 /// \brief Video capture device infomation
@@ -155,14 +148,19 @@ typedef struct
 ///
 typedef struct
 {
-    vcap_control_id id;            ///< Control ID
+    vcap_control_id id;         ///< Control ID
     uint8_t name[32];           ///< Control name
-    vcap_control_type type;        ///< Control type
+    vcap_control_type type;     ///< Control type
     uint8_t type_name[16];      ///< Control type name
     int32_t min;                ///< The minimum value of the control
     int32_t max;                ///< The maximum value of the control
     int32_t step;               ///< The spacing between consecutive values
     int32_t default_value;      ///< The default value of the control (set when the driver is first loaded)
+    bool slider;
+    bool read_only;
+    bool write_only;
+    bool disabled;
+    bool inactive;
 } vcap_control_info;
 
 ///
@@ -560,34 +558,6 @@ int vcap_set_rate(vcap_device* vd, vcap_rate rate);
 ///          VCAP_INVALID  if the control ID is invalid, and
 ///
 int vcap_get_control_info(vcap_device* vd, vcap_control_id ctrl, vcap_control_info* info);
-
-///
-/// \brief Control status codes
-///
-enum
-{
-    VCAP_CTRL_STATUS_OK        = (0 << 0),  ///< Control is supported
-    VCAP_CTRL_STATUS_INACTIVE  = (1 << 0),  ///< Control is supported, but inactive
-    VCAP_CTRL_STATUS_READ_ONLY = (1 << 1),  ///< Control is presently read-only
-    VCAP_CTRL_STATUS_DISABLED  = (1 << 2),  ///< Control is supported, but disabled
-};
-
-//------------------------------------------------------------------------------
-///
-/// \brief  Returns the status of the control
-///
-/// Retrieves the status of the control with the specified ID and stores them
-/// in a bitset
-///
-/// \param  vd    Pointer to the video device
-/// \param  ctrl  The control ID
-/// \param  status  The control's status (output)
-///
-/// \returns VCAP_OK       if the control status was retrieved successfully,
-///          VCAP_ERROR    if getting the control status failed
-///          VCAP_INVALID  if the control ID is invalid, and
-///
-int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_status* status);
 
 //------------------------------------------------------------------------------
 ///

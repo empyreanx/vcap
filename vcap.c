@@ -2275,6 +2275,7 @@ static int vcap_enum_menu(vcap_device* vd, vcap_control_id ctrl, vcap_menu_item*
 }
 
 static uint32_t ctrl_map[] = {
+    /* User controls */
     V4L2_CID_BRIGHTNESS,                  // Integer
     V4L2_CID_CONTRAST,                    // Integer
     V4L2_CID_SATURATION,                  // Integer
@@ -2299,10 +2300,11 @@ static uint32_t ctrl_map[] = {
     V4L2_CID_COLOR_KILLER,                // Boolean
     V4L2_CID_AUTOBRIGHTNESS,              // Boolean
     V4L2_CID_ROTATE,                      // Integer
-    V4L2_CID_BG_COLOR,                    // Integer
     V4L2_CID_ILLUMINATORS_1,              // Boolean
     V4L2_CID_ILLUMINATORS_2,              // Boolean
     V4L2_CID_ALPHA_COMPONENT,             // Integer
+
+    /* Camera controls */
     V4L2_CID_EXPOSURE_AUTO,               // Enum
     V4L2_CID_EXPOSURE_ABSOLUTE,           // Integer
     V4L2_CID_EXPOSURE_AUTO_PRIORITY,      // Boolean
@@ -2325,6 +2327,7 @@ static uint32_t ctrl_map[] = {
     V4L2_CID_ZOOM_CONTINUOUS,             // Integer
     V4L2_CID_IRIS_ABSOLUTE,               // Integer
     V4L2_CID_IRIS_RELATIVE,               // Integer
+    V4L2_CID_PRIVACY,
     V4L2_CID_BAND_STOP_FILTER,            // Integer
     V4L2_CID_WIDE_DYNAMIC_RANGE,          // Boolean
     V4L2_CID_IMAGE_STABILIZATION,         // Boolean

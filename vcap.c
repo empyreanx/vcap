@@ -1123,6 +1123,66 @@ int vcap_get_control_info(vcap_device* vd, vcap_control_id ctrl, vcap_control_in
     return VCAP_OK;
 }
 
+int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_status* status)
+{
+    assert(vd != NULL);
+    assert(status != NULL);
+
+    // Ensure control ID is within the proper range
+    assert(ctrl < VCAP_CTRL_COUNT);
+
+    if (ctrl >= VCAP_CTRL_COUNT)
+    {
+        vcap_set_error(vd, "Invalid argument (out of range)");
+        return VCAP_ERROR;
+    }
+
+    if (!status)
+    {
+        vcap_set_error(vd, "Argument can't be null");
+        return VCAP_ERROR;
+    }
+
+    // Query specified control
+    // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-queryctrl.html
+    struct v4l2_queryctrl qctrl;
+    VCAP_CLEAR(qctrl);
+
+    qctrl.id = vcap_map_ctrl(ctrl);
+
+    if (vcap_ioctl(vd->fd, VIDIOC_QUERYCTRL, &qctrl) == -1)
+    {
+        if (errno == EINVAL)
+        {
+            vcap_set_error(vd, "Invalid control ID");
+            return VCAP_INVALID;
+        }
+        else
+        {
+            vcap_set_error_errno(vd, "Unable to read control status on device %s", vd->path);
+            return VCAP_ERROR;
+        }
+    }
+
+    // Test if control type is supported
+    if (!vcap_ctrl_type_supported(qctrl.type))
+    {
+        vcap_set_error(vd, "Invalid control type");
+        return VCAP_INVALID;
+    }
+
+    // Flags
+    uint32_t flags = qctrl.flags;
+
+    status->read_only  = (bool)(flags & V4L2_CTRL_FLAG_READ_ONLY) ||
+                         (bool)(flags & V4L2_CTRL_FLAG_GRABBED);
+    status->write_only = (bool)(flags & V4L2_CTRL_FLAG_WRITE_ONLY);
+    status->disabled   = (bool)(flags & V4L2_CTRL_FLAG_DISABLED);
+    status->inactive   = (bool)(flags & V4L2_CTRL_FLAG_INACTIVE);
+
+    return VCAP_OK;
+}
+
 vcap_iterator* vcap_control_iterator(vcap_device* vd)
 {
     assert(vd != NULL);

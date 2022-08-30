@@ -163,6 +163,14 @@ typedef struct
     bool inactive;
 } vcap_control_info;
 
+typedef struct
+{
+    bool read_only;
+    bool write_only;
+    bool disabled;
+    bool inactive;
+} vcap_control_status;
+
 ///
 /// \brief Control menu item
 ///

@@ -1183,11 +1183,11 @@ int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_
     // Flags
     uint32_t flags = qctrl.flags;
 
-    status->read_only  = (bool)(flags & V4L2_CTRL_FLAG_READ_ONLY) ||
-                         (bool)(flags & V4L2_CTRL_FLAG_GRABBED);
+    status->read_only  = (bool)(flags & V4L2_CTRL_FLAG_READ_ONLY);
     status->write_only = (bool)(flags & V4L2_CTRL_FLAG_WRITE_ONLY);
     status->disabled   = (bool)(flags & V4L2_CTRL_FLAG_DISABLED);
-    status->inactive   = (bool)(flags & V4L2_CTRL_FLAG_INACTIVE);
+    status->inactive   = (bool)(flags & V4L2_CTRL_FLAG_INACTIVE) ||
+                         (bool)(flags & V4L2_CTRL_FLAG_GRABBED);
 
     return VCAP_OK;
 }

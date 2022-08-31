@@ -138,7 +138,7 @@ typedef struct
 ///
 typedef struct
 {
-    vcap_format_id id;             ///< Format ID
+    vcap_format_id id;          ///< Format ID
     uint8_t name[32];           ///< Format name
     uint8_t fourcc[5];          ///< FourCC string
 } vcap_format_info;
@@ -164,10 +164,10 @@ typedef struct
 ///
 typedef struct
 {
-    bool read_only;
-    bool write_only;
-    bool disabled;
-    bool inactive;
+    bool read_only;             ///< This control is permanently write only
+    bool write_only;            ///< This control is permanently readable only
+    bool disabled;              ///< This control is permanently disabled
+    bool inactive;              ///< This control is not relevant to the current configuration
 } vcap_control_status;
 
 ///

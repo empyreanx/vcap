@@ -55,7 +55,7 @@ There are a few examples available. To build the "info" example use the followin
 
 *$ cmake ../vcap -DBUILD\_INFO\_EXAMPLE=ON*
 
-Other examples are built similarly using `BUILD_GRAB_EXAMPLE` and `BUILD_SDL_EXAMPLE`.
+Other examples are built similarly using `BUILD_CAPTURE_EXAMPLE` and `BUILD_SDL_EXAMPLE`.
 
 ## Example
 

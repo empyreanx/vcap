@@ -180,7 +180,7 @@ typedef struct
     union
     {
         uint8_t str[32];       ///< Menu item name (used if control type is VCAP_CTRL_TYPE_MENU)
-        int64_t num;          ///< Menu item value (used if control type is VCAP_CTRL_TYPE_INTEGER_MENU)
+        int64_t num;           ///< Menu item value (used if control type is VCAP_CTRL_TYPE_INTEGER_MENU)
     } label;
 
 } vcap_menu_item;
@@ -582,7 +582,6 @@ int vcap_get_control_info(vcap_device* vd, vcap_control_id ctrl, vcap_control_in
 ///
 int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_status* status);
 
-
 //------------------------------------------------------------------------------
 ///
 /// \brief  Creates a new control iterator
@@ -856,8 +855,8 @@ enum
     VCAP_CTRL_TILT_RESET,                  ///< Turns the camera vertically to the default position (Button)
     VCAP_CTRL_PAN_ABSOLUTE,                ///< Turns the camera horizontally to the specified position (Integer)
     VCAP_CTRL_TILT_ABSOLUTE,               ///< Turns the camera vertically to the specified position (Integer)
-    VCAP_CTRL_FOCUS_ABSOLUTE,              ///< Sets the focal point of the camera to the specified position (Integer)
-    VCAP_CTRL_FOCUS_RELATIVE,              ///< Moves the focal point of the camera by the specified amount (Integer)
+    VCAP_CTRL_FOCUS_ABSOLUTE,              ///< Sets the focal point of the camera (Integer)
+    VCAP_CTRL_FOCUS_RELATIVE,              ///< Moves the focal point of the camera (Integer)
     VCAP_CTRL_FOCUS_AUTO,                  ///< Enables continuous automatic focus adjustments (Boolean)
     VCAP_CTRL_AUTO_FOCUS_START,            ///< Starts single auto focus process (Button)
     VCAP_CTRL_AUTO_FOCUS_STOP,             ///< Aborts automatic focusing (Button)
@@ -871,10 +870,10 @@ enum
     VCAP_CTRL_BAND_STOP_FILTER,            ///< Band-stop filter of a camera sensor (Integer)
     VCAP_CTRL_WIDE_DYNAMIC_RANGE,          ///< Wide dynamic range (clear images where intensity of illumination varies significantly) (Boolean)
     VCAP_CTRL_IMAGE_STABILIZATION,         ///< Image stabilization (Boolean)
-    VCAP_CTRL_PAN_SPEED,                   ///< Turns the camera horizontally at the specific speed (Integer)
+    VCAP_CTRL_PAN_SPEED,                   ///< Turns the camera horizontally at the specified speed (Integer)
     VCAP_CTRL_TILT_SPEED,                  ///< Turns the camera vertically at the specified speed (Integer)
-    VCAP_CTRL_COUNT,
-    VCAP_CTRL_UNKNOWN,
+    VCAP_CTRL_COUNT,                       ///< Number of controls
+    VCAP_CTRL_UNKNOWN,                     ///< Unsupported control
 };
 
 #ifdef __cplusplus

@@ -1326,6 +1326,7 @@ int vcap_reset_control(vcap_device* vd, vcap_control_id ctrl)
     vcap_control_info info;
     vcap_control_status status;
 
+    // Get info for default value
     int result = vcap_get_control_info(vd, ctrl, &info);
 
     if (result == VCAP_ERROR)
@@ -1334,6 +1335,7 @@ int vcap_reset_control(vcap_device* vd, vcap_control_id ctrl)
     if (result == VCAP_INVALID)
         return VCAP_INVALID;
 
+    // Get control status
     result = vcap_get_control_status(vd, ctrl, &status);
 
     if (result == VCAP_ERROR)
@@ -1342,7 +1344,7 @@ int vcap_reset_control(vcap_device* vd, vcap_control_id ctrl)
     if (result == VCAP_INVALID)
         return VCAP_INVALID;
 
-    if (status.read_only || status.write_only || status.inactive || status.disabled)
+    if (status.read_only || status.inactive || status.disabled)
         return VCAP_INVALID;
 
     assert(result == VCAP_OK);

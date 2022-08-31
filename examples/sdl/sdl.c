@@ -149,8 +149,8 @@ int main(int argc, char** argv)
             }
         }
 
-        // Grab an image from the device
-        if (vcap_grab(vd, image_size, image_data) == VCAP_ERROR)
+        // Capture an image from the device
+        if (vcap_capture(vd, image_size, image_data) == VCAP_ERROR)
         {
             printf("Error: %s\n", vcap_get_error(vd));
             break;

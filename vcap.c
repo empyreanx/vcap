@@ -168,10 +168,10 @@ static int vcap_unmap_buffers(vcap_device* vd);
 static int vcap_queue_buffers(vcap_device* vd);
 
 // Grab a frame using memory-mapped buffers
-static int vcap_grab_mmap(vcap_device* vd, size_t size, uint8_t* data);
+static int vcap_capture_mmap(vcap_device* vd, size_t size, uint8_t* data);
 
 // Grab a frame using a direct read call
-static int vcap_grab_read(vcap_device* vd, size_t size, uint8_t* data);
+static int vcap_capture_read(vcap_device* vd, size_t size, uint8_t* data);
 
 // Safe unsigned string copy
 static void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size);
@@ -712,7 +712,7 @@ size_t vcap_get_image_size(vcap_device* vd)
     return fmt.fmt.pix.sizeimage;
 }
 
-int vcap_grab(vcap_device* vd, size_t size, uint8_t* data)
+int vcap_capture(vcap_device* vd, size_t size, uint8_t* data)
 {
     assert(vd != NULL);
     assert(data != NULL);
@@ -724,9 +724,9 @@ int vcap_grab(vcap_device* vd, size_t size, uint8_t* data)
     }
 
     if (vd->buffer_count > 0)
-        return vcap_grab_mmap(vd, size, data);
+        return vcap_capture_mmap(vd, size, data);
     else
-        return vcap_grab_read(vd, size, data);
+        return vcap_capture_read(vd, size, data);
 }
 
 //==============================================================================
@@ -1843,7 +1843,7 @@ static int vcap_queue_buffers(vcap_device* vd)
 	return VCAP_OK;
 }
 
-static int vcap_grab_mmap(vcap_device* vd, size_t size, uint8_t* data)
+static int vcap_capture_mmap(vcap_device* vd, size_t size, uint8_t* data)
 {
     assert(vd != NULL);
     assert(data != NULL);
@@ -1933,7 +1933,7 @@ static int vcap_grab_mmap(vcap_device* vd, size_t size, uint8_t* data)
     return VCAP_OK;
 }
 
-static int vcap_grab_read(vcap_device* vd, size_t size, uint8_t* data)
+static int vcap_capture_read(vcap_device* vd, size_t size, uint8_t* data)
 {
     assert(vd != NULL);
     assert(data != NULL);

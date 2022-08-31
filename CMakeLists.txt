@@ -7,11 +7,11 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 project (vcap C)
 
 # Declare options
-option(BUILD_SHARED       "Build a shared library" ON)
-option(BUILD_STATIC       "Build a static library" OFF)
-option(BUILD_GRAB_EXAMPLE "Build an example that grabs and saves a frame" OFF)
-option(BUILD_INFO_EXAMPLE "Build an example that prints camera info" OFF)
-option(BUILD_SDL_EXAMPLE  "Build an example that streams frames using SDL2" OFF)
+option(BUILD_SHARED          "Build a shared library" ON)
+option(BUILD_STATIC          "Build a static library" OFF)
+option(BUILD_CAPTURE_EXAMPLE "Build an example that grabs and saves a frame" OFF)
+option(BUILD_INFO_EXAMPLE    "Build an example that prints camera info" OFF)
+option(BUILD_SDL_EXAMPLE     "Build an example that streams frames using SDL2" OFF)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 

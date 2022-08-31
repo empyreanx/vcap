@@ -1,23 +1,11 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-if(BUILD_GRAB_EXAMPLE)
-    add_subdirectory(grab)
+if(BUILD_CAPTURE_EXAMPLE)
+    add_subdirectory(capture)
 endif()
 
 if(BUILD_INFO_EXAMPLE)
     add_subdirectory(info)
-endif()
-
-if(BUILD_JPEG_EXAMPLE)
-    add_subdirectory(jpeg)
-endif()
-
-if(BUILD_JSON_EXAMPLE)
-    add_subdirectory(json)
-endif()
-
-if(BUILD_PNG_EXAMPLE)
-    add_subdirectory(png)
 endif()
 
 if(BUILD_SDL_EXAMPLE)

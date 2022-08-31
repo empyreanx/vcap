@@ -367,9 +367,9 @@ size_t vcap_get_image_size(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Grabs a video frame (image)
+/// \brief  Captures a video frame (image)
 ///
-/// Grabs a frame from the video capture device.
+/// Captures a frame from the video capture device.
 ///
 /// \param  vd    Pointer to the video device
 /// \param  size  Size of the frame in bytes
@@ -377,7 +377,7 @@ size_t vcap_get_image_size(vcap_device* vd);
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_grab(vcap_device* vd, size_t size, uint8_t* data);
+int vcap_capture(vcap_device* vd, size_t size, uint8_t* data);
 
 //------------------------------------------------------------------------------
 ///

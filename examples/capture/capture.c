@@ -86,8 +86,8 @@ int main(int argc, char** argv)
     size_t image_size = vcap_get_image_size(vd);
     uint8_t image_data[image_size];
 
-    // Grab an image from the device
-    if (vcap_grab(vd, image_size, image_data) == VCAP_ERROR)
+    // Capture an image from the device
+    if (vcap_capture(vd, image_size, image_data) == VCAP_ERROR)
     {
         printf("Error: %s\n", vcap_get_error(vd));
         vcap_destroy_device(vd);

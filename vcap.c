@@ -1665,6 +1665,12 @@ static int vcap_request_buffers(vcap_device* vd)
     // available buffers
     vd->buffer_count = req.count;
 
+    if (vd->buffer_count == 0)
+    {
+        vcap_set_error(vd, "Zero buffers returned from request");
+        return VCAP_ERROR;
+    }
+
     // Allocates the buffer objects
     vd->buffers = (vcap_buffer*)vcap_malloc(req.count * sizeof(vcap_buffer));
 
@@ -1679,8 +1685,6 @@ static int vcap_init_stream(vcap_device* vd)
     {
         if (vcap_request_buffers(vd) == VCAP_ERROR)
             return VCAP_ERROR;
-
-        // FIXME: don't continue if returned buffer_count == 0?
 
         if (vcap_map_buffers(vd) == VCAP_ERROR)
             return VCAP_ERROR;

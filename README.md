@@ -86,13 +86,14 @@ int main(int argc, char** argv)
     size_t image_size = vcap_get_image_size(vd);
     uint8_t image_data[image_size];
 
-    // Grab a frame
-    vcap_grab(vd, image_size, image_data);
+    // Capture an image
+    vcap_capture(vd, image_size, image_data);
 
     // Do something with the image_data...
 
     // Close and destroy device 
-    vcap_destroy_device(vd); // Calls vcap_close and then deallocates memory associated with 'vcap_dev'
+    vcap_destroy_device(vd); // Calls vcap_close and then deallocates memory 
+                             // associated with 'vcap_device'
 
     return 0;
 }

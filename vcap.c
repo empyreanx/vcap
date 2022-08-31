@@ -800,8 +800,14 @@ bool vcap_next_format(vcap_iterator* itr, vcap_format_info* info)
 {
     assert(itr != NULL);
     assert(info != NULL);
+    assert(itr->type == VCAP_ITR_FMT);
 
-    // TODO: Check iterator type
+    if (itr->type != VCAP_ITR_FMT)
+    {
+        vcap_set_error(itr->vd, "Invalid iterator type");
+        itr->result = VCAP_ERROR;
+        return false;
+    }
 
     if (!info)
     {
@@ -839,8 +845,14 @@ bool vcap_next_size(vcap_iterator* itr, vcap_size* size)
 {
     assert(itr != NULL);
     assert(size != NULL);
+    assert(itr->type == VCAP_ITR_SIZE);
 
-    // TODO: Check iterator type
+    if (itr->type != VCAP_ITR_SIZE)
+    {
+        vcap_set_error(itr->vd, "Invalid iterator type");
+        itr->result = VCAP_ERROR;
+        return false;
+    }
 
     if (!size)
     {
@@ -879,8 +891,14 @@ bool vcap_next_rate(vcap_iterator* itr, vcap_rate* rate)
 {
     assert(itr != NULL);
     assert(rate != NULL);
+    assert(itr->type == VCAP_ITR_RATE);
 
-    // TODO: Check iterator type
+    if (itr->type != VCAP_ITR_RATE)
+    {
+        vcap_set_error(itr->vd, "Invalid iterator type");
+        itr->result = VCAP_ERROR;
+        return false;
+    }
 
     if (!rate)
     {
@@ -1192,8 +1210,14 @@ bool vcap_next_control(vcap_iterator* itr, vcap_control_info* info)
 {
     assert(itr != NULL);
     assert(info != NULL);
+    assert(itr->type == VCAP_ITR_CTRL);
 
-    // TODO: Check iterator type
+    if (itr->type != VCAP_ITR_CTRL)
+    {
+        vcap_set_error(itr->vd, "Invalid iterator type");
+        itr->result = VCAP_ERROR;
+        return false;
+    }
 
     if (!info)
     {
@@ -1231,8 +1255,14 @@ bool vcap_next_menu_item(vcap_iterator* itr, vcap_menu_item* item)
 {
     assert(itr != NULL);
     assert(item != NULL);
+    assert(itr->type == VCAP_ITR_MENU);
 
-    // TODO: Check iterator type
+    if (itr->type != VCAP_ITR_MENU)
+    {
+        vcap_set_error(itr->vd, "Invalid iterator type");
+        itr->result = VCAP_ERROR;
+        return false;
+    }
 
     if (!item)
     {

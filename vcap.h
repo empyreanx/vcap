@@ -156,7 +156,7 @@ typedef struct
     int32_t max;                ///< The maximum value of the control
     int32_t step;               ///< The spacing between consecutive values
     int32_t default_value;      ///< The default value of the control (set when the driver is first loaded)
-    bool slider;
+    bool slider;                ///< Hint that the control should be represented as a slider
 } vcap_control_info;
 
 ///
@@ -757,7 +757,7 @@ enum
     VCAP_FMT_RGB24,        ///< 24  RGB-8-8-8
 
     /* 8-Greyscale */
-    VCAP_FMT_GREY,     ///<  8  Greyscale
+    VCAP_FMT_GREY,         ///<  8  Greyscale
 
     /* Luminance+Chrominance formats */
     VCAP_FMT_YUYV,         ///< 16  YUV 4:2:2
@@ -801,12 +801,12 @@ enum
 ///
 enum
 {
-    VCAP_CTRL_TYPE_INTEGER,
-    VCAP_CTRL_TYPE_BOOLEAN,
-    VCAP_CTRL_TYPE_MENU,
-    VCAP_CTRL_TYPE_INTEGER_MENU,
-    VCAP_CTRL_TYPE_BUTTON,
-    VCAP_CTRL_TYPE_UNKNOWN,
+    VCAP_CTRL_TYPE_INTEGER,      ///< Control has an integer value
+    VCAP_CTRL_TYPE_BOOLEAN,      ///< On/off control
+    VCAP_CTRL_TYPE_MENU,         ///< Menu control where the label is represented by a string
+    VCAP_CTRL_TYPE_INTEGER_MENU, ///< Menu control where the label is represented by an integer
+    VCAP_CTRL_TYPE_BUTTON,       ///< Button control
+    VCAP_CTRL_TYPE_UNKNOWN       ///< Control type is not supported
 };
 
 ///
@@ -815,65 +815,65 @@ enum
 enum
 {
     /* User controls */
-    VCAP_CTRL_BRIGHTNESS,                  ///< Brightness or black level (Integer)
-    VCAP_CTRL_CONTRAST,                    ///< Contrast or luma gain (Integer)
-    VCAP_CTRL_SATURATION,                  ///< Color saturation or chroma gain (Integer)
-    VCAP_CTRL_HUE,                         ///< Hue or color balance (Integer)
-    VCAP_CTRL_AUTO_WHITE_BALANCE,          ///< Automatic white balance (Boolean)
-    VCAP_CTRL_DO_WHITE_BALANCE,            ///< Will do white balance and then keep the current setting (Button)
-    VCAP_CTRL_RED_BALANCE,                 ///< Red chroma balance (Integer)
-    VCAP_CTRL_BLUE_BALANCE,                ///< Blue chroma balance (Integer)
-    VCAP_CTRL_GAMMA,                       ///< Gamma adjust (Integer)
-    VCAP_CTRL_EXPOSURE,                    ///< Exposure (Integer)
-    VCAP_CTRL_AUTOGAIN,                    ///< Automatic gain/exposure (Boolean)
-    VCAP_CTRL_GAIN,                        ///< Gain (Integer)
-    VCAP_CTRL_HFLIP,                       ///< Flip image horizontally (Boolean)
-    VCAP_CTRL_VFLIP,                       ///< Flip image vertically (Boolean)
-    VCAP_CTRL_POWER_LINE_FREQUENCY,        ///< Power line frequency filter to avoid flicker (Enum)
-    VCAP_CTRL_HUE_AUTO,                    ///< Automatic hue (Boolean)
-    VCAP_CTRL_WHITE_BALANCE_TEMPERATURE,   ///< White balance a color temperature in Kelvin (Integer)
-    VCAP_CTRL_SHARPNESS,                   ///< Sharpness filter (Integer)
-    VCAP_CTRL_BACKLIGHT_COMPENSATION,      ///< Backlight compensation (Integer)
-    VCAP_CTRL_CHROMA_AGC,                  ///< Chroma automatic gain (Boolean)
-    VCAP_CTRL_CHROMA_GAIN,                 ///< Adjusts the Chroma gain Integer
-    VCAP_CTRL_COLOR_KILLER,                ///< Color killer (force a black & white image) (Boolean)
-    VCAP_CTRL_AUTOBRIGHTNESS,              ///< Automatic brightness (Boolean)
-    VCAP_CTRL_ROTATE,                      ///< Rotates the image by specified angle (Integer)
-    VCAP_CTRL_ILLUMINATORS_1,              ///< Switch on or off the illuminator (Boolean)
-    VCAP_CTRL_ILLUMINATORS_2,              ///< Switch on or off the illuminator (Boolean)
-    VCAP_CTRL_ALPHA_COMPONENT,             ///< Alpha color component (Integer)
+    VCAP_CTRL_BRIGHTNESS,                 ///< Brightness or black level (Integer)
+    VCAP_CTRL_CONTRAST,                   ///< Contrast or luma gain (Integer)
+    VCAP_CTRL_SATURATION,                 ///< Color saturation or chroma gain (Integer)
+    VCAP_CTRL_HUE,                        ///< Hue or color balance (Integer)
+    VCAP_CTRL_AUTO_WHITE_BALANCE,         ///< Automatic white balance (Boolean)
+    VCAP_CTRL_DO_WHITE_BALANCE,           ///< Will do white balance and then keep the current setting (Button)
+    VCAP_CTRL_RED_BALANCE,                ///< Red chroma balance (Integer)
+    VCAP_CTRL_BLUE_BALANCE,               ///< Blue chroma balance (Integer)
+    VCAP_CTRL_GAMMA,                      ///< Gamma adjust (Integer)
+    VCAP_CTRL_EXPOSURE,                   ///< Exposure (Integer)
+    VCAP_CTRL_AUTOGAIN,                   ///< Automatic gain/exposure (Boolean)
+    VCAP_CTRL_GAIN,                       ///< Gain (Integer)
+    VCAP_CTRL_HFLIP,                      ///< Flip image horizontally (Boolean)
+    VCAP_CTRL_VFLIP,                      ///< Flip image vertically (Boolean)
+    VCAP_CTRL_POWER_LINE_FREQUENCY,       ///< Power line frequency filter to avoid flicker (Enum)
+    VCAP_CTRL_HUE_AUTO,                   ///< Automatic hue (Boolean)
+    VCAP_CTRL_WHITE_BALANCE_TEMPERATURE,  ///< White balance a color temperature in Kelvin (Integer)
+    VCAP_CTRL_SHARPNESS,                  ///< Sharpness filter (Integer)
+    VCAP_CTRL_BACKLIGHT_COMPENSATION,     ///< Backlight compensation (Integer)
+    VCAP_CTRL_CHROMA_AGC,                 ///< Chroma automatic gain (Boolean)
+    VCAP_CTRL_CHROMA_GAIN,                ///< Adjusts the Chroma gain Integer
+    VCAP_CTRL_COLOR_KILLER,               ///< Color killer (force a black & white image) (Boolean)
+    VCAP_CTRL_AUTOBRIGHTNESS,             ///< Automatic brightness (Boolean)
+    VCAP_CTRL_ROTATE,                     ///< Rotates the image by specified angle (Integer)
+    VCAP_CTRL_ILLUMINATORS_1,             ///< Switch on or off the illuminator (Boolean)
+    VCAP_CTRL_ILLUMINATORS_2,             ///< Switch on or off the illuminator (Boolean)
+    VCAP_CTRL_ALPHA_COMPONENT,            ///< Alpha color component (Integer)
 
     /* Camera controls */
-    VCAP_CTRL_EXPOSURE_AUTO,               ///< Automatic exposure time and/or iris aperture (Enum)
-    VCAP_CTRL_EXPOSURE_ABSOLUTE,           ///< Exposure time of the camera sensor (Integer)
-    VCAP_CTRL_EXPOSURE_AUTO_PRIORITY,      ///< Dynamically vary the frame rate when using APERTURE_PRIORITY (Boolean)
-    VCAP_CTRL_AUTO_EXPOSURE_BIAS,          ///< Determines the automatic exposure compensation (Integer Menu)
-    VCAP_CTRL_EXPOSURE_METERING,           ///< Amount of light available for the frame exposure (Enum)
-    VCAP_CTRL_PAN_RELATIVE,                ///< Turns the camera horizontally (Integer)
-    VCAP_CTRL_TILT_RELATIVE,               ///< Turns the camera vertically by the specified amount (Integer)
-    VCAP_CTRL_PAN_RESET,                   ///< Turns the camera horizontally to the default position (Button)
-    VCAP_CTRL_TILT_RESET,                  ///< Turns the camera vertically to the default position (Button)
-    VCAP_CTRL_PAN_ABSOLUTE,                ///< Turns the camera horizontally to the specified position (Integer)
-    VCAP_CTRL_TILT_ABSOLUTE,               ///< Turns the camera vertically to the specified position (Integer)
-    VCAP_CTRL_FOCUS_ABSOLUTE,              ///< Sets the focal point of the camera (Integer)
-    VCAP_CTRL_FOCUS_RELATIVE,              ///< Moves the focal point of the camera (Integer)
-    VCAP_CTRL_FOCUS_AUTO,                  ///< Enables continuous automatic focus adjustments (Boolean)
-    VCAP_CTRL_AUTO_FOCUS_START,            ///< Starts single auto focus process (Button)
-    VCAP_CTRL_AUTO_FOCUS_STOP,             ///< Aborts automatic focusing (Button)
-    VCAP_CTRL_AUTO_FOCUS_RANGE,            ///< Auto focus distance range (Enum)
-    VCAP_CTRL_ZOOM_ABSOLUTE,               ///< Objective lens focal length (Integer)
-    VCAP_CTRL_ZOOM_RELATIVE,               ///< Objective lens focal length relative to current value (Integer)
-    VCAP_CTRL_ZOOM_CONTINUOUS,             ///< (Integer)
-    VCAP_CTRL_IRIS_ABSOLUTE,               ///< Sets the camera's aperture (Integer)
-    VCAP_CTRL_IRIS_RELATIVE,               ///< Sets the camera's aperture relative to the curret value (Integer)
-    VCAP_CTRL_PRIVACY,                     ///< Prevent video from being acquired by the camera (Boolean)
-    VCAP_CTRL_BAND_STOP_FILTER,            ///< Band-stop filter of a camera sensor (Integer)
-    VCAP_CTRL_WIDE_DYNAMIC_RANGE,          ///< Wide dynamic range (clear images where intensity of illumination varies significantly) (Boolean)
-    VCAP_CTRL_IMAGE_STABILIZATION,         ///< Image stabilization (Boolean)
-    VCAP_CTRL_PAN_SPEED,                   ///< Turns the camera horizontally at the specified speed (Integer)
-    VCAP_CTRL_TILT_SPEED,                  ///< Turns the camera vertically at the specified speed (Integer)
-    VCAP_CTRL_COUNT,                       ///< Number of controls
-    VCAP_CTRL_UNKNOWN,                     ///< Unsupported control
+    VCAP_CTRL_EXPOSURE_AUTO,              ///< Automatic exposure time and/or iris aperture (Enum)
+    VCAP_CTRL_EXPOSURE_ABSOLUTE,          ///< Exposure time of the camera sensor (Integer)
+    VCAP_CTRL_EXPOSURE_AUTO_PRIORITY,     ///< Dynamically vary the frame rate when using APERTURE_PRIORITY (Boolean)
+    VCAP_CTRL_AUTO_EXPOSURE_BIAS,         ///< Determines the automatic exposure compensation (Integer Menu)
+    VCAP_CTRL_EXPOSURE_METERING,          ///< Amount of light available for the frame exposure (Enum)
+    VCAP_CTRL_PAN_RELATIVE,               ///< Turns the camera horizontally (Integer)
+    VCAP_CTRL_TILT_RELATIVE,              ///< Turns the camera vertically by the specified amount (Integer)
+    VCAP_CTRL_PAN_RESET,                  ///< Turns the camera horizontally to the default position (Button)
+    VCAP_CTRL_TILT_RESET,                 ///< Turns the camera vertically to the default position (Button)
+    VCAP_CTRL_PAN_ABSOLUTE,               ///< Turns the camera horizontally to the specified position (Integer)
+    VCAP_CTRL_TILT_ABSOLUTE,              ///< Turns the camera vertically to the specified position (Integer)
+    VCAP_CTRL_FOCUS_ABSOLUTE,             ///< Sets the focal point of the camera (Integer)
+    VCAP_CTRL_FOCUS_RELATIVE,             ///< Moves the focal point of the camera (Integer)
+    VCAP_CTRL_FOCUS_AUTO,                 ///< Enables continuous automatic focus adjustments (Boolean)
+    VCAP_CTRL_AUTO_FOCUS_START,           ///< Starts single auto focus process (Button)
+    VCAP_CTRL_AUTO_FOCUS_STOP,            ///< Aborts automatic focusing (Button)
+    VCAP_CTRL_AUTO_FOCUS_RANGE,           ///< Auto focus distance range (Enum)
+    VCAP_CTRL_ZOOM_ABSOLUTE,              ///< Objective lens focal length (Integer)
+    VCAP_CTRL_ZOOM_RELATIVE,              ///< Objective lens focal length relative to current value (Integer)
+    VCAP_CTRL_ZOOM_CONTINUOUS,            ///< Continuous zoom (Integer)
+    VCAP_CTRL_IRIS_ABSOLUTE,              ///< Sets the camera's aperture (Integer)
+    VCAP_CTRL_IRIS_RELATIVE,              ///< Sets the camera's aperture relative to the curret value (Integer)
+    VCAP_CTRL_PRIVACY,                    ///< Prevent video from being acquired by the camera (Boolean)
+    VCAP_CTRL_BAND_STOP_FILTER,           ///< Band-stop filter of a camera sensor (Integer)
+    VCAP_CTRL_WIDE_DYNAMIC_RANGE,         ///< Wide dynamic range (clear images where intensity of illumination varies significantly) (Boolean)
+    VCAP_CTRL_IMAGE_STABILIZATION,        ///< Image stabilization (Boolean)
+    VCAP_CTRL_PAN_SPEED,                  ///< Turns the camera horizontally at the specified speed (Integer)
+    VCAP_CTRL_TILT_SPEED,                 ///< Turns the camera vertically at the specified speed (Integer)
+    VCAP_CTRL_COUNT,                      ///< Number of controls
+    VCAP_CTRL_UNKNOWN                     ///< Unsupported control
 };
 
 #ifdef __cplusplus

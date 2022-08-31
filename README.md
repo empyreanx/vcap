@@ -1,4 +1,4 @@
-# Vcap (3.0)
+# Vcap (1.0)
 
 ## Introduction
 
@@ -9,11 +9,13 @@ Vcap provides simple, low-level access to device controls, enabling applications
 ## Features
 
 * MIT licensed
-* Written in C99 for portability
-* Two files for easy integration into a build system. Can also be built as a shared library
+* Written in C99
+* Compiles cleanly as C++11
+* Two files for easy integration into any build system. Can also be built as a library (shared or static)
 * Simple enumeration and handling of video devices
 * Streaming and read modes are supported
 * Iterators for enumerating formats, frame sizes, frame rates, controls, and control menu items
+* Simple get/set functions for managing camera state
 * Ability to retrieve details about formats and controls
 * Extensive error checking and reporting
 
@@ -22,8 +24,8 @@ Vcap provides simple, low-level access to device controls, enabling applications
 This is the third iteration of Vcap, the previous versions were written in 2015 and 2018. This version contains many improvements, both internally and to the API. Among these are: 
 
 * Vcap is now licensed under the MIT license.
-* The source and header files of the previous version have been consolidated into a single source and header file for easy integration into a build system. 
-* Code that relied on external dependencies for import/export of settings, and saving frames to PNG/JPEG has been removed for portability and brevity.
+* The source and header files of the previous version have been consolidated into a two files. 
+* Code that relied on external dependencies for import/export of settings, and saving frames to PNG/JPEG has been removed for portability, simplicity, and brevity.
 * Both streaming and read modes are now supported.
 * Code for allocating/manipulating structs containing image buffer data has been eliminated in favor of direct allocation of image data buffers (on the stack or heap) using `vcap_get_image_size` to get the appropriate size.
 * Format/control iterators are no longer allocated on the heap.
@@ -65,20 +67,20 @@ A minimal example (without error checking) of grabbing a frame:
 
 int main(int argc, char** argv)
 {
-    vcap_dev_info dev_info;
+    vcap_device_info info;
 
     // Find first device on the bus
-    vcap_enum_devices(0, &dev_info);
+    vcap_enumerate_devices(0, &info);
 
     // Create device
-    vcap_dev* vd = vcap_create_device(dev_info.path, true, 0); // Use read mode
+    vcap_device* vd = vcap_create_device(info.path, true, 0); // Use read mode
 
     // Open device
     vcap_open(vd);
 
     // Set format to RGB24
     vcap_size size = { 640, 480 };
-    vcap_set_fmt(vd, VCAP_FMT_RGB24, size);
+    vcap_set_format(vd, VCAP_FMT_RGB24, size);
 
     // Allocate a buffer for the image
     size_t image_size = vcap_get_image_size(vd);

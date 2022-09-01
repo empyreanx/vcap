@@ -423,7 +423,7 @@ vcap_iterator* vcap_format_iterator(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Copies format info and advances a format iterator
+/// \brief  Copies format info and advances the format iterator
 ///
 /// Copies the current format information into 'info' and advances the iterator.
 ///
@@ -451,7 +451,7 @@ vcap_iterator* vcap_size_iterator(vcap_device* vd, vcap_format_id fmt);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Copies size info and advances a frame size iterator
+/// \brief  Copies size info and advances the frame size iterator
 ///
 /// Copies the current frame size into 'size' and advances the iterator.
 ///
@@ -479,7 +479,7 @@ bool vcap_next_size(vcap_iterator* itr, vcap_size* size);
 vcap_iterator* vcap_rate_iterator(vcap_device* vd, vcap_format_id fmt, vcap_size size);
 
 ///
-/// \brief  Copies frame rate and advances a frame rate iterator
+/// \brief  Copies frame rate and advances the frame rate iterator
 ///
 /// Copies the current frame rate into 'rate' and advances the iterator.
 ///
@@ -594,7 +594,7 @@ vcap_iterator* vcap_control_iterator(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Copies control info and advances a control iterator
+/// \brief  Copies control info and advances the control iterator
 ///
 /// Copies the current control information into 'info' and advances the iterator.
 ///
@@ -622,7 +622,7 @@ vcap_iterator* vcap_menu_iterator(vcap_device* vd, vcap_control_id ctrl);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Copies control menu data and advances an iterator
+/// \brief  Copies control menu data and advances the iterator
 ///
 /// Retrieves the current value of a control with the specified control ID.
 ///

@@ -41,7 +41,7 @@
 #include <sys/stat.h>
 
 //
-// Memory mapped buffer defintion
+// Memory mapped buffer definition
 //
 typedef struct
 {

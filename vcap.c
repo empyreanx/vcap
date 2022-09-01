@@ -849,6 +849,13 @@ int vcap_get_format_info(vcap_device* vd, vcap_format_id fmt, vcap_format_info* 
 vcap_iterator* vcap_format_iterator(vcap_device* vd)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return NULL;
+    }
 
     vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
@@ -865,6 +872,13 @@ bool vcap_next_format(vcap_iterator* itr, vcap_format_info* info)
     assert(itr != NULL);
     assert(info != NULL);
     assert(itr->type == VCAP_ITR_FMT);
+    assert(vcap_is_open(itr->vd));
+
+    if (!vcap_is_open(itr->vd))
+    {
+        vcap_set_error(itr->vd, "Device %s must be open", itr->vd->path);
+        return VCAP_ERROR;
+    }
 
     if (itr->type != VCAP_ITR_FMT)
     {
@@ -893,6 +907,13 @@ bool vcap_next_format(vcap_iterator* itr, vcap_format_info* info)
 vcap_iterator* vcap_size_iterator(vcap_device* vd, vcap_format_id fmt)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return NULL;
+    }
 
     vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
@@ -910,6 +931,13 @@ bool vcap_next_size(vcap_iterator* itr, vcap_size* size)
     assert(itr != NULL);
     assert(size != NULL);
     assert(itr->type == VCAP_ITR_SIZE);
+    assert(vcap_is_open(itr->vd));
+
+    if (!vcap_is_open(itr->vd))
+    {
+        vcap_set_error(itr->vd, "Device %s must be open", itr->vd->path);
+        return VCAP_ERROR;
+    }
 
     if (itr->type != VCAP_ITR_SIZE)
     {
@@ -938,6 +966,13 @@ bool vcap_next_size(vcap_iterator* itr, vcap_size* size)
 vcap_iterator* vcap_rate_iterator(vcap_device* vd, vcap_format_id fmt, vcap_size size)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return NULL;
+    }
 
     vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
@@ -956,6 +991,13 @@ bool vcap_next_rate(vcap_iterator* itr, vcap_rate* rate)
     assert(itr != NULL);
     assert(rate != NULL);
     assert(itr->type == VCAP_ITR_RATE);
+    assert(vcap_is_open(itr->vd));
+
+    if (!vcap_is_open(itr->vd))
+    {
+        vcap_set_error(itr->vd, "Device %s must be open", itr->vd->path);
+        return VCAP_ERROR;
+    }
 
     if (itr->type != VCAP_ITR_RATE)
     {
@@ -1301,6 +1343,13 @@ int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_
 vcap_iterator* vcap_control_iterator(vcap_device* vd)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return NULL;
+    }
 
     vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
@@ -1317,6 +1366,13 @@ bool vcap_next_control(vcap_iterator* itr, vcap_control_info* info)
     assert(itr != NULL);
     assert(info != NULL);
     assert(itr->type == VCAP_ITR_CTRL);
+    assert(vcap_is_open(itr->vd));
+
+    if (!vcap_is_open(itr->vd))
+    {
+        vcap_set_error(itr->vd, "Device %s must be open", itr->vd->path);
+        return VCAP_ERROR;
+    }
 
     if (itr->type != VCAP_ITR_CTRL)
     {
@@ -1345,6 +1401,13 @@ bool vcap_next_control(vcap_iterator* itr, vcap_control_info* info)
 vcap_iterator* vcap_menu_iterator(vcap_device* vd, vcap_control_id ctrl)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return NULL;
+    }
 
     vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
@@ -1362,6 +1425,13 @@ bool vcap_next_menu_item(vcap_iterator* itr, vcap_menu_item* item)
     assert(itr != NULL);
     assert(item != NULL);
     assert(itr->type == VCAP_ITR_MENU);
+    assert(vcap_is_open(itr->vd));
+
+    if (!vcap_is_open(itr->vd))
+    {
+        vcap_set_error(itr->vd, "Device %s must be open", itr->vd->path);
+        return VCAP_ERROR;
+    }
 
     if (itr->type != VCAP_ITR_MENU)
     {

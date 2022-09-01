@@ -733,6 +733,13 @@ int vcap_get_device_info(vcap_device* vd, vcap_device_info* info)
 size_t vcap_get_image_size(vcap_device* vd)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return 0;
+    }
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-fmt.html
     struct v4l2_format fmt;
@@ -792,6 +799,7 @@ int vcap_capture(vcap_device* vd, size_t size, uint8_t* data)
 
 bool vcap_iterator_error(vcap_iterator* itr)
 {
+    assert(itr != NULL);
     return itr->result == VCAP_ERROR;
 }
 
@@ -877,7 +885,8 @@ bool vcap_next_format(vcap_iterator* itr, vcap_format_info* info)
     if (!vcap_is_open(itr->vd))
     {
         vcap_set_error(itr->vd, "Device %s must be open", itr->vd->path);
-        return VCAP_ERROR;
+        itr->result = VCAP_ERROR;
+        return false;
     }
 
     if (itr->type != VCAP_ITR_FMT)
@@ -936,7 +945,8 @@ bool vcap_next_size(vcap_iterator* itr, vcap_size* size)
     if (!vcap_is_open(itr->vd))
     {
         vcap_set_error(itr->vd, "Device %s must be open", itr->vd->path);
-        return VCAP_ERROR;
+        itr->result = VCAP_ERROR;
+        return false;
     }
 
     if (itr->type != VCAP_ITR_SIZE)
@@ -996,7 +1006,8 @@ bool vcap_next_rate(vcap_iterator* itr, vcap_rate* rate)
     if (!vcap_is_open(itr->vd))
     {
         vcap_set_error(itr->vd, "Device %s must be open", itr->vd->path);
-        return VCAP_ERROR;
+        itr->result = VCAP_ERROR;
+        return false;
     }
 
     if (itr->type != VCAP_ITR_RATE)
@@ -1371,7 +1382,8 @@ bool vcap_next_control(vcap_iterator* itr, vcap_control_info* info)
     if (!vcap_is_open(itr->vd))
     {
         vcap_set_error(itr->vd, "Device %s must be open", itr->vd->path);
-        return VCAP_ERROR;
+        itr->result = VCAP_ERROR;
+        return false;
     }
 
     if (itr->type != VCAP_ITR_CTRL)
@@ -1430,7 +1442,8 @@ bool vcap_next_menu_item(vcap_iterator* itr, vcap_menu_item* item)
     if (!vcap_is_open(itr->vd))
     {
         vcap_set_error(itr->vd, "Device %s must be open", itr->vd->path);
-        return VCAP_ERROR;
+        itr->result = VCAP_ERROR;
+        return false;
     }
 
     if (itr->type != VCAP_ITR_MENU)

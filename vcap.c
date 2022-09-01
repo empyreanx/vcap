@@ -668,12 +668,20 @@ int vcap_stop_stream(vcap_device* vd)
 bool vcap_is_open(vcap_device* vd)
 {
     assert(vd != NULL);
+
+    if (!vd)
+        return false;
+
     return vd->open;
 }
 
 bool vcap_is_streaming(vcap_device* vd)
 {
     assert(vd != NULL);
+
+    if (!vd)
+        return false;
+
     return vd->streaming;
 }
 
@@ -681,6 +689,12 @@ int vcap_get_device_info(vcap_device* vd, vcap_device_info* info)
 {
     assert(vd != NULL);
     assert(info != NULL);
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device must be open to read info");
+        return VCAP_ERROR;
+    }
 
     if (!info)
     {

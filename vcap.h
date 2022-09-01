@@ -61,7 +61,7 @@ extern "C" {
 #endif
 
 //
-// NOTE: Format IDs, control IDs, and control types are located at the bottom of
+// NOTE: Format IDs, control IDs, and control types are located at the end of
 // this file.
 //
 
@@ -72,7 +72,7 @@ enum
 {
     VCAP_OK      =  0,        ///< Function executed without error
     VCAP_ERROR   = -1,        ///< Error while executing function
-    VCAP_INVALID = -2,        ///< Argument is invalid
+    VCAP_INVALID = -2         ///< An argument is invalid
 };
 
 ///
@@ -110,7 +110,7 @@ typedef struct
     uint8_t card[32];           ///< Video hardware info
     uint8_t bus_info[32];       ///< Bus info
     uint32_t version;           ///< Driver version
-    uint8_t version_str[16];    ///< Driver version str
+    uint8_t version_str[16];    ///< Driver version string
     bool streaming;             ///< True if device supports streaming, false otherwise
     bool read;                  ///< True if device supports direct read, false otherwise
 } vcap_device_info;
@@ -156,7 +156,7 @@ typedef struct
     int32_t max;                ///< The maximum value of the control
     int32_t step;               ///< The spacing between consecutive values
     int32_t default_value;      ///< The default value of the control (set when the driver is first loaded)
-    bool slider;                ///< Hint that the control should be represented as a slider
+    bool slider;                ///< Hint that a UI control should be represented as a slider
 } vcap_control_info;
 
 ///
@@ -167,7 +167,7 @@ typedef struct
     bool read_only;             ///< This control is permanently write only
     bool write_only;            ///< This control is permanently readable only
     bool disabled;              ///< This control is permanently disabled
-    bool inactive;              ///< This control is not relevant to the current configuration
+    bool inactive;              ///< This control is not applicable for the current device configuration
 } vcap_control_status;
 
 ///
@@ -175,7 +175,7 @@ typedef struct
 ///
 typedef struct
 {
-    uint32_t index;             ///< Menu item index (value used to set the control)
+    uint32_t index;            ///< Menu item index (value used to set the control)
 
     union
     {
@@ -186,7 +186,7 @@ typedef struct
 } vcap_menu_item;
 
 ///
-/// \brief Defines a rectangle
+/// \brief Defines a rectangle (used by cropping functionality)
 ///
 typedef struct
 {
@@ -340,10 +340,9 @@ bool vcap_is_streaming(vcap_device* vd);
 ///
 /// \brief  Retrieves video capture device information
 ///
-/// This function retrieves video capture device information for the device at
-/// the specified path.
+/// This function retrieves device information from an open video device.
 ///
-/// \param  path    The path of the device handle
+/// \param  vd      An open video device
 /// \param  device  Pointer to the struct in which to store the device info
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
@@ -356,14 +355,13 @@ int vcap_get_device_info(vcap_device* vd, vcap_device_info* info);
 ///
 /// Return the size of the frame buffer for the current video device and
 /// configuration (format/frame size). This size is used with the function
-/// `vcap_grab`
+/// `vcap_capture`
 ///
 /// \param  vd  Pointer to the video device
 ///
 /// \return 0 on error and frame size otherwise
 ///
 size_t vcap_get_image_size(vcap_device* vd);
-//size_t vcap_get_frame_size(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
@@ -372,7 +370,7 @@ size_t vcap_get_image_size(vcap_device* vd);
 /// Captures a frame from the video capture device.
 ///
 /// \param  vd    Pointer to the video device
-/// \param  size  Size of the frame in bytes
+/// \param  size  Size of the image in bytes
 /// \param  data  Previously allocated buffer to read into
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
@@ -425,7 +423,7 @@ vcap_iterator* vcap_format_iterator(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Advances a format iterator
+/// \brief  Copies format info and advances a format iterator
 ///
 /// Copies the current format information into 'info' and advances the iterator.
 ///
@@ -453,7 +451,7 @@ vcap_iterator* vcap_size_iterator(vcap_device* vd, vcap_format_id fmt);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Advances a frame size iterator
+/// \brief  Copies size info and advances a frame size iterator
 ///
 /// Copies the current frame size into 'size' and advances the iterator.
 ///
@@ -481,7 +479,7 @@ bool vcap_next_size(vcap_iterator* itr, vcap_size* size);
 vcap_iterator* vcap_rate_iterator(vcap_device* vd, vcap_format_id fmt, vcap_size size);
 
 ///
-/// \brief  Advances a frame rate iterator
+/// \brief  Copies frame rate and advances a frame rate iterator
 ///
 /// Copies the current frame rate into 'rate' and advances the iterator.
 ///
@@ -596,7 +594,7 @@ vcap_iterator* vcap_control_iterator(vcap_device* vd);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Advances a control iterator
+/// \brief  Copies control info and advances a control iterator
 ///
 /// Copies the current control information into 'info' and advances the iterator.
 ///
@@ -624,16 +622,15 @@ vcap_iterator* vcap_menu_iterator(vcap_device* vd, vcap_control_id ctrl);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Gets a control's value
+/// \brief  Copies control menu data and advances an iterator
 ///
 /// Retrieves the current value of a control with the specified control ID.
 ///
-/// \param  vd     Pointer to the video device
-/// \param  ctrl   The control ID
-/// \param  value  The control value (output)
+/// \param  itr   Pointer to the iterator
+/// \param  item  Menu item pointer (output)
 ///
-/// \returns VCAP_OK      if the control value was retrieved
-///          VCAP_ERROR   if an error occured
+/// \returns false if there was an error or there are no more controls, and true
+///          otherwise
 ///
 bool vcap_next_menu_item(vcap_iterator* itr, vcap_menu_item* item);
 
@@ -647,8 +644,9 @@ bool vcap_next_menu_item(vcap_iterator* itr, vcap_menu_item* item);
 /// \param  ctrl   The control ID
 /// \param  value  The control value (output)
 ///
-/// \returns VCAP_OK      if the control value was retrieved
-///          VCAP_ERROR   if an error occured
+/// \returns VCAP_OK       if the control value was retrieved
+///          VCAP_ERROR    if an error occured
+///          VCAP_INVALID  if an the control ID is invaLid
 ///
 int vcap_get_control(vcap_device* vd, vcap_control_id ctrl, int32_t* value);
 
@@ -662,9 +660,9 @@ int vcap_get_control(vcap_device* vd, vcap_control_id ctrl, int32_t* value);
 /// \param  ctrl   The control ID
 /// \param  value  The control value
 ///
-/// \returns VCAP_OK      if the control value was set
-///          VCAP_ERROR   if an error occured
-///
+/// \returns VCAP_OK       if the control value was set
+///          VCAP_ERROR    if an error occured
+///          VCAP_INVALID  if the control ID is invaLid
 ///
 int vcap_set_control(vcap_device* vd, vcap_control_id ctrl, int32_t value);
 
@@ -677,8 +675,9 @@ int vcap_set_control(vcap_device* vd, vcap_control_id ctrl, int32_t value);
 /// \param  vd   Pointer to the video device
 /// \param  ctrl The control ID
 ///
-/// \returns VCAP_OK      if the control value was reset
-///          VCAP_ERROR   if an error occured
+/// \returns VCAP_OK       if the control value was reset
+///          VCAP_ERROR    if an error occured
+///          VCAP_INVALID  if the control ID is invaLid
 ///
 int vcap_reset_control(vcap_device* vd, vcap_control_id ctrl);
 
@@ -693,6 +692,7 @@ int vcap_reset_control(vcap_device* vd, vcap_control_id ctrl);
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_reset_all_controls(vcap_device* vd);
+// int vcap_reset_all(vcap_device* vd);?
 
 //------------------------------------------------------------------------------
 ///

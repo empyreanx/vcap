@@ -267,7 +267,9 @@ int vcap_dump_info(vcap_device* vd, FILE* file)
     assert(vd != NULL);
 
     vcap_device_info info;
-    vcap_get_device_info(vd, &info);
+
+    if (vcap_get_device_info(vd, &info) == VCAP_ERROR)
+        return VCAP_ERROR;
 
     //==========================================================================
     // Print device info
@@ -605,6 +607,13 @@ void vcap_close(vcap_device* vd)
 int vcap_start_stream(vcap_device* vd)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     if (vd->buffer_count > 0)
     {
@@ -636,6 +645,13 @@ int vcap_start_stream(vcap_device* vd)
 int vcap_stop_stream(vcap_device* vd)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     if (vd->buffer_count > 0)
     {
@@ -689,6 +705,13 @@ int vcap_get_device_info(vcap_device* vd, vcap_device_info* info)
 {
     assert(vd != NULL);
     assert(info != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     if (!vcap_is_open(vd))
     {
@@ -730,6 +753,13 @@ int vcap_capture(vcap_device* vd, size_t size, uint8_t* data)
 {
     assert(vd != NULL);
     assert(data != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     if (!data)
     {
@@ -738,9 +768,22 @@ int vcap_capture(vcap_device* vd, size_t size, uint8_t* data)
     }
 
     if (vd->buffer_count > 0)
-        return vcap_capture_mmap(vd, size, data);
+    {
+        if (!vcap_is_streaming(vd))
+        {
+            assert(vcap_is_streaming(vd));
+            vcap_set_error(vd, "Device %s must be streaming", vd->path);
+            return VCAP_ERROR;
+        }
+        else
+        {
+            return vcap_capture_mmap(vd, size, data);
+        }
+    }
     else
+    {
         return vcap_capture_read(vd, size, data);
+    }
 }
 
 //==============================================================================
@@ -768,6 +811,13 @@ int vcap_get_format_info(vcap_device* vd, vcap_format_id fmt, vcap_format_info* 
 {
     assert(vd != NULL);
     assert(info != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     if (!info)
     {
@@ -934,6 +984,13 @@ bool vcap_next_rate(vcap_iterator* itr, vcap_rate* rate)
 int vcap_get_format(vcap_device* vd, vcap_format_id* fmt, vcap_size* size)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     // Get format
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-fmt.html
@@ -965,6 +1022,13 @@ int vcap_get_format(vcap_device* vd, vcap_format_id* fmt, vcap_size* size)
 int vcap_set_format(vcap_device* vd, vcap_format_id fmt, vcap_size size)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     // Ensure format ID is within the proper range
     assert(fmt < VCAP_FMT_COUNT);
@@ -1007,6 +1071,13 @@ int vcap_get_rate(vcap_device* vd, vcap_rate* rate)
 {
     assert(vd != NULL);
     assert(rate != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     if (!rate)
     {
@@ -1038,6 +1109,13 @@ int vcap_get_rate(vcap_device* vd, vcap_rate* rate)
 int vcap_set_rate(vcap_device* vd, vcap_rate rate)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     bool streaming = vcap_is_streaming(vd);
 
@@ -1076,6 +1154,13 @@ int vcap_get_control_info(vcap_device* vd, vcap_control_id ctrl, vcap_control_in
 {
     assert(vd != NULL);
     assert(info != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     // Ensure control ID is within the proper range
     assert(ctrl < VCAP_CTRL_COUNT);
@@ -1150,6 +1235,13 @@ int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_
 {
     assert(vd != NULL);
     assert(status != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     // Ensure control ID is within the proper range
     assert(ctrl < VCAP_CTRL_COUNT);
@@ -1299,6 +1391,13 @@ int vcap_get_control(vcap_device* vd, vcap_control_id ctrl, int32_t* value)
 {
     assert(vd != NULL);
     assert(value != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     // Ensure control ID is within the proper range
     assert(ctrl < VCAP_CTRL_COUNT);
@@ -1335,6 +1434,13 @@ int vcap_get_control(vcap_device* vd, vcap_control_id ctrl, int32_t* value)
 int vcap_set_control(vcap_device* vd, vcap_control_id ctrl, int32_t value)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     // Ensure control ID is within the proper range
     assert(ctrl < VCAP_CTRL_COUNT);
@@ -1366,6 +1472,13 @@ int vcap_set_control(vcap_device* vd, vcap_control_id ctrl, int32_t value)
 int vcap_reset_control(vcap_device* vd, vcap_control_id ctrl)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     vcap_control_info info;
     vcap_control_status status;
@@ -1402,6 +1515,13 @@ int vcap_reset_control(vcap_device* vd, vcap_control_id ctrl)
 int vcap_reset_all_controls(vcap_device* vd)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     // Loop over all controlsa
     for (vcap_control_id ctrl = 0; ctrl < VCAP_CTRL_COUNT; ctrl++)
@@ -1426,6 +1546,13 @@ int vcap_get_crop_bounds(vcap_device* vd, vcap_rect* rect)
 {
     assert(vd != NULL);
     assert(rect != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     if (!rect)
     {
@@ -1461,6 +1588,13 @@ int vcap_get_crop_bounds(vcap_device* vd, vcap_rect* rect)
 int vcap_reset_crop(vcap_device* vd)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-cropcap.html
     struct v4l2_cropcap cropcap;
@@ -1497,6 +1631,13 @@ int vcap_get_crop(vcap_device* vd, vcap_rect* rect)
 {
     assert(vd != NULL);
     assert(rect != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     if (!rect)
     {
@@ -1535,6 +1676,13 @@ int vcap_get_crop(vcap_device* vd, vcap_rect* rect)
 int vcap_set_crop(vcap_device* vd, vcap_rect rect)
 {
     assert(vd != NULL);
+    assert(vcap_is_open(vd));
+
+    if (!vcap_is_open(vd))
+    {
+        vcap_set_error(vd, "Device %s must be open", vd->path);
+        return VCAP_ERROR;
+    }
 
     // https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/vidioc-g-crop.html
     struct v4l2_crop crop;

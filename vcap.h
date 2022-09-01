@@ -52,7 +52,7 @@
 #include <stdint.h>
 
 // Version information
-#define VCAP_VERSION_MAJOR 3
+#define VCAP_VERSION_MAJOR 1
 #define VCAP_VERSION_MINOR 0
 #define VCAP_VERSION_PATCH 0
 

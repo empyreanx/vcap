@@ -20,6 +20,14 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 #    set(CMAKE_BUILD_TYPE "Release")
 #endif()
 
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+    set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+else()
+    set(CMAKE_BUILD_TYPE "Release")
+endif()
+
+message(FATAL_ERROR ${CMAKE_BUILD_TYPE})
+
 if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     add_definitions(-O2)
 else()

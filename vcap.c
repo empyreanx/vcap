@@ -259,8 +259,7 @@ const char* vcap_get_error(vcap_device* vd)
 //
 // Prints device information. The implementation of this function is very
 // pedantic in terms of error checking. Every error condition is checked and
-// reported. A user application may choose to ignore some error cases, trading
-// a little robustness for some convenience.
+// reported.
 //
 int vcap_dump_info(vcap_device* vd, FILE* file)
 {
@@ -713,12 +712,6 @@ int vcap_get_device_info(vcap_device* vd, vcap_device_info* info)
         return VCAP_ERROR;
     }
 
-    if (!vcap_is_open(vd))
-    {
-        vcap_set_error(vd, "Device must be open to read info");
-        return VCAP_ERROR;
-    }
-
     if (!info)
     {
         vcap_set_error(vd, "Argument can't be null");
@@ -756,10 +749,10 @@ size_t vcap_get_image_size(vcap_device* vd)
     return fmt.fmt.pix.sizeimage;
 }
 
-int vcap_capture(vcap_device* vd, size_t size, uint8_t* data)
+int vcap_capture(vcap_device* vd, size_t image_size, uint8_t* image_data)
 {
     assert(vd != NULL);
-    assert(data != NULL);
+    assert(image_data != NULL);
     assert(vcap_is_open(vd));
 
     if (!vcap_is_open(vd))
@@ -768,7 +761,7 @@ int vcap_capture(vcap_device* vd, size_t size, uint8_t* data)
         return VCAP_ERROR;
     }
 
-    if (!data)
+    if (!image_data)
     {
         vcap_set_error(vd, "Argument can't be null");
         return VCAP_ERROR;
@@ -784,12 +777,12 @@ int vcap_capture(vcap_device* vd, size_t size, uint8_t* data)
         }
         else
         {
-            return vcap_capture_mmap(vd, size, data);
+            return vcap_capture_mmap(vd, image_size, image_data);
         }
     }
     else
     {
-        return vcap_capture_read(vd, size, data);
+        return vcap_capture_read(vd, image_size, image_data);
     }
 }
 

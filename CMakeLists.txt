@@ -16,9 +16,9 @@ option(BUILD_SDL_EXAMPLE     "Build an example that streams frames using SDL2" O
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # Add definitions
-if(NOT DEFINED ${CMAKE_BUILD_TYPE})
-    set(CMAKE_BUILD_TYPE "Release")
-endif()
+#if(NOT DEFINED ${CMAKE_BUILD_TYPE})
+#    set(CMAKE_BUILD_TYPE "Release")
+#endif()
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     add_definitions(-O2)
@@ -26,7 +26,7 @@ else()
     add_definitions(-g)
 endif()
 
-add_definitions(-std=c99 -Wall -Wextra -D_GNU_SOURCE) #-pedantic
+add_definitions(-std=c99 -Wall -Wextra -pedantic -D_GNU_SOURCE)
 
 # Add souce files
 file(GLOB SOURCE_FILES

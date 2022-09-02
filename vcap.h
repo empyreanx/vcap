@@ -369,13 +369,13 @@ size_t vcap_get_image_size(vcap_device* vd);
 ///
 /// Captures a frame from the video capture device.
 ///
-/// \param  vd    Pointer to the video device
-/// \param  size  Size of the image in bytes
-/// \param  data  Previously allocated buffer to read into
+/// \param  vd          Pointer to the video device
+/// \param  image_size  Size of the image in bytes
+/// \param  image_data  Previously allocated buffer to read into (equal to
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
-int vcap_capture(vcap_device* vd, size_t size, uint8_t* data);
+int vcap_capture(vcap_device* vd, size_t image_size, uint8_t* image_data);
 
 //------------------------------------------------------------------------------
 ///

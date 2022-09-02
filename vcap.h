@@ -62,7 +62,7 @@ extern "C" {
 
 //
 // NOTE: Format IDs, control IDs, and control types are located at the end of
-// this file.
+// this file!
 //
 
 ///
@@ -244,10 +244,11 @@ int vcap_dump_info(vcap_device* vd, FILE* file);
 /// \brief  Enumerates video capture devices
 ///
 /// Retrieves the video capture device at the specified 'index' and stores
-/// the corresponding device information in the 'vcap_device_info' struct pointed
-/// to by the 'device' parameter. NOTE: this function calls a system function
-/// that uses the default 'malloc' internally. Unfortunately this is
-/// unavoidable.
+/// the corresponding device information in the 'vcap_device_info' struct
+/// pointed to by the 'info' parameter.
+///
+////NOTE: This function calls a system function that uses the default 'malloc'
+/// internally. Unfortunately this is unavoidable.
 ///
 /// \param  device  Pointer to the device info struct
 /// \param  index   The index of the device to query
@@ -264,8 +265,9 @@ int vcap_enumerate_devices(uint32_t index, vcap_device_info* info);
 ///
 /// \param  path          Path to system device
 /// \param  convert       Enables automatic format conversion
-/// \param  buffer_count  Number of streaming buffers if > 0, otherwise
-///                       streaming is disabled
+/// \param  buffer_count  Number of streaming buffers. If this value is greater
+///                       than zero then streaming mode will be used, otherwise
+///                       read mode will be used instead
 ///
 /// \returns NULL on error and a pointer to a video device otherwise
 ///
@@ -413,7 +415,7 @@ int vcap_get_format_info(vcap_device* vd, vcap_format_id fmt, vcap_format_info* 
 ///
 /// \brief  Creates a new format iterator
 ///
-/// Creates and initializes new format iterator for the specified video device.
+/// Creates and initializes a new format iterator for the specified video device.
 ///
 /// \param  vd  Pointer to the video device
 ///
@@ -439,7 +441,7 @@ bool vcap_next_format(vcap_iterator* itr, vcap_format_info* info);
 ///
 /// \brief  Creates a new frame size iterator
 ///
-/// Creates and initializes new frame size iterator for the specified device
+/// Creates and initializes a new frame size iterator for the specified device
 /// and format ID.
 ///
 /// \param  vd   Pointer to the video device
@@ -467,7 +469,7 @@ bool vcap_next_size(vcap_iterator* itr, vcap_size* size);
 ///
 /// \brief  Creates a new frame rate iterator
 ///
-/// Creates and initializes new frame rate iterator for the specified device,
+/// Creates and initializes a new frame rate iterator for the specified device,
 /// format ID, and frame size.
 ///
 /// \param  vd    Pointer to the video device
@@ -584,7 +586,7 @@ int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_
 ///
 /// \brief  Creates a new control iterator
 ///
-/// Creates and initializes new control iterator for the specified device.
+/// Creates and initializes a new control iterator for the specified device.
 ///
 /// \param  vd  Pointer to the video device
 ///

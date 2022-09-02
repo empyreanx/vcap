@@ -70,11 +70,11 @@ struct vcap_device
 //
 typedef enum
 {
-    VCAP_ITR_FMT,
-    VCAP_ITR_SIZE,
-    VCAP_ITR_RATE,
-    VCAP_ITR_CTRL,
-    VCAP_ITR_MENU,
+    VCAP_ITR_TYPE_FMT,
+    VCAP_ITR_TYPE_SIZE,
+    VCAP_ITR_TYPE_RATE,
+    VCAP_ITR_TYPE_CTRL,
+    VCAP_ITR_TYPE_MENU,
 } vcap_itr_type;
 
 //
@@ -132,7 +132,7 @@ static void* vcap_malloc(size_t size);
 static void vcap_free(void* ptr);
 
 // FOURCC character code to string
-static void vcap_fourcc_string(uint32_t code, uint8_t* str);
+static void vcap_fourcc_str(uint32_t code, uint8_t* str);
 
 // Extended ioctl function
 static int vcap_ioctl(int fd, long unsigned request, void *arg);
@@ -506,7 +506,7 @@ int vcap_open(vcap_device* vd)
     struct stat st;
     struct v4l2_capability caps;
 
-    // Device must exist
+    // Device must exist (TODO: Move these checks into vcap_create_device somehow)
     if (stat(vd->path, &st) == -1)
     {
         vcap_set_error_errno(vd, "Device %s does not exist", vd->path);
@@ -656,7 +656,7 @@ int vcap_stop_stream(vcap_device* vd)
     {
         if (!vcap_is_streaming(vd))
         {
-            vcap_set_error(vd, "Unable to stop stream on %s, device is not streaming", vd->path);
+            vcap_set_error(vd, "Device %s is not streaming", vd->path);
             return VCAP_ERROR;
         }
 
@@ -831,7 +831,7 @@ int vcap_get_format_info(vcap_device* vd, vcap_format_id fmt, vcap_format_info* 
     }
 
     // NOTE: Unfortunately there is no V4L2 function that returns information on
-    // a format without enumerating them, as is done below.
+    // a format without enumerating them
 
     int result, index = 0;
 
@@ -864,7 +864,7 @@ vcap_iterator* vcap_format_iterator(vcap_device* vd)
 
     vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
-    itr->type = VCAP_ITR_FMT;
+    itr->type = VCAP_ITR_TYPE_FMT;
     itr->vd = vd;
     itr->index = 0;
     itr->result = vcap_enum_fmts(itr->vd, &itr->data.fmt.info, 0);
@@ -884,9 +884,9 @@ bool vcap_next_format(vcap_iterator* itr, vcap_format_info* info)
         return false;
     }
 
-    assert(itr->type == VCAP_ITR_FMT);
+    assert(itr->type == VCAP_ITR_TYPE_FMT);
 
-    if (itr->type != VCAP_ITR_FMT)
+    if (itr->type != VCAP_ITR_TYPE_FMT)
     {
         vcap_set_error(itr->vd, "Invalid iterator type");
         itr->result = VCAP_ERROR;
@@ -925,7 +925,7 @@ vcap_iterator* vcap_size_iterator(vcap_device* vd, vcap_format_id fmt)
 
     vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
-    itr->type = VCAP_ITR_SIZE;
+    itr->type = VCAP_ITR_TYPE_SIZE;
     itr->vd = vd;
     itr->index = 0;
     itr->data.size.fmt = fmt;
@@ -946,9 +946,9 @@ bool vcap_next_size(vcap_iterator* itr, vcap_size* size)
         return false;
     }
 
-    assert(itr->type == VCAP_ITR_SIZE);
+    assert(itr->type == VCAP_ITR_TYPE_SIZE);
 
-    if (itr->type != VCAP_ITR_SIZE)
+    if (itr->type != VCAP_ITR_TYPE_SIZE)
     {
         vcap_set_error(itr->vd, "Invalid iterator type");
         itr->result = VCAP_ERROR;
@@ -987,7 +987,7 @@ vcap_iterator* vcap_rate_iterator(vcap_device* vd, vcap_format_id fmt, vcap_size
 
     vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
-    itr->type = VCAP_ITR_RATE;
+    itr->type = VCAP_ITR_TYPE_RATE;
     itr->vd = vd;
     itr->index = 0;
     itr->data.rate.fmt = fmt;
@@ -1009,9 +1009,9 @@ bool vcap_next_rate(vcap_iterator* itr, vcap_rate* rate)
         return false;
     }
 
-    assert(itr->type == VCAP_ITR_RATE);
+    assert(itr->type == VCAP_ITR_TYPE_RATE);
 
-    if (itr->type != VCAP_ITR_RATE)
+    if (itr->type != VCAP_ITR_TYPE_RATE)
     {
         vcap_set_error(itr->vd, "Invalid iterator type");
         itr->result = VCAP_ERROR;
@@ -1370,7 +1370,7 @@ vcap_iterator* vcap_control_iterator(vcap_device* vd)
 
     vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
-    itr->type = VCAP_ITR_CTRL;
+    itr->type = VCAP_ITR_TYPE_CTRL;
     itr->vd = vd;
     itr->index = 0;
     itr->result = vcap_enum_ctrls(vd, &itr->data.ctrl.info, 0);
@@ -1390,9 +1390,9 @@ bool vcap_next_control(vcap_iterator* itr, vcap_control_info* info)
         return false;
     }
 
-    assert(itr->type == VCAP_ITR_CTRL);
+    assert(itr->type == VCAP_ITR_TYPE_CTRL);
 
-    if (itr->type != VCAP_ITR_CTRL)
+    if (itr->type != VCAP_ITR_TYPE_CTRL)
     {
         vcap_set_error(itr->vd, "Invalid iterator type");
         itr->result = VCAP_ERROR;
@@ -1431,7 +1431,7 @@ vcap_iterator* vcap_menu_iterator(vcap_device* vd, vcap_control_id ctrl)
 
     vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
-    itr->type = VCAP_ITR_MENU;
+    itr->type = VCAP_ITR_TYPE_MENU;
     itr->vd = vd;
     itr->index = 0;
     itr->data.menu.ctrl = ctrl;
@@ -1452,9 +1452,9 @@ bool vcap_next_menu_item(vcap_iterator* itr, vcap_menu_item* item)
         return false;
     }
 
-    assert(itr->type == VCAP_ITR_MENU);
+    assert(itr->type == VCAP_ITR_TYPE_MENU);
 
-    if (itr->type != VCAP_ITR_MENU)
+    if (itr->type != VCAP_ITR_TYPE_MENU)
     {
         vcap_set_error(itr->vd, "Invalid iterator type");
         itr->result = VCAP_ERROR;
@@ -1821,7 +1821,7 @@ static void vcap_free(void* ptr)
     global_free_fp(ptr);
 }
 
-static void vcap_fourcc_string(uint32_t code, uint8_t* str)
+static void vcap_fourcc_str(uint32_t code, uint8_t* str)
 {
     assert(str);
 
@@ -1952,12 +1952,6 @@ static int vcap_request_buffers(vcap_device* vd)
     // Changes the number of buffer in the video device to match the number of
     // available buffers
     vd->buffer_count = req.count;
-
-    if (vd->buffer_count == 0)
-    {
-        vcap_set_error(vd, "Zero buffers returned from request");
-        return VCAP_ERROR;
-    }
 
     // Allocates the buffer objects
     vd->buffers = (vcap_buffer*)vcap_malloc(req.count * sizeof(vcap_buffer));
@@ -2316,6 +2310,7 @@ static bool vcap_ctrl_type_supported(uint32_t type)
         case V4L2_CTRL_TYPE_INTEGER:
         case V4L2_CTRL_TYPE_BOOLEAN:
         case V4L2_CTRL_TYPE_MENU:
+        case V4L2_CTRL_TYPE_INTEGER_MENU:
         case V4L2_CTRL_TYPE_BUTTON:
             return true;
     }
@@ -2353,7 +2348,7 @@ static int vcap_enum_fmts(vcap_device* vd, vcap_format_info* info, uint32_t inde
     vcap_ustrcpy(info->name, fmtd.description, sizeof(info->name));
 
     // Convert FOURCC code
-    vcap_fourcc_string(fmtd.pixelformat, info->fourcc);
+    vcap_fourcc_str(fmtd.pixelformat, info->fourcc);
 
     // Copy pixel format
     info->id = vcap_convert_fmt(fmtd.pixelformat);
@@ -2517,9 +2512,7 @@ static int vcap_enum_menu(vcap_device* vd, vcap_control_id ctrl, vcap_menu_item*
     }
 
     if (index < (uint32_t)info.min || index > (uint32_t)info.max)
-    {
         return VCAP_INVALID;
-    }
 
     // Loop through all entries in the menu until count == index
 

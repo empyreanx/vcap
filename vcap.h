@@ -24,10 +24,10 @@
 
 /*! \file vcap.h
     \mainpage Vcap
-    \version  3.0.0
+    \version  1.0.0
     \author   James McLean
     \date     August 20, 2022
-    \brief    An open source Video4Linux2 (V4L2) capture library written in C.
+    \brief    An open source capture library for Linux written in C
 
     \subsection About
 
@@ -417,7 +417,7 @@ int vcap_get_format_info(vcap_device* vd, vcap_format_id fmt, vcap_format_info* 
 ///
 /// \param  vd  Pointer to the video device
 ///
-/// \returns An initialized 'vcap_format_iterator' struct
+/// \returns An initialized format iterator struct
 ///
 vcap_iterator* vcap_format_iterator(vcap_device* vd);
 
@@ -445,7 +445,7 @@ bool vcap_next_format(vcap_iterator* itr, vcap_format_info* info);
 /// \param  vd   Pointer to the video device
 /// \param  fmt  The format ID
 ///
-/// \returns An initialized 'vcap_size_iterator' struct
+/// \returns An initialized size iterator struct
 ///
 vcap_iterator* vcap_size_iterator(vcap_device* vd, vcap_format_id fmt);
 
@@ -474,7 +474,7 @@ bool vcap_next_size(vcap_iterator* itr, vcap_size* size);
 /// \param  fmt   The format ID
 /// \param  size  The frame size
 ///
-/// \returns An initialized 'vcap_rate_iterator' struct
+/// \returns An initialized rate iterator struct
 ///
 vcap_iterator* vcap_rate_iterator(vcap_device* vd, vcap_format_id fmt, vcap_size size);
 
@@ -588,7 +588,7 @@ int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_
 ///
 /// \param  vd  Pointer to the video device
 ///
-/// \returns An initialized 'vcap_ctrl_iterator' struct
+/// \returns An initialized control iterator struct
 ///
 vcap_iterator* vcap_control_iterator(vcap_device* vd);
 
@@ -616,7 +616,7 @@ bool vcap_next_control(vcap_iterator* itr, vcap_control_info* info);
 /// \param  vd   Pointer to the video device
 /// \param  ctrl The control ID
 ///
-/// \returns An initialized 'vcap_menu_iterator' struct
+/// \returns An initialized menu item iterator struct
 ///
 vcap_iterator* vcap_menu_iterator(vcap_device* vd, vcap_control_id ctrl);
 

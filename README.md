@@ -16,10 +16,12 @@ Extensive documentation is provided in the header. There are also a few examples
 
 Opening an issue is welcome for any bugs or trouble using the library. Pull requests will be reviewed, but please open an issue before making one first.
 
+For a more or less complete example see [Vcap Qt](https://github.com/sonicpulse/vcap-qt)
+
 ## Features
 
 * MIT licensed
-* Written in C99, and compiles cleanly as C++11
+* Written in C99, but also compiles cleanly as C++11
 * Only two files for easy integration into any build system. Can also be built as a library (shared and/or static)
 * Simple enumeration and handling of video devices
 * Streaming and read modes are supported

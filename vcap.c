@@ -703,7 +703,6 @@ bool vcap_is_streaming(vcap_device* vd)
 int vcap_get_device_info(vcap_device* vd, vcap_device_info* info)
 {
     assert(vd != NULL);
-    assert(info != NULL);
     assert(vcap_is_open(vd));
 
     if (!vcap_is_open(vd))
@@ -711,6 +710,8 @@ int vcap_get_device_info(vcap_device* vd, vcap_device_info* info)
         vcap_set_error(vd, "Device %s must be open", vd->path);
         return VCAP_ERROR;
     }
+
+    assert(info != NULL);
 
     if (!info)
     {
@@ -752,7 +753,6 @@ size_t vcap_get_image_size(vcap_device* vd)
 int vcap_capture(vcap_device* vd, size_t image_size, uint8_t* image_data)
 {
     assert(vd != NULL);
-    assert(image_data != NULL);
     assert(vcap_is_open(vd));
 
     if (!vcap_is_open(vd))
@@ -760,6 +760,8 @@ int vcap_capture(vcap_device* vd, size_t image_size, uint8_t* image_data)
         vcap_set_error(vd, "Device %s must be open", vd->path);
         return VCAP_ERROR;
     }
+
+    assert(image_data != NULL);
 
     if (!image_data)
     {
@@ -769,9 +771,10 @@ int vcap_capture(vcap_device* vd, size_t image_size, uint8_t* image_data)
 
     if (vd->buffer_count > 0)
     {
+        assert(vcap_is_streaming(vd));
+
         if (!vcap_is_streaming(vd))
         {
-            assert(vcap_is_streaming(vd));
             vcap_set_error(vd, "Device %s must be streaming", vd->path);
             return VCAP_ERROR;
         }
@@ -811,7 +814,6 @@ void vcap_free_iterator(vcap_iterator* itr)
 int vcap_get_format_info(vcap_device* vd, vcap_format_id fmt, vcap_format_info* info)
 {
     assert(vd != NULL);
-    assert(info != NULL);
     assert(vcap_is_open(vd));
 
     if (!vcap_is_open(vd))
@@ -819,6 +821,8 @@ int vcap_get_format_info(vcap_device* vd, vcap_format_id fmt, vcap_format_info* 
         vcap_set_error(vd, "Device %s must be open", vd->path);
         return VCAP_ERROR;
     }
+
+    assert(info != NULL);
 
     if (!info)
     {
@@ -871,8 +875,6 @@ vcap_iterator* vcap_format_iterator(vcap_device* vd)
 bool vcap_next_format(vcap_iterator* itr, vcap_format_info* info)
 {
     assert(itr != NULL);
-    assert(info != NULL);
-    assert(itr->type == VCAP_ITR_FMT);
     assert(vcap_is_open(itr->vd));
 
     if (!vcap_is_open(itr->vd))
@@ -882,12 +884,16 @@ bool vcap_next_format(vcap_iterator* itr, vcap_format_info* info)
         return false;
     }
 
+    assert(itr->type == VCAP_ITR_FMT);
+
     if (itr->type != VCAP_ITR_FMT)
     {
         vcap_set_error(itr->vd, "Invalid iterator type");
         itr->result = VCAP_ERROR;
         return false;
     }
+
+    assert(info != NULL);
 
     if (!info)
     {
@@ -931,8 +937,6 @@ vcap_iterator* vcap_size_iterator(vcap_device* vd, vcap_format_id fmt)
 bool vcap_next_size(vcap_iterator* itr, vcap_size* size)
 {
     assert(itr != NULL);
-    assert(size != NULL);
-    assert(itr->type == VCAP_ITR_SIZE);
     assert(vcap_is_open(itr->vd));
 
     if (!vcap_is_open(itr->vd))
@@ -942,12 +946,16 @@ bool vcap_next_size(vcap_iterator* itr, vcap_size* size)
         return false;
     }
 
+    assert(itr->type == VCAP_ITR_SIZE);
+
     if (itr->type != VCAP_ITR_SIZE)
     {
         vcap_set_error(itr->vd, "Invalid iterator type");
         itr->result = VCAP_ERROR;
         return false;
     }
+
+    assert(size != NULL);
 
     if (!size)
     {
@@ -992,8 +1000,6 @@ vcap_iterator* vcap_rate_iterator(vcap_device* vd, vcap_format_id fmt, vcap_size
 bool vcap_next_rate(vcap_iterator* itr, vcap_rate* rate)
 {
     assert(itr != NULL);
-    assert(rate != NULL);
-    assert(itr->type == VCAP_ITR_RATE);
     assert(vcap_is_open(itr->vd));
 
     if (!vcap_is_open(itr->vd))
@@ -1003,12 +1009,16 @@ bool vcap_next_rate(vcap_iterator* itr, vcap_rate* rate)
         return false;
     }
 
+    assert(itr->type == VCAP_ITR_RATE);
+
     if (itr->type != VCAP_ITR_RATE)
     {
         vcap_set_error(itr->vd, "Invalid iterator type");
         itr->result = VCAP_ERROR;
         return false;
     }
+
+    assert(rate != NULL);
 
     if (!rate)
     {
@@ -1116,7 +1126,6 @@ int vcap_set_format(vcap_device* vd, vcap_format_id fmt, vcap_size size)
 int vcap_get_rate(vcap_device* vd, vcap_rate* rate)
 {
     assert(vd != NULL);
-    assert(rate != NULL);
     assert(vcap_is_open(vd));
 
     if (!vcap_is_open(vd))
@@ -1124,6 +1133,8 @@ int vcap_get_rate(vcap_device* vd, vcap_rate* rate)
         vcap_set_error(vd, "Device %s must be open", vd->path);
         return VCAP_ERROR;
     }
+
+    assert(rate != NULL);
 
     if (!rate)
     {
@@ -1199,7 +1210,6 @@ int vcap_set_rate(vcap_device* vd, vcap_rate rate)
 int vcap_get_control_info(vcap_device* vd, vcap_control_id ctrl, vcap_control_info* info)
 {
     assert(vd != NULL);
-    assert(info != NULL);
     assert(vcap_is_open(vd));
 
     if (!vcap_is_open(vd))
@@ -1216,6 +1226,8 @@ int vcap_get_control_info(vcap_device* vd, vcap_control_id ctrl, vcap_control_in
         vcap_set_error(vd, "Invalid argument (out of range)");
         return VCAP_ERROR;
     }
+
+    assert(info != NULL);
 
     if (!info)
     {
@@ -1280,7 +1292,6 @@ int vcap_get_control_info(vcap_device* vd, vcap_control_id ctrl, vcap_control_in
 int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_status* status)
 {
     assert(vd != NULL);
-    assert(status != NULL);
     assert(vcap_is_open(vd));
 
     if (!vcap_is_open(vd))
@@ -1297,6 +1308,8 @@ int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_
         vcap_set_error(vd, "Invalid argument (out of range)");
         return VCAP_ERROR;
     }
+
+    assert(status != NULL);
 
     if (!status)
     {
@@ -1368,8 +1381,6 @@ vcap_iterator* vcap_control_iterator(vcap_device* vd)
 bool vcap_next_control(vcap_iterator* itr, vcap_control_info* info)
 {
     assert(itr != NULL);
-    assert(info != NULL);
-    assert(itr->type == VCAP_ITR_CTRL);
     assert(vcap_is_open(itr->vd));
 
     if (!vcap_is_open(itr->vd))
@@ -1379,12 +1390,16 @@ bool vcap_next_control(vcap_iterator* itr, vcap_control_info* info)
         return false;
     }
 
+    assert(itr->type == VCAP_ITR_CTRL);
+
     if (itr->type != VCAP_ITR_CTRL)
     {
         vcap_set_error(itr->vd, "Invalid iterator type");
         itr->result = VCAP_ERROR;
         return false;
     }
+
+    assert(info != NULL);
 
     if (!info)
     {
@@ -1428,8 +1443,6 @@ vcap_iterator* vcap_menu_iterator(vcap_device* vd, vcap_control_id ctrl)
 bool vcap_next_menu_item(vcap_iterator* itr, vcap_menu_item* item)
 {
     assert(itr != NULL);
-    assert(item != NULL);
-    assert(itr->type == VCAP_ITR_MENU);
     assert(vcap_is_open(itr->vd));
 
     if (!vcap_is_open(itr->vd))
@@ -1439,12 +1452,16 @@ bool vcap_next_menu_item(vcap_iterator* itr, vcap_menu_item* item)
         return false;
     }
 
+    assert(itr->type == VCAP_ITR_MENU);
+
     if (itr->type != VCAP_ITR_MENU)
     {
         vcap_set_error(itr->vd, "Invalid iterator type");
         itr->result = VCAP_ERROR;
         return false;
     }
+
+    assert(item != NULL);
 
     if (!item)
     {
@@ -1466,7 +1483,6 @@ bool vcap_next_menu_item(vcap_iterator* itr, vcap_menu_item* item)
 int vcap_get_control(vcap_device* vd, vcap_control_id ctrl, int32_t* value)
 {
     assert(vd != NULL);
-    assert(value != NULL);
     assert(vcap_is_open(vd));
 
     if (!vcap_is_open(vd))
@@ -1483,6 +1499,8 @@ int vcap_get_control(vcap_device* vd, vcap_control_id ctrl, int32_t* value)
         vcap_set_error(vd, "Invalid argument (out of range)");
         return VCAP_ERROR;
     }
+
+    assert(value != NULL);
 
     if (!value)
     {
@@ -1621,7 +1639,6 @@ int vcap_reset_all_controls(vcap_device* vd)
 int vcap_get_crop_bounds(vcap_device* vd, vcap_rect* rect)
 {
     assert(vd != NULL);
-    assert(rect != NULL);
     assert(vcap_is_open(vd));
 
     if (!vcap_is_open(vd))
@@ -1629,6 +1646,8 @@ int vcap_get_crop_bounds(vcap_device* vd, vcap_rect* rect)
         vcap_set_error(vd, "Device %s must be open", vd->path);
         return VCAP_ERROR;
     }
+
+    assert(rect != NULL);
 
     if (!rect)
     {
@@ -1706,7 +1725,6 @@ int vcap_reset_crop(vcap_device* vd)
 int vcap_get_crop(vcap_device* vd, vcap_rect* rect)
 {
     assert(vd != NULL);
-    assert(rect != NULL);
     assert(vcap_is_open(vd));
 
     if (!vcap_is_open(vd))
@@ -1714,6 +1732,8 @@ int vcap_get_crop(vcap_device* vd, vcap_rect* rect)
         vcap_set_error(vd, "Device %s must be open", vd->path);
         return VCAP_ERROR;
     }
+
+    assert(rect != NULL);
 
     if (!rect)
     {

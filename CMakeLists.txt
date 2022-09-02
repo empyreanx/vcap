@@ -21,7 +21,7 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 #endif()
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
-    set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+    set(CMAKE_BUILD_TYPE "Debug")
 else()
     set(CMAKE_BUILD_TYPE "Release")
 endif()

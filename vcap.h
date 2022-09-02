@@ -27,7 +27,7 @@
     \version  1.0.0
     \author   James McLean
     \date     August 20, 2022
-    \brief    An open source capture library for Linux written in C
+    \brief    An open source video capture library for Linux written in C
 
     \subsection About
 

@@ -4,32 +4,30 @@
 
 Vcap aims to provide a concise API for working with cameras and other video capture devices that have drivers implementing the Video for Linux API (V4L2) specification. It is built on top of the libv4l userspace library (the only dependency) which provides seamless decoding for a variety of formats.
 
-Vcap provides simple, low-level access to device controls, enabling applications to make use of the full range of functionality provided by V4L2.
+Vcap provides low-level, yet simple access to device formats and controls, enabling applications to make use of the full range of functionality provided by V4L2.
+
+Formats, frame sizes, frame rates, controls, and control menu items can be enumerated using iterators. This is especially helpful when contructing user interfaces that use Vcap.
+
+There are two I/O modes are available: MMAP buffers (streaming) and direct read. Streaming should have better performance for those devices that support it. The mode is set in the `vcap_create_device` function using the `buffer_count` parameter. A value greater than zero indicates streaming mode whereas read mode is used otherwise.
+
+There is significant error checking. Any function that can fail in release mode should do so gracefully and provide an error message detailing the underlying cause. There are also plenty of debug mode assertions.
+
+Extensive documentation is provided in the header. There are also a few examples the demonstrate how to work with the library. 
+
+Opening an issue is welcome for any bugs or trouble using the library. Pull requests will be reviewed, but please open an issue before making one first.
 
 ## Features
 
 * MIT licensed
-* Written in C99
-* Compiles cleanly as C++11
-* Two files for easy integration into any build system. Can also be built as a library (shared or static)
+* Written in C99, and compiles cleanly as C++11
+* Only two files for easy integration into any build system. Can also be built as a library (shared and/or static)
 * Simple enumeration and handling of video devices
 * Streaming and read modes are supported
 * Iterators for enumerating formats, frame sizes, frame rates, controls, and control menu items
 * Simple get/set functions for managing camera state
 * Ability to retrieve details about formats and controls
-* Extensive error checking and reporting
-
-## Improvements
-
-This is the third iteration of Vcap, the previous versions were written in 2015 and 2018. This version contains many improvements, both internally and to the API. Among these are: 
-
-* Vcap is now licensed under the MIT license.
-* The source and header files of the previous version have been consolidated into a two files. 
-* Code that relied on external dependencies for import/export of settings, and saving frames to PNG/JPEG has been removed for portability, simplicity, and brevity.
-* Both streaming and read modes are now supported.
-* Code for allocating/manipulating structs containing image buffer data has been eliminated in favor of direct allocation of image data buffers (on the stack or heap) using `vcap_get_image_size` to get the appropriate size.
-* Format/control iterators are no longer allocated on the heap.
-* Error messages are now device specific.
+* Extensive error checking in both debug and release modes
+* Examples and lots of documentation
 
 ## Building and Installation
 
@@ -59,7 +57,7 @@ Other examples are built similarly using `BUILD_CAPTURE_EXAMPLE` and `BUILD_SDL_
 
 ## Example
 
-A minimal example (without error checking) of grabbing a frame:
+A minimal example (without error checking) of capturing an image:
 
 ```c
 #include <vcap.h>

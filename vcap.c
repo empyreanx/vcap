@@ -830,8 +830,8 @@ int vcap_get_format_info(vcap_device* vd, vcap_format_id fmt, vcap_format_info* 
         return VCAP_ERROR;
     }
 
-    // NOTE: Unfortunately there is no V4L2 function that returns information on
-    // a format without enumerating them
+    // NOTE: Unfortunately there is no V4L2 function that returns information
+    // about a format without enumerating them
 
     int result, index = 0;
 
@@ -2505,7 +2505,7 @@ static int vcap_enum_menu(vcap_device* vd, vcap_control_id ctrl, vcap_menu_item*
         return VCAP_ERROR;
     }
 
-    if (info.type != VCAP_CTRL_TYPE_MENU)
+    if (info.type != VCAP_CTRL_TYPE_MENU && info.type != VCAP_CTRL_TYPE_INTEGER_MENU)
     {
         vcap_set_error(vd, "Control is not a menu");
         return VCAP_ERROR;

@@ -16,7 +16,7 @@ A significant amount documentation is provided in the header and can be built as
 
 Opening an issue is welcome for any bugs or trouble using the library. Pull requests will be reviewed and possibly merged, but please raise an issue before making one first.
 
-For a more or less complete example see [Vcap Qt](https://github.com/sonicpulse/vcap-qt)
+For a more or less complete example see [Vcap Qt](https://github.com/empyreanx/vcap-qt)
 
 ## Features
 

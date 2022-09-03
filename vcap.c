@@ -1972,7 +1972,7 @@ static int vcap_init_stream(vcap_device* vd)
             return VCAP_ERROR;
 
         if (vcap_queue_buffers(vd) == VCAP_ERROR)
-            return VCAP_ERROR;
+            return VCAP_ERROR; // TODO: Unmap buffers on error
     }
 
     return VCAP_OK;

@@ -6,15 +6,15 @@ Vcap aims to provide a concise API for working with cameras and other video capt
 
 Vcap provides low-level, yet simple access to device formats and controls, enabling applications to make use of the full range of functionality provided by V4L2.
 
-Formats, frame sizes, frame rates, controls, and control menu items can be enumerated using iterators. This is especially helpful when contructing user interfaces that use Vcap.
+There are iterators for formats, frame sizes, frame rates, controls, and control menu items. These are especially helpful when contructing user interfaces that use Vcap.
 
-There are two I/O modes are available: MMAP buffers (streaming) and direct read. Streaming should have better performance for those devices that support it. The mode is set in the `vcap_create_device` function using the `buffer_count` parameter. A value greater than zero indicates streaming mode whereas read mode is used otherwise.
+Two I/O modes are available: MMAP buffers (streaming) and direct read. Streaming should have better performance for those devices that support it. The mode is set in the `vcap_create_device` function using the `buffer_count` parameter. A value greater than zero indicates streaming mode whereas read mode is used otherwise. Generally `buffer_count` should have a value in the range 2-4.
 
 There is significant error checking. Any function that can fail in release mode should do so gracefully and provide an error message detailing the underlying cause. There are also plenty of debug mode assertions.
 
-Extensive documentation is provided in the header. There are also a few examples the demonstrate how to work with the library. 
+Extensive documentation is provided in the header and can be built as HTML using Doxygen. There are also a few examples the demonstrate how to work with the library. 
 
-Opening an issue is welcome for any bugs or trouble using the library. Pull requests will be reviewed, but please open an issue before making one first.
+Opening an issue is welcome for any bugs or trouble using the library. Pull requests will be reviewed and possibly merged, but please raise an issue before making one first.
 
 For a more or less complete example see [Vcap Qt](https://github.com/sonicpulse/vcap-qt)
 
@@ -23,9 +23,9 @@ For a more or less complete example see [Vcap Qt](https://github.com/sonicpulse/
 * MIT licensed
 * Written in C99, but also compiles cleanly as C++11
 * Only two files for easy integration into any build system. Can also be built as a library (shared and/or static)
-* Simple enumeration and handling of video devices
+* Simple enumeration and handling of video devices and related information
 * Streaming and read modes are supported
-* Iterators for enumerating formats, frame sizes, frame rates, controls, and control menu items
+* Iterators for formats, frame sizes, frame rates, controls, and control menu items
 * Simple get/set functions for managing camera state
 * Ability to retrieve details about formats and controls
 * Extensive error checking in both debug and release modes

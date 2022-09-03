@@ -306,6 +306,8 @@ void vcap_close(vcap_device* vd);
 ///
 /// \brief  Starts the video stream on the specified device
 ///
+/// This function has no effect if streaming is disabled.
+///
 /// \param  vd  Pointer to the video device
 ///
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
@@ -315,6 +317,8 @@ int vcap_start_stream(vcap_device* vd);
 //------------------------------------------------------------------------------
 ///
 /// \brief  Stops the video stream on the specified device
+///
+/// This function has no effect if streaming is disabled.
 ///
 /// \param  vd  Pointer to the video device
 ///
@@ -353,7 +357,7 @@ int vcap_get_device_info(vcap_device* vd, vcap_device_info* info);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Returns the size of the device's frame buffer (image)
+/// \brief  Returns the size of the device's frame buffer (image size)
 ///
 /// Return the size of the frame buffer for the current video device and
 /// configuration (format/frame size). This size is used with the function
@@ -576,8 +580,8 @@ int vcap_get_control_info(vcap_device* vd, vcap_control_id ctrl, vcap_control_in
 /// \param  ctrl    The control ID
 /// \param  status  Pointer to the control info
 ///
-/// \returns VCAP_OK       if the control info was retrieved successfully,
-///          VCAP_ERROR    if getting the control info failed
+/// \returns VCAP_OK       if the control status was retrieved successfully,
+///          VCAP_ERROR    if getting the controlstatus failed
 ///          VCAP_INVALID  if the control ID is invalid, and
 ///
 int vcap_get_control_status(vcap_device* vd, vcap_control_id ctrl, vcap_control_status* status);
@@ -685,7 +689,7 @@ int vcap_reset_control(vcap_device* vd, vcap_control_id ctrl);
 
 //------------------------------------------------------------------------------
 ///
-/// \brief  Resets a all controls to defaults
+/// \brief  Resets all controls to defaults
 ///
 /// Resets all controls to their default values.
 ///
@@ -694,7 +698,6 @@ int vcap_reset_control(vcap_device* vd, vcap_control_id ctrl);
 /// \returns VCAP_ERROR on error and VCAP_OK otherwise
 ///
 int vcap_reset_all_controls(vcap_device* vd);
-// int vcap_reset_all(vcap_device* vd);?
 
 //------------------------------------------------------------------------------
 ///

@@ -1953,9 +1953,6 @@ static int vcap_request_buffers(vcap_device* vd)
     // available buffers
     vd->buffer_count = req.count;
 
-    // Allocates the buffer objects
-    vd->buffers = (vcap_buffer*)vcap_malloc(req.count * sizeof(vcap_buffer));
-
     return VCAP_OK;
 }
 
@@ -2017,6 +2014,9 @@ static int vcap_shutdown_stream(vcap_device* vd)
 static int vcap_map_buffers(vcap_device* vd)
 {
     assert(vd != NULL);
+
+    // Allocates the buffer objects
+    vd->buffers = (vcap_buffer*)vcap_malloc(vd->buffer_count * sizeof(vcap_buffer));
 
      for (uint32_t i = 0; i < vd->buffer_count; i++)
      {

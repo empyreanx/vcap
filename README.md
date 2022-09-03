@@ -10,9 +10,9 @@ There are iterators for formats, frame sizes, frame rates, controls, and control
 
 Two I/O modes are available: MMAP buffers (streaming) and direct read. Streaming should have better performance for those devices that support it. The mode is set in the `vcap_create_device` function using the `buffer_count` parameter. A value greater than zero indicates streaming mode whereas read mode is used otherwise. Generally `buffer_count` should have a value in the range 2-4.
 
-There is significant error checking. Any function that can fail in release mode should do so gracefully and provide an error message detailing the underlying cause. There are also plenty of debug mode assertions.
+There is extensive error checking. Any function that can fail in release mode should do so gracefully and provide an error message detailing the underlying cause. There are also plenty of debug mode assertions.
 
-Extensive documentation is provided in the header and can be built as HTML using Doxygen. There are also a few examples the demonstrate how to work with the library. 
+A significant amount documentation is provided in the header and can be built as HTML using Doxygen. There are also a few examples the demonstrate how to work with the library. 
 
 Opening an issue is welcome for any bugs or trouble using the library. Pull requests will be reviewed and possibly merged, but please raise an issue before making one first.
 

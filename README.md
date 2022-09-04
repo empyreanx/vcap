@@ -18,7 +18,7 @@ Opening an issue is welcome for any bugs or trouble using the library. Pull requ
 
 For a more or less complete example see [Vcap Qt](https://github.com/empyreanx/vcap-qt)
 
-The docs can be found online here [docs](https://empyreanx.github.io/docs/vcap/index.html).
+The documentation can be found online here [docs](https://empyreanx.github.io/docs/vcap/index.html).
 
 ## Features
 

@@ -56,16 +56,30 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    char* str = NULL;
+    // Export settings to string
+    char* json_str = NULL;
 
-    if (vcap_export_settings(vd, &str) == VCAP_ERROR)
+    if (vcap_export_settings(vd, &json_str) == VCAP_ERROR)
     {
         printf("Error: %s\n", vcap_get_error(vd));
         vcap_destroy_device(vd);
         return -1;
     }
 
-    printf("Device settings: \n%s", str);
+    printf("Device settings: \n%s", json_str);
+
+    // Read settings back into device
+    if (vcap_import_settings(vd, json_str) == VCAP_ERROR)
+    {
+        printf("Error: %s\n", vcap_get_error(vd));
+        free(json_str);
+        vcap_destroy_device(vd);
+        return -1;
+    }
+
+    // Clear ujp
+    free(json_str);
+    vcap_destroy_device(vd);
 
     return 0;
 }

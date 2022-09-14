@@ -33,6 +33,9 @@ static int vcap_parse_ctrl(vcap_device* vd, json_t* obj, vcap_control_id* id, in
 
 int vcap_import_settings(vcap_device* vd, const char* json_str)
 {
+    //TODO: Is necessary?
+    if (vcap_reset_all_controls(vd) == VCAP_ERROR)
+        return VCAP_ERROR;
 
     json_error_t error;
     json_t* root = json_loads(json_str, 0, &error);
@@ -259,7 +262,7 @@ int vcap_export_settings(vcap_device* vd, char** json_str)
             return VCAP_ERROR;
         }
 
-        if (status.read_only || status.write_only || status.disabled)
+        if (status.read_only || status.write_only || status.disabled || status.inactive)
             continue;
 
         int32_t value = 0;

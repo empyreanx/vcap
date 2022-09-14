@@ -12,4 +12,8 @@ if(BUILD_SDL_EXAMPLE)
     add_subdirectory(sdl)
 endif()
 
+if(BUILD_SETTINGS_EXAMPLE)
+    add_subdirectory(settings)
+endif()
+
 link_directories(${CMAKE_BINARY_DIR}/lib)

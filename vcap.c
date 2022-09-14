@@ -126,10 +126,10 @@ struct vcap_iterator
 //==============================================================================
 
 // Internal malloc
-static void* vcap_malloc(size_t size);
+void* vcap_malloc(size_t size);
 
 // Internal free
-static void vcap_free(void* ptr);
+void vcap_free(void* ptr);
 
 // FOURCC character code to string
 static void vcap_fourcc_str(uint32_t code, uint8_t* str);
@@ -180,10 +180,10 @@ static void vcap_ustrcpy(uint8_t* dst, const uint8_t* src, size_t size);
 static void vcap_strcpy(char* dst, const char* src, size_t size);
 
 // Set error message for specified device
-static void vcap_set_error_str(const char* func, int line, vcap_device* vd, const char* fmt, ...);
+void vcap_set_error_str(const char* func, int line, vcap_device* vd, const char* fmt, ...);
 
 // Set error message (including errno infomation) for specified device
-static void vcap_set_error_errno_str(const char* func, int line, vcap_device* vd, const char* fmt, ...);
+void vcap_set_error_errno_str(const char* func, int line, vcap_device* vd, const char* fmt, ...);
 
 // Converts a V4L2 control ID to VCAP control ID
 static vcap_control_id vcap_convert_ctrl(uint32_t id);
@@ -1370,6 +1370,8 @@ vcap_iterator* vcap_control_iterator(vcap_device* vd)
 
     vcap_iterator* itr = (vcap_iterator*)vcap_malloc(sizeof(vcap_iterator));
 
+    //FIXME Set error and return NULL if null
+
     itr->type = VCAP_ITR_TYPE_CTRL;
     itr->vd = vd;
     itr->index = 0;
@@ -1811,12 +1813,12 @@ int vcap_set_crop(vcap_device* vd, vcap_rect rect)
 // Internal Functions
 //==============================================================================
 
-static void* vcap_malloc(size_t size)
+void* vcap_malloc(size_t size)
 {
     return global_malloc_fp(size);
 }
 
-static void vcap_free(void* ptr)
+void vcap_free(void* ptr)
 {
     global_free_fp(ptr);
 }
@@ -1880,6 +1882,13 @@ static int vcap_query_caps(const char* path, struct v4l2_capability* caps)
 
     // Ensure video capture is supported
     if (!(caps->capabilities & V4L2_CAP_VIDEO_CAPTURE))
+    {
+        v4l2_close(fd);
+        return VCAP_ERROR;
+    }
+
+    if (!(caps->capabilities & V4L2_CAP_STREAMING) &&
+        !(caps->capabilities & V4L2_CAP_READWRITE))
     {
         v4l2_close(fd);
         return VCAP_ERROR;
@@ -2263,7 +2272,7 @@ static void vcap_strcpy(char* dst, const char* src, size_t size)
     snprintf(dst, size, "%s", src);
 }
 
-static void vcap_set_error_str(const char* func, int line, vcap_device* vd, const char* fmt, ...)
+void vcap_set_error_str(const char* func, int line, vcap_device* vd, const char* fmt, ...)
 {
     assert(vd != NULL);
     assert(fmt != NULL);
@@ -2281,7 +2290,7 @@ static void vcap_set_error_str(const char* func, int line, vcap_device* vd, cons
     snprintf(vd->error_msg, sizeof(vd->error_msg), "%s %s", error_msg1, error_msg2);
 }
 
-static void vcap_set_error_errno_str(const char* func, int line, vcap_device* vd, const char* fmt, ...)
+void vcap_set_error_errno_str(const char* func, int line, vcap_device* vd, const char* fmt, ...)
 {
     assert(vd != NULL);
     assert(fmt != NULL);
@@ -2383,7 +2392,8 @@ static int vcap_enum_sizes(vcap_device* vd, vcap_format_id fmt, vcap_size* size,
         if (errno == EINVAL)
         {
             return VCAP_INVALID;
-        } else
+        }
+        else
         {
             vcap_set_error_errno(vd, "Unable to enumerate sizes on device '%s'", vd->path);
             return VCAP_ERROR;

@@ -25,11 +25,11 @@ extern void  vcap_set_error_errno_str(const char* func, int line, vcap_device* v
 
 static json_t* vcap_build_size(vcap_device* vd, const vcap_size size);
 static json_t* vcap_build_rate(vcap_device* vd, const vcap_rate rate);
-static json_t* vcap_build_ctrl(vcap_device* vd, const vcap_control_info* info, uint32_t value);
+static json_t* vcap_build_ctrl(vcap_device* vd, const vcap_control_info* info, int32_t value);
 
 static int vcap_parse_size(vcap_device* vd, json_t* obj, vcap_size* size);
 static int vcap_parse_rate(vcap_device* vd, json_t* obj, vcap_rate* rate);
-static int vcap_parse_ctrl(vcap_device* vd, json_t* obj, vcap_control_id* id, uint32_t* value);
+static int vcap_parse_ctrl(vcap_device* vd, json_t* obj, vcap_control_id* id, int32_t* value);
 
 int vcap_import_settings(vcap_device* vd, const char* json_str)
 {
@@ -132,7 +132,8 @@ int vcap_import_settings(vcap_device* vd, const char* json_str)
 
     json_array_foreach(array, index, obj)
     {
-        uint32_t id, value;
+        uint32_t id;
+        int32_t  value;
 
         if (vcap_parse_ctrl(vd, obj, &id, &value) == VCAP_ERROR)
         {
@@ -261,7 +262,7 @@ int vcap_export_settings(vcap_device* vd, char** json_str)
         if (status.read_only || status.write_only || status.disabled)
             continue;
 
-        uint32_t value = 0;
+        int32_t value = 0;
 
         if (vcap_get_control(vd, info.id, &value) != VCAP_OK)
         {
@@ -394,7 +395,7 @@ static int vcap_parse_rate(vcap_device* vd, json_t* obj, vcap_rate* rate)
     return VCAP_OK;
 }
 
-static int vcap_parse_ctrl(vcap_device* vd, json_t* obj, vcap_control_id* id, uint32_t* value)
+static int vcap_parse_ctrl(vcap_device* vd, json_t* obj, vcap_control_id* id, int32_t* value)
 {
     //TODO: validate inputs
 
@@ -481,7 +482,7 @@ static json_t* vcap_build_rate(vcap_device* vd, const vcap_rate rate)
     return obj;
 }
 
-static json_t* vcap_build_ctrl(vcap_device* vd, const vcap_control_info* info, uint32_t value)
+static json_t* vcap_build_ctrl(vcap_device* vd, const vcap_control_info* info, int32_t value)
 {
     json_t* obj = json_object();
 

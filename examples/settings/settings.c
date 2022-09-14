@@ -48,7 +48,14 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-//    vcap_import_settings(NULL, NULL);
+    // Set format
+    if (vcap_set_format(vd, VCAP_FMT_RGB24, (vcap_size){ 640, 480 }) != VCAP_OK)
+    {
+        printf("Error: %s\n", vcap_get_error(vd));
+        vcap_destroy_device(vd);
+        return -1;
+    }
+
     char* str = NULL;
 
     if (vcap_export_settings(vd, &str) == VCAP_ERROR)

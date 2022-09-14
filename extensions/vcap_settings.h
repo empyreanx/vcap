@@ -3,8 +3,16 @@
 
 #include "vcap.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int vcap_import_settings(vcap_device* vd, const char* json);
 int vcap_export_settings(vcap_device* vd, char** json);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // VCAP_SETTINGS_H
 
@@ -12,10 +20,18 @@ int vcap_export_settings(vcap_device* vd, char** json);
 
 #include <jansson.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern void* vcap_malloc(size_t size);
 extern void  vcap_free(void* ptr);
 extern void  vcap_set_error_str(const char* func, int line, vcap_device* vd, const char* fmt, ...);
 extern void  vcap_set_error_errno_str(const char* func, int line, vcap_device* vd, const char* fmt, ...);
+
+#ifdef __cplusplus
+}
+#endif
 
 // Set error message
 #define vcap_set_error(...) (vcap_set_error_str(__func__, __LINE__, __VA_ARGS__))

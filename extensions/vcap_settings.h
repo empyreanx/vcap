@@ -1,3 +1,55 @@
+//==============================================================================
+// MIT License
+//
+// Copyright 2022 James McLean
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//==============================================================================
+
+/**
+    \file vcap_settings.h
+    \brief Settings import/export for Vcap
+
+    Summary:
+    --------
+
+    This tiny single-header library is an extension to Vcap that allows camera
+    settings to be exported/imported, to/from JSON. This benefits applications
+    that to need to preserve camera settings for various reasons.
+
+    Usage:
+    ------
+
+    The additional required dependency is Jansson, which can be installed as
+    follows:
+
+    > sudo apt install libjansson-dev
+
+    To use this library in your project, add the following
+
+    > #define VCAP_SETTINGS_IMPLEMENTATION
+    > #include "vcap_settings.h"
+
+    to a source file (once), then simply include the header normally.
+
+*/
+
 #ifndef VCAP_SETTINGS_H
 #define VCAP_SETTINGS_H
 
@@ -7,7 +59,36 @@
 extern "C" {
 #endif
 
+
+//------------------------------------------------------------------------------
+///
+/// \brief Imports camera settings from JSON
+///
+/// The is function will parse the JSON string, extract the camera settings, and
+/// write those settings to the device.
+///
+/// \param vd    The video capture device
+/// \param json  The JSON encoded camera settings
+///
+/// \returns VCAP_OK      if the settings were successfully imported
+///          VCAP_ERROR   if there was an error.
+///
 int vcap_import_settings(vcap_device* vd, const char* json);
+
+//------------------------------------------------------------------------------
+///
+/// \brief Exports camera settings to JSON
+///
+// This function will read the setting from a camera and serialize them as JSON.
+///
+/// \param vd    The video capture device
+/// \param json  Pointer to a string pointer. The corresponding argument will be
+///              allocated and set internally. The standard library `free()`
+///              must be used to deallocate this string
+///
+/// \returns VCAP_OK      if the settings were successfully exported
+///          VCAP_ERROR   if there was an error.
+///
 int vcap_export_settings(vcap_device* vd, char** json);
 
 #ifdef __cplusplus

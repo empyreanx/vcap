@@ -59,7 +59,6 @@
 extern "C" {
 #endif
 
-
 //------------------------------------------------------------------------------
 ///
 /// \brief Imports camera settings from JSON
@@ -110,7 +109,6 @@ extern "C" {
 extern void* vcap_malloc(size_t size);
 extern void  vcap_free(void* ptr);
 extern void  vcap_set_error_str(const char* func, int line, vcap_device* vd, const char* fmt, ...);
-extern void  vcap_set_error_errno_str(const char* func, int line, vcap_device* vd, const char* fmt, ...);
 
 #ifdef __cplusplus
 }
@@ -118,9 +116,6 @@ extern void  vcap_set_error_errno_str(const char* func, int line, vcap_device* v
 
 // Set error message
 #define vcap_set_error(...) (vcap_set_error_str(__func__, __LINE__, __VA_ARGS__))
-
-// Set message with errno information
-#define vcap_set_error_errno(...) (vcap_set_error_errno_str( __func__, __LINE__,  __VA_ARGS__))
 
 static json_t* vcap_build_size(vcap_device* vd, const vcap_size size);
 static json_t* vcap_build_rate(vcap_device* vd, const vcap_rate rate);
@@ -132,7 +127,6 @@ static int vcap_parse_ctrl(vcap_device* vd, json_t* obj, vcap_control_id* id, in
 
 int vcap_import_settings(vcap_device* vd, const char* json_str)
 {
-    //TODO: Is necessary?
     if (vcap_reset_all_controls(vd) == VCAP_ERROR)
         return VCAP_ERROR;
 
@@ -345,7 +339,7 @@ int vcap_export_settings(vcap_device* vd, char** json_str)
 
     vcap_iterator* itr = vcap_control_iterator(vd);
 
-    //FIXME: check if itr is NULL
+    //TODO: check if itr is NULL
 
     vcap_control_info info;
 
@@ -503,7 +497,11 @@ static int vcap_parse_rate(vcap_device* vd, json_t* obj, vcap_rate* rate)
 
 static int vcap_parse_ctrl(vcap_device* vd, json_t* obj, vcap_control_id* id, int32_t* value)
 {
-    //TODO: validate inputs
+    if (!id || !value)
+    {
+        vcap_set_error(vd, "Argument can't be NULL");
+        return VCAP_ERROR;
+    }
 
     if (json_typeof(obj) != JSON_OBJECT)
     {

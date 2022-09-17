@@ -31,7 +31,7 @@
 
     This tiny single-header library is an extension to Vcap that allows camera
     settings to be exported/imported, to/from JSON. This benefits applications
-    that to need to preserve camera settings for various reasons.
+    that to need to preserve camera state for various reasons.
 
     Usage:
     ------
@@ -47,7 +47,6 @@
     > #include "vcap_settings.h"
 
     to a source file (once), then simply include the header normally.
-
 */
 
 #ifndef VCAP_SETTINGS_H
@@ -66,13 +65,13 @@ extern "C" {
 /// The is function will parse the JSON string, extract the camera settings, and
 /// write those settings to the device.
 ///
-/// \param vd    The video capture device
-/// \param json  The JSON encoded camera settings
+/// \param vd        The video capture device
+/// \param json_str  The JSON encoded camera settings
 ///
-/// \returns VCAP_OK      if the settings were successfully imported
-///          VCAP_ERROR   if there was an error.
+/// \returns VCAP_OK     if the settings were successfully imported
+///          VCAP_ERROR  if there was an error.
 ///
-int vcap_import_settings(vcap_device* vd, const char* json);
+int vcap_import_settings(vcap_device* vd, const char* json_str);
 
 //------------------------------------------------------------------------------
 ///
@@ -80,16 +79,17 @@ int vcap_import_settings(vcap_device* vd, const char* json);
 ///
 // This function will read the setting from a camera and serialize them as JSON.
 ///
-/// \param vd    The video capture device
-/// \param json  Pointer to a string pointer. The corresponding argument will be
-///              allocated and set internally. The free function passed to
-///              `vcap_set_alloc` must be used to deallocate this string, or the
-///              standard library `free()` if none was set
+/// \param vd        The video capture device
+/// \param json_str  Pointer to a string pointer. The corresponding argument
+///                  will be allocated and set internally. This string must be
+///                  deallocated using the custom `free` function passed to Vcap
+///                  or the standard library `free()` function if a custom
+///                  allocator is not in use.
 ///
-/// \returns VCAP_OK      if the settings were successfully exported
-///          VCAP_ERROR   if there was an error.
+/// \returns VCAP_OK    if the settings were successfully exported
+///          VCAP_ERROR if there was an error.
 ///
-int vcap_export_settings(vcap_device* vd, char** json);
+int vcap_export_settings(vcap_device* vd, char** json_str);
 
 #ifdef __cplusplus
 }
@@ -101,6 +101,10 @@ int vcap_export_settings(vcap_device* vd, char** json);
 
 #include <jansson.h>
 #include <string.h>
+
+//==============================================================================
+// Internal function declarations
+//==============================================================================
 
 #ifdef __cplusplus
 extern "C" {
@@ -433,7 +437,7 @@ int vcap_export_settings(vcap_device* vd, char** json_str)
 }
 
 //==============================================================================
-// Parsing functions (imports)
+// Parsing functions (import)
 //==============================================================================
 
 static int vcap_parse_size(vcap_device* vd, json_t* obj, vcap_size* size)
@@ -543,7 +547,7 @@ static int vcap_parse_ctrl(vcap_device* vd, json_t* obj, vcap_control_id* id, in
 }
 
 //==============================================================================
-// Build function (exports)
+// Build function (export)
 //==============================================================================
 
 static json_t* vcap_build_size(vcap_device* vd, const vcap_size size)

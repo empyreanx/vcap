@@ -83,8 +83,9 @@ int vcap_import_settings(vcap_device* vd, const char* json);
 ///
 /// \param vd    The video capture device
 /// \param json  Pointer to a string pointer. The corresponding argument will be
-///              allocated and set internally. The standard library `free()`
-///              must be used to deallocate this string
+///              allocated and set internally. The free function passed to
+///              `vcap_set_alloc` must be used to deallocate this string, or the
+///              standard library `free()` if none was set
 ///
 /// \returns VCAP_OK      if the settings were successfully exported
 ///          VCAP_ERROR   if there was an error.
@@ -100,6 +101,7 @@ int vcap_export_settings(vcap_device* vd, char** json);
 #ifdef VCAP_SETTINGS_IMPLEMENTATION
 
 #include <jansson.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -419,7 +421,11 @@ int vcap_export_settings(vcap_device* vd, char** json_str)
         return VCAP_ERROR;
     }
 
-    *json_str = str;
+    size_t len = strlen(str) + 1;
+
+    *json_str = vcap_malloc(len * sizeof(char));
+    memcpy(*json_str, str, len);
+    free(str);
 
     json_decref(root);
 

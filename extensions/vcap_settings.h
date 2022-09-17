@@ -427,7 +427,7 @@ int vcap_export_settings(vcap_device* vd, char** json_str)
 
     size_t len = strlen(str) + 1;
 
-    *json_str = vcap_malloc(len * sizeof(char));
+    *json_str = (char*)vcap_malloc(len * sizeof(char));
     memcpy(*json_str, str, len);
     free(str);
 

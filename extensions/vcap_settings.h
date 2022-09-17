@@ -106,6 +106,7 @@ int vcap_export_settings(vcap_device* vd, char** json);
 extern "C" {
 #endif
 
+// Provided by Vcap
 extern void* vcap_malloc(size_t size);
 extern void  vcap_free(void* ptr);
 extern void  vcap_set_error_str(const char* func, int line, vcap_device* vd, const char* fmt, ...);
@@ -117,6 +118,7 @@ extern void  vcap_set_error_str(const char* func, int line, vcap_device* vd, con
 // Set error message
 #define vcap_set_error(...) (vcap_set_error_str(__func__, __LINE__, __VA_ARGS__))
 
+// Internal functions
 static json_t* vcap_build_size(vcap_device* vd, const vcap_size size);
 static json_t* vcap_build_rate(vcap_device* vd, const vcap_rate rate);
 static json_t* vcap_build_ctrl(vcap_device* vd, const vcap_control_info* info, int32_t value);
@@ -124,6 +126,10 @@ static json_t* vcap_build_ctrl(vcap_device* vd, const vcap_control_info* info, i
 static int vcap_parse_size(vcap_device* vd, json_t* obj, vcap_size* size);
 static int vcap_parse_rate(vcap_device* vd, json_t* obj, vcap_rate* rate);
 static int vcap_parse_ctrl(vcap_device* vd, json_t* obj, vcap_control_id* id, int32_t* value);
+
+//==============================================================================
+// Public API implementation
+//==============================================================================
 
 int vcap_import_settings(vcap_device* vd, const char* json_str)
 {
@@ -426,6 +432,10 @@ int vcap_export_settings(vcap_device* vd, char** json_str)
     return VCAP_OK;
 }
 
+//==============================================================================
+// Parsing functions (imports)
+//==============================================================================
+
 static int vcap_parse_size(vcap_device* vd, json_t* obj, vcap_size* size)
 {
     if (json_typeof(obj) != JSON_OBJECT)
@@ -531,6 +541,10 @@ static int vcap_parse_ctrl(vcap_device* vd, json_t* obj, vcap_control_id* id, in
 
     return VCAP_OK;
 }
+
+//==============================================================================
+// Build function (exports)
+//==============================================================================
 
 static json_t* vcap_build_size(vcap_device* vd, const vcap_size size)
 {
